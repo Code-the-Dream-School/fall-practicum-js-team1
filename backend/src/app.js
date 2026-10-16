@@ -6,6 +6,8 @@ const rateLimit = require('express-rate-limit');
 
 const helloRoutes = require('./routes/hello.routes');
 
+const port = process.env.PORT || 3000
+
 const app = express();
 
 // Security & best‑practice middleware
@@ -28,4 +30,12 @@ app.get('/', (req, res) => {
   res.send('Backend API is running');
 });
 
-module.exports = app;
+const server = app.listen(port, () => {
+  console.log(`Server is running on port ${port}...`)
+})
+
+process.on('SIGTERM', async () => {
+  server.close()
+})
+
+module.exports = { app, server }
