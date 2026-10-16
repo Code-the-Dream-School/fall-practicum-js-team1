@@ -93,16 +93,19 @@ project-root/
 ## ⚙️ Setup & Installation
 
 ### Prerequisites
-- Node.js (v18+ recommended)
+- [NVM](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js v26+
 - npm or yarn
-- MongoDB or PostgreSQL (local or cloud)
+- PostgreSQL (local or cloud)
 
 ### Backend Setup
 
 ```bash
 cd backend
+nvm install
 npm install
 npm run dev
+cp .env.example .env
 ```
 
 Create a `.env` file inside the `backend` folder:
