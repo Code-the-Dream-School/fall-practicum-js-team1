@@ -1,15 +1,15 @@
 # Project Name
 
-Short, clear description of what this application does and who it’s for.  
+Short, clear description of what this application does and who it’s for.
 (1–2 sentences max.)
 
-**Example:**  
+**Example:**
 A full-stack web application with a React frontend and a Node/Express backend that allows users to create, manage, and track data stored in a database.
 
 ## 🚀 Live Demo
 
-- **Frontend Live Site:** https://your-frontend-url.com  
-- **Frontend Repo:** /frontend  
+- **Frontend Live Site:** https://your-frontend-url.com
+- **Frontend Repo:** /frontend
 - **Backend Repo:** /backend
 
 ## 🧠 Problem Statement
@@ -69,7 +69,7 @@ project-root/
 │   │   ├── components/
 │   │   ├── pages/
 │   │   ├── hooks/
-│   │   ├── services/        
+│   │   ├── services/
 │   │   ├── styles/
 │   │   ├── utils/
 │   │   ├── App.jsx
@@ -104,20 +104,27 @@ project-root/
 cd backend
 nvm install
 npm install
-npm run dev
 cp .env.example .env
+npm run dev
 ```
 
 Create a `.env` file inside the `backend` folder:
 
 ```env
-PORT=5000
+PORT=3000
 DATABASE_URL=your_database_url
 JWT_SECRET=your_secret_key
 ```
 
-Backend runs on:  
-http://localhost:8080
+Backend runs on:
+http://localhost:3000
+
+#### Linting
+To lint a directory or file, run this command:
+
+```bash
+npm run lint
+```
 
 ### Frontend Setup
 
@@ -127,7 +134,7 @@ npm install
 npm run dev
 ```
 
-Frontend runs on:  
+Frontend runs on:
 http://localhost:5173
 
 ## 🧪 Available Scripts
