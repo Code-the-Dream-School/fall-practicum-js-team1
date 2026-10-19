@@ -34,7 +34,7 @@
 - [ ] My PR title includes the Jira ticket number and a relevant description of the changes (e.g., `BABY-123: Add size filters`).
 - [ ] I reviewed my own code and removed unnecessary debugging code (including temporary `console.log` calls), accidental files, and secrets.
 - [ ] I checked that my PR only includes changes related to the Jira ticket.
-- [ ] I followed our team's workflow for keeping my branch up to date with `main`.
+- [ ] I followed our team's workflow for keeping my branch up to date with the target branch `dev` (or `main` when merging `dev`).
 - [ ] GitHub Actions CI checks are passing, or I've explained any failing checks
 - [ ] I requested review from at least one teammate and one mentor, following our team's review requirements.
 
