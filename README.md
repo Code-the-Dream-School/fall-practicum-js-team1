@@ -96,6 +96,7 @@ project-root/
 - [NVM](https://github.com/nvm-sh/nvm#installing-and-updating)
 - Node.js v26+
 - npm or yarn
+- Typescript (installed globally)
 - PostgreSQL (local or cloud)
 
 ### Backend Setup

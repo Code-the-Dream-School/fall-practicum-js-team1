@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import app from './src/app.js'
+import app from './src/app.ts'
 import config from './src/config/config.ts'
 
 dotenv.config();
@@ -13,4 +13,3 @@ const server = app.listen(PORT, () => {
 process.on('SIGTERM', async () => {
   server.close()
 })
-
