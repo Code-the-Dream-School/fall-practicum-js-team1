@@ -102,19 +102,14 @@ project-root/
 ```bash
 cd backend
 npm install
+cp .env.example .env
 npm run dev
 ```
 
-Create a `.env` file inside the `backend` folder:
-
-```env
-PORT=5000
-DATABASE_URL=your_database_url
-JWT_SECRET=your_secret_key
-```
+All variables are listed in `backend/.env.example`.
 
 Backend runs on:  
-http://localhost:8080
+http://localhost:3000
 
 ### Frontend Setup
 
@@ -126,6 +121,16 @@ npm run dev
 
 Frontend runs on:  
 http://localhost:5173
+
+## 🔌 Frontend ↔ Backend Connection
+
+In development, the frontend calls the backend through a **Vite proxy**.
+
+- In frontend code, use a relative path: `fetch('/api/hello')`
+- Vite forwards every `/api` request to the backend at `http://localhost:3000`
+- The setting is in `frontend/vite.config.ts` (`server.proxy`)
+- Restart `npm run dev` after you change `vite.config.ts`
+- The proxy only works in development. The deployed app needs a separate setup (not decided yet).
 
 ## 🧪 Available Scripts
 
