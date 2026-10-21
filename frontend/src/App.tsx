@@ -7,7 +7,8 @@ function App() {
 
   useEffect(() => {
     // Call the backend API
-    fetch('http://localhost:8080/api/hello')
+    // ★ The Vite proxy forwards /api to the backend (port 3000)
+    fetch('/api/hello')
       .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to fetch from backend');
