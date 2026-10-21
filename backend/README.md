@@ -14,6 +14,7 @@ The backend API is responsible for:
 - Enforcing security and access control
 
 The backend **must not**:
+
 - Render UI
 - Trust client input
 - Expose sensitive information
@@ -23,9 +24,11 @@ The backend **must not**:
 ### 1️⃣ Separate Routes from Controllers
 
 **Routes**
+
 - Define the URL and HTTP method
 
 **Controllers**
+
 - Contain the logic for handling requests
 
 This separation keeps code readable and scalable.
@@ -33,6 +36,7 @@ This separation keeps code readable and scalable.
 ### 2️⃣ One Responsibility per File
 
 If a file:
+
 - defines routes
 - validates data
 - accesses the database
@@ -61,6 +65,7 @@ const getItems = async (req, res, next) => {
 ### 4️⃣ Never Trust Client Input
 
 All data coming from:
+
 - request bodies
 - query params
 - URL params
@@ -85,12 +90,13 @@ module.exports = (err, req, res, next) => {
   console.error(err.stack);
 
   res.status(err.status || 500).json({
-    message: err.message || 'Server error'
+    message: err.message || 'Server error',
   });
 };
 ```
 
 Benefits:
+
 - consistent responses
 - easier debugging
 - cleaner controllers
@@ -100,11 +106,13 @@ Benefits:
 ### 7️⃣ Never Leak Internal Errors
 
 ❌ Bad:
+
 ```json
 { "error": "Cannot read property 'map' of undefined" }
 ```
 
 ✅ Good:
+
 ```json
 { "message": "Something went wrong" }
 ```
@@ -116,6 +124,7 @@ Log details on the server, not in API responses.
 ### 8️⃣ Use Security Middleware
 
 Recommended packages:
+
 - `helmet` – secure HTTP headers
 - `cors` – control cross-origin access
 - `express-rate-limit` – prevent abuse
@@ -132,6 +141,7 @@ These should be applied **globally**.
 ### 🔟 Use Environment Variables for Secrets
 
 Examples:
+
 - database URLs
 - JWT secrets
 - API keys
@@ -153,6 +163,7 @@ Never commit `.env` files to Git.
 ### 1️⃣2️⃣ Keep API Response Shapes Consistent
 
 Example success response:
+
 ```json
 {
   "success": true,
@@ -161,6 +172,7 @@ Example success response:
 ```
 
 Example error response:
+
 ```json
 {
   "success": false,
@@ -181,6 +193,7 @@ Consistency makes frontend development easier.
 > The backend is the **source of truth** for data, rules, and security.
 
 Build APIs assuming:
+
 - clients can be buggy
 - clients can be malicious
 - future developers will read your code

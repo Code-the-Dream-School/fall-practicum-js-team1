@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import './App.css'
+import './App.css';
 
 function App() {
   const [message, setMessage] = useState('');
@@ -38,4 +38,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
