@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import './App.css'
+import './App.css';
 
 function App() {
   const [message, setMessage] = useState('');
@@ -7,7 +7,8 @@ function App() {
 
   useEffect(() => {
     // Call the backend API
-    fetch('http://localhost:8080/api/hello')
+    // ★ The Vite proxy forwards /api to the backend (port 3000)
+    fetch('/api/hello')
       .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to fetch from backend');
@@ -37,4 +38,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
