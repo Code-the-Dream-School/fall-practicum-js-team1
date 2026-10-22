@@ -204,6 +204,19 @@ DELETE /api/items/:id
 - Instructors
 - Open-source libraries and tools
 
+## 🗄 Database Setup (Neon PostgreSQL)
+
+The team shares one Neon project (`baby-donations`) with a `dev` branch.
+
+## Get your Neon credentials
+
+1. Accept the invitation to the Neon project (check your email), or ask Eriko to add you.
+2. Open the project in the Neon dashboard and select the `dev` branch.
+3. Click **Connect** and copy the connection string. It ends with `?sslmode=require`.
+4. Paste it into `backend/.env` as `DATABASE_URL`.
+
+Never commit `.env` or share the connection string in pull requests or chat.
+
 ## 📄 License
 
 This project is for educational purposes only.
