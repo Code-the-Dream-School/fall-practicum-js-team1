@@ -1,12 +1,15 @@
 import type { ErrorRequestHandler } from 'express';
-import { ApiError } from '../utils/apiError';
+import { ApiError } from '../utils/apiError.js';
 
-export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+export const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
   console.error(err);
-  
+  if (res.headersSent) {
+    return next(err);
+  }
+
   let status = 500;
   let message = 'Server error';
-  
+
   if (err instanceof ApiError) {
     status = err.status;
     message = err.message;
@@ -14,6 +17,6 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 
   res.status(status).json({
     success: false,
-    message
-  })
-}
+    message,
+  });
+};
