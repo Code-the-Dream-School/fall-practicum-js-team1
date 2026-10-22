@@ -1,94 +1,98 @@
-# Project Name
+# Baby Gear Exchange
 
-Short, clear description of what this application does and who it’s for.
-(1–2 sentences max.)
-
-**Example:**
-A full-stack web application with a React frontend and a Node/Express backend that allows users to create, manage, and track data stored in a database.
+A full-stack web application that helps families donate, browse, and claim gently used baby and toddler items in their community.
 
 ## 🚀 Live Demo
 
-- **Frontend Live Site:** https://your-frontend-url.com
-- **Frontend Repo:** /frontend
-- **Backend Repo:** /backend
+- **Frontend Live Site:** Coming soon
+- **Frontend:** `/frontend`
+- **Backend:** `/backend`
 
 ## 🧠 Problem Statement
 
-What problem does this project solve?
+Baby and toddler items can be expensive and are often used for only a short period of time.
 
-- Who is this application for?
-- What pain point does it address?
-- Why does this solution matter?
+Baby Gear Exchange helps families donate items they no longer need while allowing other families to browse and claim useful baby and toddler gear.
 
-Focus on the **user problem**, not the technology.
+The goal is to make sharing items easier, reduce waste, and support families in the community.
 
 ## 🎯 Features
 
-- User authentication (register, login, logout)
-- CRUD operations for core resources
-- Protected routes and authorization
-- Responsive UI (mobile & desktop)
+- User registration and login
+- Post baby and toddler items for donation
+- Browse available items
+- Search and filter items by category, condition, and age
+- View item details
+- Claim an available item
+- Item owner can approve or decline a claim
+- Mark an item as picked up
+- View My Donations
+- View My Claims
+- User profile
+- Responsive design for mobile and desktop
 - Form validation and error handling
-- RESTful API integration
+- REST API integration
 
 ## 📸 Screenshots
 
-Add screenshots or GIFs of key features here.
-
-
+Screenshots and GIFs will be added as features are developed.
 
 ## 🛠 Tech Stack
 
 ### Frontend
+
 - React
-- JavaScript (ES6+)
-- HTML5
-- CSS3 / Tailwind / Bootstrap
-- Vite or Create React App
+- TypeScript
+- Vite
+- React Router
+- Tailwind CSS
+- shadcn/ui
 
 ### Backend
+
 - Node.js
 - Express.js
+- TypeScript
+- Prisma
 - REST API
 
 ### Database
-- MongoDB (Mongoose) **or**
-- PostgreSQL (Prisma / Knex / Sequelize)
+
+- PostgreSQL
+- Neon
+
+### State and Data Management
+
+- Zustand
+- TanStack Query
 
 ### Tooling
-- Git & GitHub
-- dotenv (environment variables)
-- ESLint / Prettier
+
+- Git
+- GitHub
+- Jira
+- Slack
+- ESLint
+- Prettier
 
 ## 📁 Project Structure
 
 ```text
-project-root/
+fall-practicum-js-team1/
 ├── frontend/
 │   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   ├── styles/
-│   │   ├── utils/
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── index.html
-│   └── package.json
+│   ├── package.json
+│   └── index.html
 │
 ├── backend/
-│   ├── controllers/
-│   ├── routes/
-│   ├── models/
-│   ├── middleware/
-│   ├── config/
-│   ├── app.js
-│   ├── server.js
+│   ├── src/
+│   ├── prisma/
 │   └── package.json
 │
+
+├── .gitignore
 └── README.md
-```
+
 
 ## ⚙️ Setup & Installation
 
