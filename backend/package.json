@@ -1,26 +1,45 @@
 {
   "name": "basic-backend-api",
+  "type": "module",
   "version": "1.1.0",
   "description": "Node + Express backend API",
-  "main": "server.js",
+  "main": "dist/server.ts",
   "scripts": {
-    "dev": "nodemon server.js",
-    "start": "node server.js",
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "npm exec eslint",
     "format": "prettier . --write",
     "format:check": "prettier . --check"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "dotenv": "^16.6.1",
+    "express": "^5.3.0",
     "express-rate-limit": "^7.3.0",
     "helmet": "^7.1.0",
-    "mongoose": "^8.4.0",
+    "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.0",
-    "pg": "^8.11.5"
+    "pg": "^8.23.1",
+    "prisma": "^7.10.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "nodemon": "^3.0.3",
-    "prettier": "3.9.10"
+    "@eslint/js": "^10.0.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
+    "nodemon": "^3.1.14",
+    "prettier": "3.9.10",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.0"
   }
 }
