@@ -3,6 +3,7 @@ import { ApiError } from '../utils/apiError.js';
 
 export const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
   console.error(err);
+
   if (res.headersSent) {
     return next(err);
   }
