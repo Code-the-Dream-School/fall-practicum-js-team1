@@ -3,12 +3,13 @@
   "type": "module",
   "version": "1.1.0",
   "description": "Node + Express backend API",
-  "main": "server.ts",
+  "main": "dist/server.ts",
   "scripts": {
-    "dev": "nodemon server.ts",
-    "start": "node server.js",
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
     "lint": "npm exec eslint",
-    "build:types": "tsc -d --declarationDir dist/lib --declarationMap --emitDeclarationOnly",
     "format": "prettier . --write",
     "format:check": "prettier . --check"
   },

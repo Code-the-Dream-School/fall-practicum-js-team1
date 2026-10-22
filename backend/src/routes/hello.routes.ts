@@ -1,5 +1,5 @@
 import express from 'express';
-import { getHello } from '../controllers/hello.controller.ts';
+import { getHello } from '../controllers/hello.controller.js';
 
 const router = express.Router();
 // GET /api/hello

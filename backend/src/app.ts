@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 
-import helloRoutes from './routes/hello.routes.ts';
+import helloRoutes from './routes/hello.routes.js';
 
 const app = express();
 
@@ -28,4 +28,4 @@ app.get('/', (req, res) => {
   res.send('Backend API is running');
 });
 
-export default app
+export default app;

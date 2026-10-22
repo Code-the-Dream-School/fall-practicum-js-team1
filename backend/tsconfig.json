@@ -41,7 +41,6 @@
     // "noFallthroughCasesInSwitch": true,
     // "noPropertyAccessFromIndexSignature": true,
 
-    "allowImportingTsExtensions": true,
     // Recommended Options
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
