@@ -30,6 +30,7 @@ app.get('/', (req, res) => {
   res.send('Backend API is running');
 });
 
+// Keep these last, in this order
 app.use(notFound);
 app.use(errorHandler);
 
