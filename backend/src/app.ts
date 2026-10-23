@@ -1,10 +1,10 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
 
-const helloRoutes = require('./routes/hello.routes');
+import helloRoutes from './routes/hello.routes.js';
 
 const app = express();
 
@@ -28,4 +28,4 @@ app.get('/', (req, res) => {
   res.send('Backend API is running');
 });
 
-module.exports = app;
+export default app;
