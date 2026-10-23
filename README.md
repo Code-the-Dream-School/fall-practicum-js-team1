@@ -95,14 +95,17 @@ fall-practicum-js-team1/
 ## ⚙️ Setup & Installation
 
 ### Prerequisites
-- Node.js (v18+ recommended)
+- [NVM](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js v26+
 - npm or yarn
-- PostgreSQL (local or hosted on Neon)
+- Typescript (installed globally)
+- PostgreSQL (local or cloud)
 
 ### Backend Setup
 
 ```bash
 cd backend
+nvm install
 npm install
 cp .env.example .env
 npm run dev
@@ -110,9 +113,15 @@ npm run dev
 
 All variables are listed in `backend/.env.example`.
 
-Backend runs on:  
+Backend runs on:
 http://localhost:3000
 
+#### Linting
+To lint a directory or file, run this command:
+
+```bash
+npm run lint
+```
 ### Frontend Setup
 
 ```bash
@@ -121,7 +130,7 @@ npm install
 npm run dev
 ```
 
-Frontend runs on:  
+Frontend runs on:
 http://localhost:5173
 
 ## 🔌 Frontend ↔ Backend Connection
@@ -208,4 +217,3 @@ DELETE /api/items/:id
 ## 📄 License
 
 This project is for educational purposes only.
-
