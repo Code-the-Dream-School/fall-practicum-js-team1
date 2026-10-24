@@ -70,8 +70,6 @@ Screenshots and GIFs will be added as features are developed.
 
 - Git
 - GitHub
-- Jira
-- Slack
 - ESLint
 - Prettier
 
@@ -182,11 +180,14 @@ DELETE /api/items/:id
 - Name — Role
 - Name — Role
 
+
 ### Workflow
-- GitHub Issues for task tracking
-- Feature branches for development
-- Pull Requests required for all merges
-- Code reviews before merging to `main`
+
+- Use Jira to track tasks and progress.
+- Create feature branches from `dev`.
+- Open pull requests targeting `dev`.
+- Get at least two approvals before merging,including at least one approval from a mentor.
+- Keep `main` for stable production code.
 
 
 ## 🧩 Development Process
