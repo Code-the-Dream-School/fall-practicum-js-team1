@@ -292,6 +292,12 @@ npm run build
 - `npm run lint` checks code for potential issues and style violations.
 - `npm run build` compiles the backend.
 
+## Open Prisma Studio
+From the backend directory, run:
+npm run db:studio
+
+Prisma Studio will open in your browser and let you view and manage database records.
+
 **Note:** Prisma Studio may show no tables if the Prisma schema does not yet define any database models.
 
 ## 📄 License
