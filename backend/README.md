@@ -293,6 +293,7 @@ npm run build
 - `npm run build` compiles the backend.
 
 ## Open Prisma Studio
+
 From the backend directory, run:
 npm run db:studio
 
