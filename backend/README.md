@@ -207,6 +207,93 @@ Build APIs assuming:
 - [ ] Secrets are stored in environment variables
 - [ ] API responses are consistent
 
+## 🗄️ Database Setup (Neon PostgreSQL)
+
+This project uses Prisma ORM with a PostgreSQL database hosted on Neon.
+Team members share the project's Neon database.
+
+## Get Your Neon Credentials
+
+1. Open the Neon project dashboard.
+2. Click the branch dropdown menu in the top-left corner.
+3. Select the `dev` branch and confirm that the checkmark appears next to it.
+4. Click **Connect**.
+5. Copy the PostgreSQL connection string.
+6. Open `backend/.env` and add the connection string as `DATABASE_URL`.
+
+Example:
+
+```env
+DATABASE_URL="your_neon_connection_string"
+```
+
+If you do not have access to the Neon project, ask Eriko to invite you.
+
+**Security:** Never commit your `.env` file or share your database connection string publicly.
+
+## Generate and Validate Prisma
+
+Run these commands during initial setup and again when the Prisma schema changes, as needed.
+
+```bash
+npx prisma validate
+npx prisma generate
+```
+
+- `prisma validate` checks whether the Prisma schema is valid.
+- `prisma generate` generates the Prisma client used by the application.
+
+## Verify the Neon Database Connection
+
+Run this test during initial setup or whenever you need to troubleshoot your database connection.
+
+From the `backend` directory, run:
+
+```bash
+npx tsx test-db.js
+```
+
+This script connects to Neon using the configured `DATABASE_URL` and executes the following SQL query:
+
+```sql
+SELECT 1;
+```
+
+If the connection succeeds, the output should look similar to:
+
+```text
+Database connection successful: [ { '?column?': 1 } ]
+```
+
+## Available Prisma Database Commands
+
+Run these commands from the `backend` directory.
+
+| Command               | Description                                                          |
+| --------------------- | -------------------------------------------------------------------- |
+| `npm run db:generate` | Generate the Prisma client.                                          |
+| `npm run db:migrate`  | Create and apply database migrations during development.             |
+| `npm run db:studio`   | Open Prisma Studio to inspect database data.                         |
+| `npm run db:reset`    | Reset the database and reapply migrations. **This can delete data.** |
+
+## Checks Before Submitting a Pull Request
+
+Run these checks before submitting a pull request to help catch problems early.
+
+Run these commands from the `backend` directory:
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
+
+- `npm run typecheck` checks for TypeScript errors.
+- `npm run lint` checks code for potential issues and style violations.
+- `npm run build` compiles the backend.
+
+**Note:** Prisma Studio may show no tables if the Prisma schema does not yet define any database models.
+
 ## 📄 License
 
 Educational use only.
