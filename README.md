@@ -184,7 +184,7 @@ DELETE /api/items/:id
 - Use Jira to track tasks and progress.
 - Create feature branches from `dev`.
 - Open pull requests targeting `dev`.
-- Get at least two approvals before merging.
+- Get at least two approvals before merging,including at least one approval from a mentor.
 - Keep `main` for stable production code.
 
 
