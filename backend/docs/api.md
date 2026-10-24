@@ -3,7 +3,7 @@
 
 This document describes the proposed API endpoints for the Baby Gear Exchange application.
 
-## Authentication Endpoints
+### Authentication Endpoints
 
 #### Register User
 
