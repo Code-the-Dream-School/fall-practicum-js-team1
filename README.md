@@ -118,6 +118,59 @@ All variables are listed in `backend/.env.example`.
 Backend runs on:
 http://localhost:3000
 
+#### Database
+This application uses Postgres v17 or v18.
+
+##### Natively hosted
+
+###### Installation
+####### Mac
+```bash
+brew install postgresql@18
+brew services start postgresql@18
+```
+
+####### Windows installation and running
+Download [PostgreSQL 18 from the official installer](https://www.postgresql.org/download/windows/) and check that the PostgreSQL service is "Running".
+
+####### Linux installation and running
+```bash
+sudo apt install postgresql
+sudo service postgresql start
+```
+
+##### Database setup
+Start the `psql` shell:
+**Mac/Linux**: Check your username with `whoami`, then run `psql` (or `psql -U postgres`).
+**Windows**: `"C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -h localhost`
+
+Once the shell is started, run these commands:
+
+```psql
+CREATE DATABASE hand_me_down OWNER <your-user>;
+\q
+```
+
+If your user doesn’t exist yet, run this first:
+
+**Mac/Linux**: `CREATE ROLE <your-user> LOGIN CREATEDB;`
+**Windows**: `CREATE ROLE mypguser LOGIN CREATEDB PASSWORD '<pg-password>';` (and use mypguser as the owner)
+
+##### Docker hosted
+See the [Postgres Docker Hub repo](https://hub.docker.com/_/postgres/) for available versions.
+
+```bash
+docker pull postgres:<version>
+docker run --name ctd-psql-fall1-practicum -e POSTGRES_USER=<username> -e POSTGRES_PASSWORD=<password> -e POSTGRES_DB=hand_me_down -p 5432:5432 -v ctd-psql-fall1-practicum-data:/var/lib/postgresql/data -d postgres
+```
+
+##### .env Configuration
+Put the connection string in `backend/.env` as `DATABASE_URL`:
+
+**Mac**: `postgresql://<username>@localhost/hand_me_down?host=/tmp`
+**Linux**: `postgresql://<username>@localhost/hand_me_down?host=/var/run/postgresql`
+**Windows**: `postgresql://mypguser:<pg-password>@localhost/hand_me_down`
+
 #### Linting
 To lint a directory or file, run this command:
 
