@@ -92,7 +92,7 @@ fall-practicum-js-team1/
 
 ├── .gitignore
 └── README.md
-
+```
 
 ## ⚙️ Setup & Installation
 
@@ -107,7 +107,7 @@ fall-practicum-js-team1/
 
 ```bash
 cd backend
-nvm install
+nvm install # installs/switches to node
 npm install
 cp .env.example .env
 npm run dev
@@ -116,7 +116,9 @@ npm run dev
 All variables are listed in `backend/.env.example`.
 
 Backend runs on:
+```
 http://localhost:3000
+```
 
 #### Linting
 To lint a directory or file, run this command:
