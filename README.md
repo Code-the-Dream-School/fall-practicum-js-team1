@@ -70,8 +70,6 @@ Screenshots and GIFs will be added as features are developed.
 
 - Git
 - GitHub
-- Jira
-- Slack
 - ESLint
 - Prettier
 
@@ -92,7 +90,7 @@ fall-practicum-js-team1/
 
 ├── .gitignore
 └── README.md
-
+```
 
 ## ⚙️ Setup & Installation
 
@@ -107,7 +105,7 @@ fall-practicum-js-team1/
 
 ```bash
 cd backend
-nvm install
+nvm install # installs/switches to node
 npm install
 cp .env.example .env
 npm run dev
@@ -116,7 +114,9 @@ npm run dev
 All variables are listed in `backend/.env.example`.
 
 Backend runs on:
+```
 http://localhost:3000
+```
 
 #### Database
 This application uses Postgres v17 or v18.
@@ -233,11 +233,14 @@ DELETE /api/items/:id
 - Name — Role
 - Name — Role
 
+
 ### Workflow
-- GitHub Issues for task tracking
-- Feature branches for development
-- Pull Requests required for all merges
-- Code reviews before merging to `main`
+
+- Use Jira to track tasks and progress.
+- Create feature branches from `dev`.
+- Open pull requests targeting `dev`.
+- Get at least two approvals before merging,including at least one approval from a mentor.
+- Keep `main` for stable production code.
 
 
 ## 🧩 Development Process
