@@ -1,4 +1,3 @@
-
 # Baby Gear Exchange API Documentation
 
 This document describes the proposed API endpoints for the Baby Gear Exchange application.
@@ -17,10 +16,10 @@ None.
 
 **Request Body**
 
-| Field | Type | Validation |
-|---|---|---|
-| name | string | Required, 2–50 characters |
-| email | string | Required, valid email address |
+| Field    | Type   | Validation                                                                                          |
+| -------- | ------ | --------------------------------------------------------------------------------------------------- |
+| name     | string | Required, 2–50 characters                                                                           |
+| email    | string | Required, valid email address                                                                       |
 | password | string | Required, minimum 8 characters, at least one uppercase letter, one lowercase letter, and one number |
 
 **Example Request**
@@ -48,11 +47,11 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Invalid name, email, or password |
-| 409 | Email already registered |
-| 500 | Internal server error |
+| Code | Meaning                          |
+| ---- | -------------------------------- |
+| 400  | Invalid name, email, or password |
+| 409  | Email already registered         |
+| 500  | Internal server error            |
 
 **Security**
 
@@ -61,7 +60,6 @@ The request must include the `X-CSRF-TOKEN` header.
 Never return the user's password in the response.
 
 **Note:** Response fields, ID type, and error cases must be confirmed with the backend team.
-
 
 #### Log In User
 
@@ -75,10 +73,10 @@ None.
 
 **Request Body**
 
-| Field | Type | Validation |
-|---|---|---|
-| email | string | Required; valid email address |
-| password | string | Required |
+| Field    | Type   | Validation                    |
+| -------- | ------ | ----------------------------- |
+| email    | string | Required; valid email address |
+| password | string | Required                      |
 
 **Example Request**
 
@@ -104,11 +102,11 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Missing or invalid input |
-| 401 | Invalid email or password |
-| 500 | Internal server error |
+| Code | Meaning                   |
+| ---- | ------------------------- |
+| 400  | Missing or invalid input  |
+| 401  | Invalid email or password |
+| 500  | Internal server error     |
 
 **Security**
 
@@ -145,10 +143,10 @@ None proposed.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 401 | User is not signed in |
-| 500 | Internal server error |
+| Code | Meaning               |
+| ---- | --------------------- |
+| 401  | User is not signed in |
+| 500  | Internal server error |
 
 **Security**
 
@@ -157,7 +155,6 @@ The request must include the `X-CSRF-TOKEN` header.
 The server should clear the user's authentication cookie.
 
 **Note:** The success response, cookie handling, and error cases must be confirmed with the backend team.
-
 
 #### Get Current User
 
@@ -188,10 +185,10 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 401 | User is not signed in |
-| 500 | Internal server error |
+| Code | Meaning               |
+| ---- | --------------------- |
+| 401  | User is not signed in |
+| 500  | Internal server error |
 
 **Security**
 
@@ -200,7 +197,6 @@ Uses the user's authentication cookie. A CSRF header is not required for this re
 Never return the user's password.
 
 **Note:** Response fields, ID type, and error cases must be confirmed with the backend team.
-
 
 ### Categories Endpoints
 
@@ -238,16 +234,15 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 500 | Internal server error |
+| Code | Meaning               |
+| ---- | --------------------- |
+| 500  | Internal server error |
 
 **Security**
 
 No authentication required.
 
 **Note:** Category names, response fields, ID types, and error cases must be confirmed with the backend team.
-
 
 ### Addresses Endpoints
 
@@ -282,10 +277,10 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 401 | User is not signed in |
-| 500 | Internal server error |
+| Code | Meaning               |
+| ---- | --------------------- |
+| 401  | User is not signed in |
+| 500  | Internal server error |
 
 **Security**
 
@@ -294,7 +289,6 @@ Uses the user's authentication cookie.
 Only return addresses the signed-in user is authorized to view. Do not expose other users' private pickup addresses.
 
 **Note:** Address fields, access rules, response fields, and error cases must be confirmed with the backend team.
-
 
 #### Create Address
 
@@ -308,11 +302,11 @@ None.
 
 **Request Body (proposed)**
 
-| Field | Type | Validation |
-|---|---|---|
-| street | string | Required; length TBD |
-| city | string | Required; length TBD |
-| state | string | Required; format TBD |
+| Field   | Type   | Validation           |
+| ------- | ------ | -------------------- |
+| street  | string | Required; length TBD |
+| city    | string | Required; length TBD |
+| state   | string | Required; format TBD |
 | zipCode | string | Required; format TBD |
 
 **Example Request**
@@ -341,11 +335,11 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Missing or invalid address fields |
-| 401 | User is not signed in |
-| 500 | Internal server error |
+| Code | Meaning                           |
+| ---- | --------------------------------- |
+| 400  | Missing or invalid address fields |
+| 401  | User is not signed in             |
+| 500  | Internal server error             |
 
 **Security**
 
@@ -365,14 +359,14 @@ The address must belong to the signed-in user. Do not expose private pickup addr
 
 **Query Parameters**
 
-| Parameter | Type | Description |
-|---|---|---|
-| q | string | Optional search text |
-| category | string | Optional category filter |
-| condition | string | Optional item condition |
-| ageMin | number | Optional minimum age |
-| ageMax | number | Optional maximum age |
-| city | string | Optional city filter |
+| Parameter | Type   | Description              |
+| --------- | ------ | ------------------------ |
+| q         | string | Optional search text     |
+| category  | string | Optional category filter |
+| condition | string | Optional item condition  |
+| ageMin    | number | Optional minimum age     |
+| ageMax    | number | Optional maximum age     |
+| city      | string | Optional city filter     |
 
 **Request Body**
 
@@ -397,18 +391,16 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Invalid query parameters |
-| 500 | Internal server error |
+| Code | Meaning                  |
+| ---- | ------------------------ |
+| 400  | Invalid query parameters |
+| 500  | Internal server error    |
 
 **Security**
 
 Do not include private pickup addresses in public item listings.
 
 **Note:** Query parameter types, filter behavior, response fields, and error cases must be confirmed with the backend team.
-
-
 
 #### Get Item Details
 
@@ -418,9 +410,9 @@ Do not include private pickup addresses in public item listings.
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|---|---|---|
-| id | string | ID of the item; type TBD |
+| Parameter | Type   | Description              |
+| --------- | ------ | ------------------------ |
+| id        | string | ID of the item; type TBD |
 
 **Query Parameters**
 
@@ -449,11 +441,11 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Invalid item ID |
-| 404 | Item not found |
-| 500 | Internal server error |
+| Code | Meaning               |
+| ---- | --------------------- |
+| 400  | Invalid item ID       |
+| 404  | Item not found        |
+| 500  | Internal server error |
 
 **Security**
 
@@ -462,7 +454,6 @@ Do not include the private pickup address in the public response.
 Pickup address information should only be available to the item owner or approved claimer through an authorized response.
 
 **Note:** Response fields, ID type, access rules, and error cases must be confirmed with the backend team.
-
 
 #### Create Item
 
@@ -476,16 +467,16 @@ None.
 
 **Request Body (proposed)**
 
-| Field | Type | Validation |
-|---|---|---|
-| title | string | Required; length TBD |
-| description | string | Required; length TBD |
-| categoryId | string | Required; valid category ID |
-| condition | string | Required; allowed values TBD |
-| ageMin | number | Optional; minimum age |
-| ageMax | number | Optional; maximum age |
-| addressId | string | Required; valid address belonging to user |
-| photos | array of strings | Optional; Cloudinary image references, limits TBD |
+| Field       | Type             | Validation                                        |
+| ----------- | ---------------- | ------------------------------------------------- |
+| title       | string           | Required; length TBD                              |
+| description | string           | Required; length TBD                              |
+| categoryId  | string           | Required; valid category ID                       |
+| condition   | string           | Required; allowed values TBD                      |
+| ageMin      | number           | Optional; minimum age                             |
+| ageMax      | number           | Optional; maximum age                             |
+| addressId   | string           | Required; valid address belonging to user         |
+| photos      | array of strings | Optional; Cloudinary image references, limits TBD |
 
 **Example Request (proposed)**
 
@@ -517,13 +508,13 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Missing or invalid item fields |
-| 401 | User is not signed in |
-| 403 | User is not authorized to use the address |
-| 404 | Category or address not found |
-| 500 | Internal server error |
+| Code | Meaning                                   |
+| ---- | ----------------------------------------- |
+| 400  | Missing or invalid item fields            |
+| 401  | User is not signed in                     |
+| 403  | User is not authorized to use the address |
+| 404  | Category or address not found             |
+| 500  | Internal server error                     |
 
 **Security**
 
@@ -539,7 +530,6 @@ Cloudinary upload flow is TBD. Confirm whether images are uploaded directly from
 
 **Note:** Request fields, validation limits, photo handling, response fields, and error cases must be confirmed with the backend team.
 
-
 ### Claims Endpoints
 
 #### Create Claim
@@ -550,9 +540,9 @@ Cloudinary upload flow is TBD. Confirm whether images are uploaded directly from
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|---|---|---|
-| id | string | ID of the item being claimed; type TBD |
+| Parameter | Type   | Description                            |
+| --------- | ------ | -------------------------------------- |
+| id        | string | ID of the item being claimed; type TBD |
 
 **Query Parameters**
 
@@ -577,14 +567,14 @@ No request body is proposed. Confirm with the backend team.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Invalid item ID or request |
-| 401 | User is not signed in |
-| 403 | User is not allowed to claim this item |
-| 404 | Item not found |
-| 409 | Item is unavailable or already claimed |
-| 500 | Internal server error |
+| Code | Meaning                                |
+| ---- | -------------------------------------- |
+| 400  | Invalid item ID or request             |
+| 401  | User is not signed in                  |
+| 403  | User is not allowed to claim this item |
+| 404  | Item not found                         |
+| 409  | Item is unavailable or already claimed |
+| 500  | Internal server error                  |
 
 **Security**
 
@@ -594,7 +584,6 @@ Only signed-in users can submit claims. The server should prevent users from cla
 
 **Note:** Claim eligibility, request body, status values, response fields, and error cases must be confirmed with the backend team.
 
-
 #### Get Item Claims
 
 **Method:** GET  
@@ -603,9 +592,9 @@ Only signed-in users can submit claims. The server should prevent users from cla
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|---|---|---|
-| id | string | ID of the item; type TBD |
+| Parameter | Type   | Description              |
+| --------- | ------ | ------------------------ |
+| id        | string | ID of the item; type TBD |
 
 **Query Parameters**
 
@@ -632,13 +621,13 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Invalid item ID |
-| 401 | User is not signed in |
-| 403 | User is not the item owner |
-| 404 | Item not found |
-| 500 | Internal server error |
+| Code | Meaning                    |
+| ---- | -------------------------- |
+| 400  | Invalid item ID            |
+| 401  | User is not signed in      |
+| 403  | User is not the item owner |
+| 404  | Item not found             |
+| 500  | Internal server error      |
 
 **Security**
 
@@ -650,7 +639,6 @@ Do not expose private information to unauthorized users.
 
 **Note:** Access rules, response fields, and error cases must be confirmed with the backend team.
 
-
 #### Update Claim
 
 **Method:** PATCH  
@@ -659,9 +647,9 @@ Do not expose private information to unauthorized users.
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|---|---|---|
-| id | string | ID of the claim; type TBD |
+| Parameter | Type   | Description               |
+| --------- | ------ | ------------------------- |
+| id        | string | ID of the claim; type TBD |
 
 **Query Parameters**
 
@@ -669,8 +657,8 @@ None.
 
 **Request Body (proposed)**
 
-| Field | Type | Validation |
-|---|---|---|
+| Field  | Type   | Validation                                                |
+| ------ | ------ | --------------------------------------------------------- |
 | status | string | Required; allowed values proposed: `approved`, `declined` |
 
 **Example Request (proposed)**
@@ -695,14 +683,14 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Invalid claim ID or status |
-| 401 | User is not signed in |
-| 403 | User is not the item owner |
-| 404 | Claim not found |
-| 409 | Claim cannot be updated in its current state |
-| 500 | Internal server error |
+| Code | Meaning                                      |
+| ---- | -------------------------------------------- |
+| 400  | Invalid claim ID or status                   |
+| 401  | User is not signed in                        |
+| 403  | User is not the item owner                   |
+| 404  | Claim not found                              |
+| 409  | Claim cannot be updated in its current state |
+| 500  | Internal server error                        |
 
 **Security**
 
@@ -712,7 +700,6 @@ Only the item owner should be able to approve or decline a claim (proposed).
 
 **Note:** Allowed status values, request body, access rules, response fields, and error cases must be confirmed with the backend team.
 
-
 #### Cancel Claim
 
 **Method:** PATCH  
@@ -721,9 +708,9 @@ Only the item owner should be able to approve or decline a claim (proposed).
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|---|---|---|
-| id | string | ID of the claim; type TBD |
+| Parameter | Type   | Description               |
+| --------- | ------ | ------------------------- |
+| id        | string | ID of the claim; type TBD |
 
 **Query Parameters**
 
@@ -747,14 +734,14 @@ No request body is proposed. Confirm with the backend team.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Invalid claim ID or request |
-| 401 | User is not signed in |
-| 403 | User is not the claimer |
-| 404 | Claim not found |
-| 409 | Claim cannot be cancelled in its current state |
-| 500 | Internal server error |
+| Code | Meaning                                        |
+| ---- | ---------------------------------------------- |
+| 400  | Invalid claim ID or request                    |
+| 401  | User is not signed in                          |
+| 403  | User is not the claimer                        |
+| 404  | Claim not found                                |
+| 409  | Claim cannot be cancelled in its current state |
+| 500  | Internal server error                          |
 
 **Security**
 
@@ -764,7 +751,6 @@ Only the user who submitted the claim should be allowed to cancel it (proposed).
 
 **Note:** Cancellation rules, status values, response fields, and error cases must be confirmed with the backend team.
 
-
 #### Mark Claim as No-Show
 
 **Method:** PATCH  
@@ -773,9 +759,9 @@ Only the user who submitted the claim should be allowed to cancel it (proposed).
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|---|---|---|
-| id | string | ID of the claim; type TBD |
+| Parameter | Type   | Description               |
+| --------- | ------ | ------------------------- |
+| id        | string | ID of the claim; type TBD |
 
 **Query Parameters**
 
@@ -799,14 +785,14 @@ No request body is proposed. Confirm with the backend team.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Invalid claim ID or request |
-| 401 | User is not signed in |
-| 403 | User is not the item owner |
-| 404 | Claim not found |
-| 409 | Claim cannot be marked as no-show in its current state |
-| 500 | Internal server error |
+| Code | Meaning                                                |
+| ---- | ------------------------------------------------------ |
+| 400  | Invalid claim ID or request                            |
+| 401  | User is not signed in                                  |
+| 403  | User is not the item owner                             |
+| 404  | Claim not found                                        |
+| 409  | Claim cannot be marked as no-show in its current state |
+| 500  | Internal server error                                  |
 
 **Security**
 
@@ -816,7 +802,6 @@ Only the item owner should be allowed to mark a claimer as a no-show (proposed).
 
 **Note:** No-show rules, status values, response fields, and error cases must be confirmed with the backend team.
 
-
 #### Mark Item as Picked Up
 
 **Method:** PATCH  
@@ -825,9 +810,9 @@ Only the item owner should be allowed to mark a claimer as a no-show (proposed).
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|---|---|---|
-| id | string | ID of the item; type TBD |
+| Parameter | Type   | Description              |
+| --------- | ------ | ------------------------ |
+| id        | string | ID of the item; type TBD |
 
 **Request Body**
 
@@ -847,14 +832,14 @@ No request body is proposed. Confirm with the backend team.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Invalid item ID or request |
-| 401 | User is not signed in |
-| 403 | User is not allowed to update this item |
-| 404 | Item not found |
-| 409 | Item cannot be marked as picked up in its current state |
-| 500 | Internal server error |
+| Code | Meaning                                                 |
+| ---- | ------------------------------------------------------- |
+| 400  | Invalid item ID or request                              |
+| 401  | User is not signed in                                   |
+| 403  | User is not allowed to update this item                 |
+| 404  | Item not found                                          |
+| 409  | Item cannot be marked as picked up in its current state |
+| 500  | Internal server error                                   |
 
 **Security**
 
@@ -863,7 +848,6 @@ The request must include the `X-CSRF-TOKEN` header.
 Only the item owner should be allowed to mark an item as picked up (proposed).
 
 **Note:** The status value, access rules, response fields, and error cases must be confirmed with the backend team.
-
 
 ### Profile Endpoints
 
@@ -900,10 +884,10 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 401 | User is not signed in |
-| 500 | Internal server error |
+| Code | Meaning               |
+| ---- | --------------------- |
+| 401  | User is not signed in |
+| 500  | Internal server error |
 
 **Security**
 
@@ -942,10 +926,10 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 401 | User is not signed in |
-| 500 | Internal server error |
+| Code | Meaning               |
+| ---- | --------------------- |
+| 401  | User is not signed in |
+| 500  | Internal server error |
 
 **Security**
 
@@ -994,12 +978,14 @@ None.
 All statistics are whole numbers representing activity for the signed-in user.
 
 **Donations**
+
 - `posted`: Number of posted donations
 - `waitingForYou`: Donations waiting for owner action
 - `approved`: Approved donations
 - `pickedUp`: Donations marked as picked up
 
 **Claims**
+
 - `requested`: Number of claims requested
 - `waitingForOwner`: Claims waiting for owner action
 - `approved`: Approved claims
@@ -1007,10 +993,10 @@ All statistics are whole numbers representing activity for the signed-in user.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 401 | User is not signed in |
-| 500 | Internal server error |
+| Code | Meaning               |
+| ---- | --------------------- |
+| 401  | User is not signed in |
+| 500  | Internal server error |
 
 **Security**
 
@@ -1030,14 +1016,14 @@ The Messages API allows users involved in a claim to communicate about the item.
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|---|---|---|
-| id | string | ID of the claim; type TBD |
+| Parameter | Type   | Description               |
+| --------- | ------ | ------------------------- |
+| id        | string | ID of the claim; type TBD |
 
 **Request Body (proposed)**
 
-| Field | Type | Validation |
-|---|---|---|
+| Field   | Type   | Validation                               |
+| ------- | ------ | ---------------------------------------- |
 | content | string | Required; minimum and maximum length TBD |
 
 **Example Request**
@@ -1063,13 +1049,13 @@ The Messages API allows users involved in a claim to communicate about the item.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Invalid message content |
-| 401 | User is not signed in |
-| 403 | User is not allowed to message about this claim |
-| 404 | Claim not found |
-| 500 | Internal server error |
+| Code | Meaning                                         |
+| ---- | ----------------------------------------------- |
+| 400  | Invalid message content                         |
+| 401  | User is not signed in                           |
+| 403  | User is not allowed to message about this claim |
+| 404  | Claim not found                                 |
+| 500  | Internal server error                           |
 
 **Security**
 
@@ -1087,9 +1073,9 @@ Only authorized participants in the claim should be able to send messages (propo
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|---|---|---|
-| id | string | ID of the claim; type TBD |
+| Parameter | Type   | Description               |
+| --------- | ------ | ------------------------- |
+| id        | string | ID of the claim; type TBD |
 
 **Query Parameters**
 
@@ -1116,13 +1102,13 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Invalid claim ID |
-| 401 | User is not signed in |
-| 403 | User is not authorized to view these messages |
-| 404 | Claim not found |
-| 500 | Internal server error |
+| Code | Meaning                                       |
+| ---- | --------------------------------------------- |
+| 400  | Invalid claim ID                              |
+| 401  | User is not signed in                         |
+| 403  | User is not authorized to view these messages |
+| 404  | Claim not found                               |
+| 500  | Internal server error                         |
 
 **Security**
 
@@ -1138,9 +1124,9 @@ Only authorized participants in the claim should be able to view messages.
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|---|---|---|
-| id | string | ID of the claim; type TBD |
+| Parameter | Type   | Description               |
+| --------- | ------ | ------------------------- |
+| id        | string | ID of the claim; type TBD |
 
 **Request Body**
 
@@ -1159,13 +1145,13 @@ No request body is proposed. Confirm with the backend team whether message IDs o
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Invalid claim ID or request |
-| 401 | User is not signed in |
-| 403 | User is not authorized to update these messages |
-| 404 | Claim not found |
-| 500 | Internal server error |
+| Code | Meaning                                         |
+| ---- | ----------------------------------------------- |
+| 400  | Invalid claim ID or request                     |
+| 401  | User is not signed in                           |
+| 403  | User is not authorized to update these messages |
+| 404  | Claim not found                                 |
+| 500  | Internal server error                           |
 
 **Security**
 
@@ -1174,5 +1160,3 @@ The request must include the `X-CSRF-TOKEN` header.
 Only authorized claim participants should be allowed to mark messages addressed to them as read (proposed).
 
 **Note:** The request body, response fields, access rules, and error cases must be confirmed with the backend team.
-
-
