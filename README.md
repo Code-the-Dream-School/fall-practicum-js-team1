@@ -119,21 +119,19 @@ http://localhost:3000
 ```
 
 #### Database
-This application uses Postgres v17 or v18.
+This application uses Postgres v18.
 
 ##### Natively hosted
-
-###### Installation
-####### Mac
+###### Mac installation
 ```bash
 brew install postgresql@18
 brew services start postgresql@18
 ```
 
-####### Windows installation and running
+###### Windows installation
 Download [PostgreSQL 18 from the official installer](https://www.postgresql.org/download/windows/) and check that the PostgreSQL service is "Running".
 
-####### Linux installation and running
+###### Linux installation
 ```bash
 sudo apt install postgresql
 sudo service postgresql start
@@ -160,8 +158,8 @@ If your user doesn’t exist yet, run this first:
 See the [Postgres Docker Hub repo](https://hub.docker.com/_/postgres/) for available versions.
 
 ```bash
-docker pull postgres:<version>
-docker run --name ctd-psql-fall1-practicum -e POSTGRES_USER=<username> -e POSTGRES_PASSWORD=<password> -e POSTGRES_DB=hand_me_down -p 5432:5432 -v ctd-psql-fall1-practicum-data:/var/lib/postgresql/data -d postgres
+docker pull postgres:18
+docker run --name ctd-psql-fall1-practicum -e POSTGRES_USER=leewang -e POSTGRES_PASSWORD=Test1234 -e POSTGRES_DB=hand_me_down -p 5433:5432 -v ctd-psql-fall1-practicum-data:/var/lib/postgresql/ -d postgres:18
 ```
 
 ##### .env Configuration
