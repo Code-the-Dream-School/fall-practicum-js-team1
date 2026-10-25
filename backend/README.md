@@ -207,29 +207,6 @@ Build APIs assuming:
 - [ ] Secrets are stored in environment variables
 - [ ] API responses are consistent
 
-## 🗄️ Database Setup (Neon PostgreSQL)
-
-This project uses Prisma ORM with a PostgreSQL database hosted on Neon.
-Team members share the project's Neon database.
-
-## Get Your Neon Credentials
-
-1. Open the Neon project dashboard.
-2. Click the branch dropdown menu in the top-left corner.
-3. Select the `dev` branch and confirm that the checkmark appears next to it.
-4. Click **Connect**.
-5. Copy the PostgreSQL connection string.
-6. Open `backend/.env` and add the connection string as `DATABASE_URL`.
-
-Example:
-
-```env
-DATABASE_URL="your_neon_connection_string"
-```
-
-If you do not have access to the Neon project, ask Eriko to invite you.
-
-**Security:** Never commit your `.env` file or share your database connection string publicly.
 
 ## Generate and Validate Prisma
 
