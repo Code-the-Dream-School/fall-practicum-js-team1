@@ -18,7 +18,7 @@ None.
 
 | Field    | Type   | Validation                                                                                          |
 | -------- | ------ | --------------------------------------------------------------------------------------------------- |
-| name     | string | Required, 2–50 characters                                                                           |
+| name     | string | Required, 2–50  characters                                                                           |
 | email    | string | Required, valid email address                                                                       |
 | password | string | Required, minimum 8 characters, at least one uppercase letter, one lowercase letter, and one number |
 
@@ -44,6 +44,9 @@ None.
   }
 }
 ```
+**CSRF Token (to be confirmed)**
+
+The CSRF token should be provided after successful registration or login. The backend team needs to confirm whether it is returned in the response body, a cookie, or a response header.
 
 **Possible Errors**
 
@@ -55,7 +58,7 @@ None.
 
 **Security**
 
-The request must include the `X-CSRF-TOKEN` header.
+Registration does not require an X-CSRF-TOKEN request header. The CSRF token is provided after authentication; its response format must be confirmed with the backend team.
 
 Never return the user's password in the response.
 
@@ -110,7 +113,7 @@ None.
 
 **Security**
 
-The request must include the `X-CSRF-TOKEN` header.
+Login does not require an X-CSRF-TOKEN request header. The CSRF token is provided after authentication; its response format must be confirmed with the backend team.
 
 Authentication uses cookies. The exact cookie and CSRF token handling must be confirmed with the backend team.
 
@@ -268,8 +271,11 @@ None.
   "data": [
     {
       "id": "1",
-      "city": "San Rafael",
-      "state": "CA"
+"street1": "123 Main Street",
+"street2": "Apt 2",
+"city": "San Rafael",
+"state": "CA",
+"zipCode": "94901"
     }
   ]
 }
@@ -327,8 +333,11 @@ None.
   "success": true,
   "data": {
     "id": "1",
-    "city": "San Rafael",
-    "state": "CA"
+"street1": "123 Main Street",
+"street2": "Apt 2",
+"city": "San Rafael",
+"state": "CA",
+"zipCode": "94901"
   }
 }
 ```
@@ -367,6 +376,9 @@ The address must belong to the signed-in user. Do not expose private pickup addr
 | ageMin    | number | Optional minimum age     |
 | ageMax    | number | Optional maximum age     |
 | city      | string | Optional city filter     |
+| state | string | Optional state filter (e.g., CA) |
+| zipCode | string | Optional ZIP code filter (e.g., 94901) |
+**Note:** The `state` and `zipCode` search filters are proposed and must be confirmed with the backend team.
 
 **Request Body**
 
@@ -384,6 +396,10 @@ None.
       "category": "Strollers",
       "condition": "Good",
       "city": "San Rafael"
+      "photoUrls": [
+  "https://example.com/stroller.jpg"
+],
+"status": "available"
     }
   ]
 }
@@ -529,6 +545,60 @@ Do not expose the private pickup address in public item responses.
 Cloudinary upload flow is TBD. Confirm whether images are uploaded directly from the browser or through the backend API.
 
 **Note:** Request fields, validation limits, photo handling, response fields, and error cases must be confirmed with the backend team.
+
+
+#### Get Item Details
+
+**Method:** GET  
+**Path:** `/api/items/:id`  
+**Access:** Public (proposed)
+
+**Path Parameters**
+
+| Parameter | Type | Description |
+|---|---|---|
+| id | string | ID of the item to retrieve |
+
+**Query Parameters**
+
+None.
+
+**Request Body**
+
+None.
+
+**Success Response (proposed)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "10",
+    "title": "Baby Stroller",
+    "description": "Gently used stroller",
+    "category": "Strollers",
+    "condition": "Good",
+    "city": "San Rafael",
+    "photoUrls": ["https://example.com/stroller.jpg"],
+    "status": "available"
+  }
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning |
+|---|---|
+| 400 | Invalid item ID |
+| 404 | Item not found |
+| 500 | Internal server error |
+
+**Security**
+
+Do not expose the private pickup address in the public item response.
+
+**Note:** Response fields, ID format, and error cases must be confirmed with the backend team.
+
 
 ### Claims Endpoints
 
