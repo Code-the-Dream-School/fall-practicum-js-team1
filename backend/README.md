@@ -207,7 +207,6 @@ Build APIs assuming:
 - [ ] Secrets are stored in environment variables
 - [ ] API responses are consistent
 
-
 ## Generate and Validate Prisma
 
 Run these commands during initial setup and again when the Prisma schema changes, as needed.
