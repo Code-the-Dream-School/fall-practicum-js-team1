@@ -1,4 +1,3 @@
 dist
 package-lock.json
 coverage
-src/generated
