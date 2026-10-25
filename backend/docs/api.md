@@ -18,7 +18,7 @@ None.
 
 | Field    | Type   | Validation                                                                                          |
 | -------- | ------ | --------------------------------------------------------------------------------------------------- |
-| name     | string | Required, 2–50  characters                                                                           |
+| name     | string | Required, 2–50 characters                                                                           |
 | email    | string | Required, valid email address                                                                       |
 | password | string | Required, minimum 8 characters, at least one uppercase letter, one lowercase letter, and one number |
 
@@ -44,6 +44,7 @@ None.
   }
 }
 ```
+
 **CSRF Token (to be confirmed)**
 
 The CSRF token should be provided after successful registration or login. The backend team needs to confirm whether it is returned in the response body, a cookie, or a response header.
@@ -271,11 +272,11 @@ None.
   "data": [
     {
       "id": "1",
-"street1": "123 Main Street",
-"street2": "Apt 2",
-"city": "San Rafael",
-"state": "CA",
-"zipCode": "94901"
+      "street1": "123 Main Street",
+      "street2": "Apt 2",
+      "city": "San Rafael",
+      "state": "CA",
+      "zipCode": "94901"
     }
   ]
 }
@@ -333,11 +334,11 @@ None.
   "success": true,
   "data": {
     "id": "1",
-"street1": "123 Main Street",
-"street2": "Apt 2",
-"city": "San Rafael",
-"state": "CA",
-"zipCode": "94901"
+    "street1": "123 Main Street",
+    "street2": "Apt 2",
+    "city": "San Rafael",
+    "state": "CA",
+    "zipCode": "94901"
   }
 }
 ```
@@ -368,17 +369,17 @@ The address must belong to the signed-in user. Do not expose private pickup addr
 
 **Query Parameters**
 
-| Parameter | Type   | Description              |
-| --------- | ------ | ------------------------ |
-| q         | string | Optional search text     |
-| category  | string | Optional category filter |
-| condition | string | Optional item condition  |
-| ageMin    | number | Optional minimum age     |
-| ageMax    | number | Optional maximum age     |
-| city      | string | Optional city filter     |
-| state | string | Optional state filter (e.g., CA) |
-| zipCode | string | Optional ZIP code filter (e.g., 94901) |
-**Note:** The `state` and `zipCode` search filters are proposed and must be confirmed with the backend team.
+| Parameter                                                                                                    | Type   | Description                            |
+| ------------------------------------------------------------------------------------------------------------ | ------ | -------------------------------------- |
+| q                                                                                                            | string | Optional search text                   |
+| category                                                                                                     | string | Optional category filter               |
+| condition                                                                                                    | string | Optional item condition                |
+| ageMin                                                                                                       | number | Optional minimum age                   |
+| ageMax                                                                                                       | number | Optional maximum age                   |
+| city                                                                                                         | string | Optional city filter                   |
+| state                                                                                                        | string | Optional state filter (e.g., CA)       |
+| zipCode                                                                                                      | string | Optional ZIP code filter (e.g., 94901) |
+| **Note:** The `state` and `zipCode` search filters are proposed and must be confirmed with the backend team. |
 
 **Request Body**
 
@@ -546,7 +547,6 @@ Cloudinary upload flow is TBD. Confirm whether images are uploaded directly from
 
 **Note:** Request fields, validation limits, photo handling, response fields, and error cases must be confirmed with the backend team.
 
-
 #### Get Item Details
 
 **Method:** GET  
@@ -555,9 +555,9 @@ Cloudinary upload flow is TBD. Confirm whether images are uploaded directly from
 
 **Path Parameters**
 
-| Parameter | Type | Description |
-|---|---|---|
-| id | string | ID of the item to retrieve |
+| Parameter | Type   | Description                |
+| --------- | ------ | -------------------------- |
+| id        | string | ID of the item to retrieve |
 
 **Query Parameters**
 
@@ -587,18 +587,17 @@ None.
 
 **Possible Errors**
 
-| Code | Meaning |
-|---|---|
-| 400 | Invalid item ID |
-| 404 | Item not found |
-| 500 | Internal server error |
+| Code | Meaning               |
+| ---- | --------------------- |
+| 400  | Invalid item ID       |
+| 404  | Item not found        |
+| 500  | Internal server error |
 
 **Security**
 
 Do not expose the private pickup address in the public item response.
 
 **Note:** Response fields, ID format, and error cases must be confirmed with the backend team.
-
 
 ### Claims Endpoints
 
