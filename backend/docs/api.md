@@ -396,11 +396,9 @@ None.
       "title": "Baby Stroller",
       "category": "Strollers",
       "condition": "Good",
-      "city": "San Rafael"
-      "photoUrls": [
-  "https://example.com/stroller.jpg"
-],
-"status": "available"
+      "city": "San Rafael",
+      "photoUrls": ["https://example.com/stroller.jpg"],
+      "status": "available"
     }
   ]
 }
@@ -451,6 +449,7 @@ None.
     "category": "Strollers",
     "condition": "Good",
     "city": "San Rafael",
+    "photoUrls": ["https://example.com/stroller.jpg"],
     "status": "available"
   }
 }
@@ -546,58 +545,6 @@ Do not expose the private pickup address in public item responses.
 Cloudinary upload flow is TBD. Confirm whether images are uploaded directly from the browser or through the backend API.
 
 **Note:** Request fields, validation limits, photo handling, response fields, and error cases must be confirmed with the backend team.
-
-#### Get Item Details
-
-**Method:** GET  
-**Path:** `/api/items/:id`  
-**Access:** Public (proposed)
-
-**Path Parameters**
-
-| Parameter | Type   | Description                |
-| --------- | ------ | -------------------------- |
-| id        | string | ID of the item to retrieve |
-
-**Query Parameters**
-
-None.
-
-**Request Body**
-
-None.
-
-**Success Response (proposed)**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "10",
-    "title": "Baby Stroller",
-    "description": "Gently used stroller",
-    "category": "Strollers",
-    "condition": "Good",
-    "city": "San Rafael",
-    "photoUrls": ["https://example.com/stroller.jpg"],
-    "status": "available"
-  }
-}
-```
-
-**Possible Errors**
-
-| Code | Meaning               |
-| ---- | --------------------- |
-| 400  | Invalid item ID       |
-| 404  | Item not found        |
-| 500  | Internal server error |
-
-**Security**
-
-Do not expose the private pickup address in the public item response.
-
-**Note:** Response fields, ID format, and error cases must be confirmed with the backend team.
 
 ### Claims Endpoints
 
