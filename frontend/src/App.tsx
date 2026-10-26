@@ -25,27 +25,25 @@ function App() {
   }, []);
 
   return (
-  <Routes>
-    <Route
-      path="/"
-      element={
-        <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-          <h1>Frontend ↔ Backend Test</h1>
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+            <h1>Frontend ↔ Backend Test</h1>
 
-          {error && <p style={{ color: 'red' }}>{error}</p>}
+            {error && <p style={{ color: 'red' }}>{error}</p>}
 
-          {!error && (
-            <p>
-              Message from API: <strong>{message}</strong>
-            </p>
-          )}
-        </main>
-      }
-    />
-
-    <Route path="/login" element={<h1>Login Page</h1>} />
-  </Routes>
- );
+            {!error && (
+              <p>
+                Message from API: <strong>{message}</strong>
+              </p>
+            )}
+          </main>
+        }
+      />
+    </Routes>
+  );
 }
 
 export default App;
