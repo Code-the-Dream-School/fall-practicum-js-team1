@@ -159,7 +159,7 @@ See the [Postgres Docker Hub repo](https://hub.docker.com/_/postgres/) for avail
 
 ```bash
 docker pull postgres:18
-docker run --name ctd-psql-fall1-practicum -e POSTGRES_USER=leewang -e POSTGRES_PASSWORD=Test1234 -e POSTGRES_DB=hand_me_down -p 5433:5432 -v ctd-psql-fall1-practicum-data:/var/lib/postgresql/ -d postgres:18
+docker run --name ctd-psql-fall1-practicum -e POSTGRES_USER=<username> -e POSTGRES_PASSWORD=<password> -e POSTGRES_DB=hand_me_down -p 5432:5432 -v ctd-psql-fall1-practicum-data:/var/lib/postgresql/ -d postgres:18
 ```
 
 ##### .env Configuration
@@ -168,6 +168,7 @@ Put the connection string in `backend/.env` as `DATABASE_URL`:
 **Mac**: `postgresql://<username>@localhost/hand_me_down?host=/tmp`
 **Linux**: `postgresql://<username>@localhost/hand_me_down?host=/var/run/postgresql`
 **Windows**: `postgresql://mypguser:<pg-password>@localhost/hand_me_down`
+**Docker**: `postgresql://<username>:<pg-password>@localhost:<port>/hand_me_down`
 
 #### Linting
 To lint a directory or file, run this command:
