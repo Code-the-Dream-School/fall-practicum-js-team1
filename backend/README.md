@@ -209,27 +209,28 @@ Build APIs assuming:
 
 ## Generate and Validate Prisma
 
-Run these commands during initial setup and again when the Prisma schema changes, as needed.
+Run these commands from the backend directory during initial setup and whenever the Prisma schema changes.
 
 ```bash
 npx prisma validate
-npx prisma generate
+npm run db:generate
 ```
 
 - `prisma validate` checks whether the Prisma schema is valid.
-- `prisma generate` generates the Prisma client used by the application.
+- `npm run db:generate` generates the Prisma client used by the application.
+  The Prisma Client is also generated automatically when dependencies are installed through npm install, using the postinstall script.
 
-## Verify the Neon Database Connection
+## Verify the Database Connection
 
 Run this test during initial setup or whenever you need to troubleshoot your database connection.
 
 From the `backend` directory, run:
 
 ```bash
-npx tsx test-db.js
+npm run db:check
 ```
 
-This script connects to Neon using the configured `DATABASE_URL` and executes the following SQL query:
+This script uses the application's shared Prisma client to connect to the database configured by DATABASE_URL and executes the following SQL query:
 
 ```sql
 SELECT 1;
@@ -248,6 +249,7 @@ Run these commands from the `backend` directory.
 | Command               | Description                                                          |
 | --------------------- | -------------------------------------------------------------------- |
 | `npm run db:generate` | Generate the Prisma client.                                          |
+| `npm run db:check`    | Test the database connection.                                        |
 | `npm run db:migrate`  | Create and apply database migrations during development.             |
 | `npm run db:studio`   | Open Prisma Studio to inspect database data.                         |
 | `npm run db:reset`    | Reset the database and reapply migrations. **This can delete data.** |
@@ -271,7 +273,7 @@ npm run build
 ## Open Prisma Studio
 
 From the backend directory, run:
-npm run db:studio
+`npm run db:studio`
 
 Prisma Studio will open in your browser and let you view and manage database records.
 
