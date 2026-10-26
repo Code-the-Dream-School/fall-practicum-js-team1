@@ -207,6 +207,78 @@ Build APIs assuming:
 - [ ] Secrets are stored in environment variables
 - [ ] API responses are consistent
 
+## Generate and Validate Prisma
+
+Run these commands from the backend directory during initial setup and whenever the Prisma schema changes.
+
+```bash
+npx prisma validate
+npm run db:generate
+```
+
+- `prisma validate` checks whether the Prisma schema is valid.
+- `npm run db:generate` generates the Prisma client used by the application.
+  The Prisma Client is also generated automatically when dependencies are installed through npm install, using the postinstall script.
+
+## Verify the Database Connection
+
+Run this test during initial setup or whenever you need to troubleshoot your database connection.
+
+From the `backend` directory, run:
+
+```bash
+npm run db:check
+```
+
+This script uses the application's shared Prisma client to connect to the database configured by DATABASE_URL and executes the following SQL query:
+
+```sql
+SELECT 1;
+```
+
+If the connection succeeds, the output should look similar to:
+
+```text
+Database connection successful: [ { '?column?': 1 } ]
+```
+
+## Available Prisma Database Commands
+
+Run these commands from the `backend` directory.
+
+| Command               | Description                                                          |
+| --------------------- | -------------------------------------------------------------------- |
+| `npm run db:generate` | Generate the Prisma client.                                          |
+| `npm run db:check`    | Test the database connection.                                        |
+| `npm run db:migrate`  | Create and apply database migrations during development.             |
+| `npm run db:studio`   | Open Prisma Studio to inspect database data.                         |
+| `npm run db:reset`    | Reset the database and reapply migrations. **This can delete data.** |
+
+## Checks Before Submitting a Pull Request
+
+Run these checks before submitting a pull request to help catch problems early.
+
+Run these commands from the `backend` directory:
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
+
+- `npm run typecheck` checks for TypeScript errors.
+- `npm run lint` checks code for potential issues and style violations.
+- `npm run build` compiles the backend.
+
+## Open Prisma Studio
+
+From the backend directory, run:
+`npm run db:studio`
+
+Prisma Studio will open in your browser and let you view and manage database records.
+
+**Note:** Prisma Studio may show no tables if the Prisma schema does not yet define any database models.
+
 ## 📄 License
 
 Educational use only.
