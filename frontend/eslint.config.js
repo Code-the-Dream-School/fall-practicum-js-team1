@@ -21,5 +21,12 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // Allow shadcn/ui components to export helpers
+    files: ['src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
   prettier,
 ]);
