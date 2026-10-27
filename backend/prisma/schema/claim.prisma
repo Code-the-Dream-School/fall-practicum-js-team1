@@ -1,0 +1,26 @@
+enum ClaimStatus {
+  pending
+  approved
+  declined
+  canceled
+  no_show
+  picked_up
+
+  @@map("claim_status")
+}
+
+model Claim {
+  id         String      @id @default(uuid()) @db.Uuid
+  itemId     String      @map("item_id") @db.Uuid
+  claimerId  String      @map("claimer_id") @db.Uuid
+  status     ClaimStatus @default(pending)
+  message    String?     @db.VarChar(500)
+  decidedAt  DateTime?   @map("decided_at") @db.Timestamptz(6)
+  pickedUpAt DateTime?   @map("picked_up_at") @db.Timestamptz(6)
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([itemId, status])
+  @@index([claimerId, status])
+  @@map("claims")
+}
