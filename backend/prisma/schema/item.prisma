@@ -1,0 +1,43 @@
+enum ItemCondition {
+  new
+  like_new
+  good
+  used
+
+  @@map("item_condition")
+}
+
+enum ItemStatus {
+  available
+  reserved
+  picked_up
+  withdrawn
+
+  @@map("item_status")
+}
+
+model Item {
+  id           String        @id @default(uuid()) @db.Uuid
+  ownerId      String        @map("owner_id") @db.Uuid
+  categoryId   String        @map("category_id") @db.Uuid
+  title        String        @db.VarChar(80)
+  description  String        @db.VarChar(1000)
+  condition    ItemCondition
+  status       ItemStatus    @default(available)
+  ageMinMonths Int?          @map("age_min_months")
+  ageMaxMonths Int?          @map("age_max_months")
+  city         String
+  state        String
+  postalCode   String        @map("postal_code")
+  latitude     Float?
+  longitude    Float?
+  reservedAt   DateTime?     @map("reserved_at") @db.Timestamptz(6)
+  pickedUpAt   DateTime?     @map("picked_up_at") @db.Timestamptz(6)
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([categoryId, status])
+  @@index([ownerId])
+  @@map("items")
+}
