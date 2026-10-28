@@ -1,19 +1,19 @@
 model Address {
-    id          String      @id @default(uuid()) @db.Uuid //id for each address
-    userId      String      @map("user_id") @db.Uuid //User.id
-    nickname    String?
-    line1       String      @map("line_1")
-    line2       String?     @map("line_2")
-    city        String
-    state       String      
-    postalCode  String      @map("postal_code")
-    country     String      @default("US")
-    latitude    Float?
-    longitude   Float?
-    isDefault   Boolean     @default(false) @map("is_default")
-    createdAt   DateTime    @default(now()) @map("created_at")
-    updatedAt   DateTime?   @updatedAt @map("updated_at")  
+  id         String   @id @default(uuid()) @db.Uuid //id for each address
+  userId     String   @map("user_id") @db.Uuid //User.id
+  nickname   String?
+  line1      String   @map("line_1")
+  line2      String?  @map("line_2")
+  city       String
+  state      String
+  postalCode String   @map("postal_code")
+  country    String   @default("US")
+  latitude   Float?
+  longitude  Float?
+  isDefault  Boolean  @default(false) @map("is_default")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-    @@index([userId]) 
-    @@map("addresses")
+  @@index([userId])
+  @@map("addresses")
 }

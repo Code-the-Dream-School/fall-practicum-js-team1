@@ -1,22 +1,21 @@
 enum UserRole {
-    user
-    admin
+  user
+  admin
 
-    @@map("user_role")
+  @@map("user_role")
 }
 
 model User {
-    id              String      @id @default(uuid()) @db.Uuid
-    email           String      @unique
-    passwordHash    String      @map("password_hash")
-    name            String 
-    avatarUrl       String?     @map("avatar_url")
-    role            UserRole    @default(user)
-    emailVerifiedAt DateTime?   @map("email_verified_at")
-    deactivatedAt   DateTime?   @map("deactivated_at")
-    createdAt       DateTime    @default(now()) @map("created_at")
-    updatedAt       DateTime    @updatedAt @map("updated_at")
+  id              String    @id @default(uuid()) @db.Uuid
+  email           String    @unique
+  passwordHash    String    @map("password_hash")
+  name            String
+  avatarUrl       String?   @map("avatar_url")
+  role            UserRole  @default(user)
+  emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamptz(6)
+  deactivatedAt   DateTime? @map("deactivated_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-    @@map("users")
-
+  @@map("users")
 }
