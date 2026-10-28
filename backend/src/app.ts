@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
-
+import healthRoutes from './routes/health.routes.js';
 import helloRoutes from './routes/hello.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -24,6 +24,7 @@ app.use(limiter);
 
 // Routes
 app.use('/api/hello', helloRoutes);
+app.use('/api/health', healthRoutes);
 
 // Root route
 app.get('/', (req, res) => {
