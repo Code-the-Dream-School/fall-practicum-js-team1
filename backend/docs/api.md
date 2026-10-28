@@ -379,7 +379,7 @@ The address must belong to the signed-in user. Do not expose private pickup addr
 | city                                                                                                         | string | Optional city filter                   |
 | state                                                                                                        | string | Optional state filter (e.g., CA)       |
 | zipCode                                                                                                      | string | Optional ZIP code filter (e.g., 94901) |
-| **Note:** The `state` and `zipCode` search filters are proposed and must be confirmed with the backend team. |
+ **Note:** The `state` and `zipCode` search filters are proposed and must be confirmed with the backend team. 
 
 **Request Body**
 
