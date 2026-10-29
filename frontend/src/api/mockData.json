@@ -1,0 +1,12 @@
+{
+  "users": {
+    {
+      "id": 1,
+      "firstName": "Mocked",
+      "lastName": "User",
+    }
+  },
+  "items": {
+  },
+  ""
+}
