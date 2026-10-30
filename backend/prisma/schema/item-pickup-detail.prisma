@@ -1,0 +1,12 @@
+// Pickup details live in their own table so the street address is never returned
+// by a normal item query. Only the owner and the approved claimer may read it.
+model ItemPickupDetail {
+  itemId       String   @id @map("item_id") @db.Uuid
+  addressId    String   @map("address_id") @db.Uuid
+  instructions String?  @db.VarChar(300)
+  availability String?  @db.VarChar(200)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("item_pickup_details")
+}

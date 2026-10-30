@@ -1,47 +1,26 @@
-import { useEffect, useState } from 'react';
 import './App.css';
 import { Routes, Route } from 'react-router';
+import Layout from './components/layout/Layout';
+import HomePage from './pages/HomePage';
+import ItemDetailsPage from './pages/ItemDetailsPage';
+import PostItemPage from './pages/PostItemPage';
+import RegisterPage from './pages/RegisterPage';
+import LoginPage from './pages/LoginPage';
+import ProfilePage from './pages/ProfilePage';
+import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    // Call the backend API
-    // ★ The Vite proxy forwards /api to the backend (port 3000)
-    fetch('/api/hello')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to fetch from backend');
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setMessage(data.message);
-      })
-      .catch((err) => {
-        setError(err.message);
-      });
-  }, []);
-
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-            <h1>Frontend ↔ Backend Test</h1>
-
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-
-            {!error && (
-              <p>
-                Message from API: <strong>{message}</strong>
-              </p>
-            )}
-          </main>
-        }
-      />
+      <Route element={<Layout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/items/:id" element={<ItemDetailsPage />} />
+        <Route path="/items/new" element={<PostItemPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
     </Routes>
   );
 }
