@@ -2,8 +2,14 @@
   "users": {
     {
       "id": 1,
-      "firstName": "Mocked",
-      "lastName": "User",
+      "name": "Mocked User",
+      "email": "fake_email@example.com",
+      "role": "user",
+      "avatarUrl": "",
+      "emailVerifiedAt": "2026-10-29T22:15:39.367Z",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "deactivatedAt": null
     }
   },
   "items": {
