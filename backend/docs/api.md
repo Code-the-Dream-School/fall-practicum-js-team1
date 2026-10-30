@@ -18,7 +18,7 @@ None.
 
 | Field    | Type   | Validation                                                                                          |
 | -------- | ------ | --------------------------------------------------------------------------------------------------- |
-| name     | string | Required, 2â€“50 characters                                                                           |
+| name     | string | Required, 2â€“50 characters                                                                         |
 | email    | string | Required, valid email address                                                                       |
 | password | string | Required, minimum 8 characters, at least one uppercase letter, one lowercase letter, and one number |
 
@@ -49,11 +49,9 @@ None.
 
 **CSRF Token**
 
-
 After successful registration, the API returns a `csrfToken` in the JSON response. A JWT is stored in an httpOnly cookie with SameSite=Lax and a one-day expiration. The browser sends this cookie automatically.
 
 The frontend stores the `csrfToken` and sends it in the `X-CSRF-TOKEN` header for POST, PATCH, PUT, and DELETE requests. If the token is missing or invalid, the API returns HTTP 403.
-
 
 **Possible Errors**
 
@@ -65,13 +63,11 @@ The frontend stores the `csrfToken` and sends it in the `X-CSRF-TOKEN` header fo
 
 **Security**
 
-
 Registration does not require an `X-CSRF-TOKEN` request header.
 
 After successful registration, the server sets a JWT in an httpOnly cookie with SameSite=Lax and a one-day expiration. The API returns a `csrfToken` in the JSON response.
 
 The user's password must never be returned in the response.
-
 
 Never return the user's password in the response.
 
@@ -105,7 +101,6 @@ None.
 
 **Success Response (proposed)**
 
-
 ```json
 {
   "success": true,
@@ -118,7 +113,6 @@ None.
   "csrfToken": "example-csrf-token"
 }
 ```
-
 
 **Possible Errors**
 
@@ -161,11 +155,11 @@ None proposed.
 
 **Possible Errors**
 
-| Code | Meaning               |
-| ---- | --------------------- |
-| 401  | User is not signed in |
-| 403 | Missing or invalid CSRF token |
-| 500  | Internal server error |
+| Code | Meaning                       |
+| ---- | ----------------------------- |
+| 401  | User is not signed in         |
+| 403  | Missing or invalid CSRF token |
+| 500  | Internal server error         |
 
 **Security**
 
@@ -215,8 +209,6 @@ Uses the user's authentication cookie. A CSRF header is not required for this re
 
 Never return the user's password.
 
-
-
 ### Categories Endpoints
 
 #### Get Categories
@@ -260,8 +252,6 @@ None.
 **Security**
 
 No authentication required.
-
-
 
 ### Addresses Endpoints
 
@@ -415,6 +405,7 @@ None.
   ]
 }
 ```
+
 **Possible Item Status Values:** `available`, `reserved`, `picked_up`, `withdrawn`
 
 **Possible Errors**
@@ -676,9 +667,9 @@ Do not expose private information to unauthorized users.
 
 **Path Parameters**
 
-| Parameter | Type   | Description               |
-| --------- | ------ | ------------------------- |
-| id | string | UUID of the claim |
+| Parameter | Type   | Description       |
+| --------- | ------ | ----------------- |
+| id        | string | UUID of the claim |
 
 **Query Parameters**
 
@@ -686,10 +677,9 @@ None.
 
 **Request Body (proposed)**
 
-| Field  | Type   | Validation                                                |
-| ------ | ------ | --------------------------------------------------------- |
-| status | string | Required; allowed values: `pending`, `approved`, `declined`, `canceled`, `no_show`, `picked_up`|
-
+| Field  | Type   | Validation                                                                                      |
+| ------ | ------ | ----------------------------------------------------------------------------------------------- |
+| status | string | Required; allowed values: `pending`, `approved`, `declined`, `canceled`, `no_show`, `picked_up` |
 
 **Example Request (proposed)**
 
