@@ -197,6 +197,25 @@ In development, the frontend calls the backend through a **Vite proxy**.
 - Restart `npm run dev` after you change `vite.config.ts`
 - The proxy only works in development. The deployed app needs a separate setup (not decided yet).
 
+
+## 🧪 Running Tests
+
+The frontend uses Vitest and React Testing Library for automated testing.
+
+From the `frontend` directory, run:
+
+```bash
+npm test
+```
+
+To run tests in watch mode:
+
+```bash
+npm run test:watch
+```
+
+Tests are located next to the files they test.
+
 ## 🧪 Available Scripts
 
 ### Frontend
@@ -252,7 +271,7 @@ DELETE /api/items/:id
 ## 📌 Known Issues / Limitations
 
 - Limited role-based access control
-- No automated tests yet
+- Automated frontend tests added; backend test coverage is still pending
 - Performance optimizations pending
 
 ## 🛣 Future Improvements
