@@ -2,7 +2,7 @@ enum ClaimStatus {
   pending
   approved
   declined
-  canceled
+  cancelled
   no_show
   picked_up
 
