@@ -21,7 +21,7 @@ type ItemCardProps = {
 
 export const ItemCard = ({ item }: ItemCardProps) => {
   return (
-    <Link to={`/items/${item.id}`} className="group block">
+    <Link to={`/items/${item.id}`} className="group block min-w-0">
       <Card className="gap-0 py-0 transition-shadow group-hover:shadow-md">
         <AspectRatio ratio={1}>
           {item.coverPhotoUrl ? (
@@ -38,7 +38,7 @@ export const ItemCard = ({ item }: ItemCardProps) => {
         </AspectRatio>
 
         <CardContent className="space-y-1 py-3">
-          <h3 className="line-clamp-2 font-semibold group-hover:underline">
+          <h3 className="truncate font-semibold group-hover:underline">
             {item.title}
           </h3>
 
