@@ -1,6 +1,6 @@
 # Baby Gear Exchange API Documentation
 
-This document describes the proposed API endpoints for the Baby Gear Exchange application.
+This document describes the API endpoints, request and response formats, authentication, and security requirements for the Baby Gear Exchange application.
 
 ### Authentication Endpoints
 
@@ -32,22 +32,28 @@ None.
 }
 ```
 
-**Success Response (proposed)**
+**Success Response (201 Created)**
 
 ```json
 {
   "success": true,
   "data": {
-    "id": "1",
+    "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "Jane Smith",
-    "email": "jane@example.com"
-  }
+    "email": "jane@example.com",
+    "role": "user"
+  },
+  "csrfToken": "example-csrf-token"
 }
 ```
 
-**CSRF Token (to be confirmed)**
+**CSRF Token**
 
-The CSRF token should be provided after successful registration or login. The backend team needs to confirm whether it is returned in the response body, a cookie, or a response header.
+
+After successful registration, the API returns a `csrfToken` in the JSON response. A JWT is stored in an httpOnly cookie with SameSite=Lax and a one-day expiration. The browser sends this cookie automatically.
+
+The frontend stores the `csrfToken` and sends it in the `X-CSRF-TOKEN` header for POST, PATCH, PUT, and DELETE requests. If the token is missing or invalid, the API returns HTTP 403.
+
 
 **Possible Errors**
 
@@ -59,7 +65,13 @@ The CSRF token should be provided after successful registration or login. The ba
 
 **Security**
 
-Registration does not require an X-CSRF-TOKEN request header. The CSRF token is provided after authentication; its response format must be confirmed with the backend team.
+
+Registration does not require an `X-CSRF-TOKEN` request header.
+
+After successful registration, the server sets a JWT in an httpOnly cookie with SameSite=Lax and a one-day expiration. The API returns a `csrfToken` in the JSON response.
+
+The user's password must never be returned in the response.
+
 
 Never return the user's password in the response.
 
@@ -93,16 +105,20 @@ None.
 
 **Success Response (proposed)**
 
+
 ```json
 {
   "success": true,
   "data": {
-    "id": "1",
+    "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "Jane Smith",
-    "email": "jane@example.com"
-  }
+    "email": "jane@example.com",
+    "role": "user"
+  },
+  "csrfToken": "example-csrf-token"
 }
 ```
+
 
 **Possible Errors**
 
@@ -113,11 +129,9 @@ None.
 | 500  | Internal server error     |
 
 **Security**
+Login does not require an X-CSRF-TOKEN request header.
 
-Login does not require an X-CSRF-TOKEN request header. The CSRF token is provided after authentication; its response format must be confirmed with the backend team.
-
-Authentication uses cookies. The exact cookie and CSRF token handling must be confirmed with the backend team.
-
+After successful login, the server sets a JWT in an httpOnly cookie with SameSite=Lax and a one-day expiration. The API returns a csrfToken in the JSON response. The frontend sends this token in the X-CSRF-TOKEN header for subsequent POST, PATCH, PUT, and DELETE requests.
 **Note:** The response fields and error cases are proposed and must be confirmed with the backend team.
 
 #### Log Out User
@@ -150,6 +164,7 @@ None proposed.
 | Code | Meaning               |
 | ---- | --------------------- |
 | 401  | User is not signed in |
+| 403 | Missing or invalid CSRF token |
 | 500  | Internal server error |
 
 **Security**
@@ -200,7 +215,7 @@ Uses the user's authentication cookie. A CSRF header is not required for this re
 
 Never return the user's password.
 
-**Note:** Response fields, ID type, and error cases must be confirmed with the backend team.
+
 
 ### Categories Endpoints
 
@@ -246,7 +261,7 @@ None.
 
 No authentication required.
 
-**Note:** Category names, response fields, ID types, and error cases must be confirmed with the backend team.
+
 
 ### Addresses Endpoints
 
@@ -373,7 +388,7 @@ The address must belong to the signed-in user. Do not expose private pickup addr
 | ------------------------------------------------------------------------------------------------------------ | ------ | -------------------------------------- |
 | q                                                                                                            | string | Optional search text                   |
 | category                                                                                                     | string | Optional category filter               |
-| condition                                                                                                    | string | Optional item condition                |
+| condition                                                                                                    | string | Optional item condition (new, like_new, good, used)               |
 | ageMin                                                                                                       | number | Optional minimum age                   |
 | ageMax                                                                                                       | number | Optional maximum age                   |
 | city                                                                                                         | string | Optional city filter                   |
@@ -403,6 +418,7 @@ None.
   ]
 }
 ```
+**Possible Item Status Values:** `available`, `reserved`, `picked_up`, `withdrawn`
 
 **Possible Errors**
 
@@ -447,7 +463,7 @@ None.
     "title": "Baby Stroller",
     "description": "A gently used baby stroller.",
     "category": "Strollers",
-    "condition": "Good",
+    "condition": "good",
     "city": "San Rafael",
     "photoUrls": ["https://example.com/stroller.jpg"],
     "status": "available"
@@ -576,7 +592,7 @@ No request body is proposed. Confirm with the backend team.
   "data": {
     "id": "20",
     "itemId": "10",
-    "status": "requested"
+    "status": "pending"
   }
 }
 ```
@@ -629,7 +645,7 @@ None.
     {
       "id": "20",
       "itemId": "10",
-      "status": "requested"
+      "status": "pending"
     }
   ]
 }
@@ -675,7 +691,8 @@ None.
 
 | Field  | Type   | Validation                                                |
 | ------ | ------ | --------------------------------------------------------- |
-| status | string | Required; allowed values proposed: `approved`, `declined` |
+| status | string | Required; allowed values: `pending`, `approved`, `declined`, `canceled`, `no_show`, `picked_up`|
+
 
 **Example Request (proposed)**
 
@@ -934,7 +951,7 @@ None.
     {
       "id": "1",
       "itemId": "10",
-      "status": "requested"
+      "status": "pending"
     }
   ]
 }
