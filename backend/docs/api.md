@@ -6,8 +6,8 @@ This document describes the API endpoints, request and response formats, authent
 
 #### Register User
 
-**Method:** POST  
-**Path:** `/api/users/register`  
+**Method:** POST
+**Path:** `/api/users/register`
 **Access:** Public
 
 **Query Parameters**
@@ -18,7 +18,7 @@ None.
 
 | Field    | Type   | Validation                                                                                          |
 | -------- | ------ | --------------------------------------------------------------------------------------------------- |
-| name     | string | Required, 2–50 characters                                                                           |
+| name     | string | Required, 2â€“50 characters                                                                           |
 | email    | string | Required, valid email address                                                                       |
 | password | string | Required, minimum 8 characters, at least one uppercase letter, one lowercase letter, and one number |
 
@@ -79,8 +79,8 @@ Never return the user's password in the response.
 
 #### Log In User
 
-**Method:** POST  
-**Path:** `/api/users/logon`  
+**Method:** POST
+**Path:** `/api/users/logon`
 **Access:** Public
 
 **Query Parameters**
@@ -136,8 +136,8 @@ After successful login, the server sets a JWT in an httpOnly cookie with SameSit
 
 #### Log Out User
 
-**Method:** POST  
-**Path:** `/api/users/logoff`  
+**Method:** POST
+**Path:** `/api/users/logoff`
 **Access:** Signed-in users
 
 **Query Parameters**
@@ -177,8 +177,8 @@ The server should clear the user's authentication cookie.
 
 #### Get Current User
 
-**Method:** GET  
-**Path:** `/api/users/me`  
+**Method:** GET
+**Path:** `/api/users/me`
 **Access:** Signed-in users
 
 **Query Parameters**
@@ -221,8 +221,8 @@ Never return the user's password.
 
 #### Get Categories
 
-**Method:** GET  
-**Path:** `/api/categories`  
+**Method:** GET
+**Path:** `/api/categories`
 **Access:** Public
 
 **Query Parameters**
@@ -267,8 +267,8 @@ No authentication required.
 
 #### Get Addresses
 
-**Method:** GET  
-**Path:** `/api/addresses`  
+**Method:** GET
+**Path:** `/api/addresses`
 **Access:** Signed-in users (proposed)
 
 **Query Parameters**
@@ -291,7 +291,7 @@ None.
       "street2": "Apt 2",
       "city": "San Rafael",
       "state": "CA",
-      "zipCode": "94901"
+      "postalCode": "94901"
     }
   ]
 }
@@ -314,8 +314,8 @@ Only return addresses the signed-in user is authorized to view. Do not expose ot
 
 #### Create Address
 
-**Method:** POST  
-**Path:** `/api/addresses`  
+**Method:** POST
+**Path:** `/api/addresses`
 **Access:** Signed-in users (proposed)
 
 **Query Parameters**
@@ -338,7 +338,7 @@ None.
   "street": "123 Example Street",
   "city": "San Rafael",
   "state": "CA",
-  "zipCode": "94901"
+  "postalCode": "94901"
 }
 ```
 
@@ -353,7 +353,7 @@ None.
     "street2": "Apt 2",
     "city": "San Rafael",
     "state": "CA",
-    "zipCode": "94901"
+    "postalCode": "94901"
   }
 }
 ```
@@ -378,29 +378,26 @@ The address must belong to the signed-in user. Do not expose private pickup addr
 
 #### Get Items
 
-**Method:** GET  
-**Path:** `/api/items`  
-**Access:** Public (proposed)
+**Method:** GET
+**Path:** `/api/items`
+**Access:** Public
 
 **Query Parameters**
 
-| Parameter                                                                                                    | Type   | Description                            |
-| ------------------------------------------------------------------------------------------------------------ | ------ | -------------------------------------- |
-| q                                                                                                            | string | Optional search text                   |
-| category                                                                                                     | string | Optional category filter               |
-| condition                                                                                                    | string | Optional item condition (new, like_new, good, used)               |
-| ageMin                                                                                                       | number | Optional minimum age                   |
-| ageMax                                                                                                       | number | Optional maximum age                   |
-| city                                                                                                         | string | Optional city filter                   |
-| state                                                                                                        | string | Optional state filter (e.g., CA)       |
-| zipCode                                                                                                      | string | Optional ZIP code filter (e.g., 94901) |
-| **Note:** The `state` and `zipCode` search filters are proposed and must be confirmed with the backend team. |
+| | Parameter | Type | Description |
+|-----------|------|-------------|
+| q | string | Optional search text |
+| category | string | Optional category filter |
+| condition | string | Optional item condition (new, like_new, good, used) |
+| ageMin | number | Optional minimum age in months |
+| ageMax | number | Optional maximum age in months |
+| city | string | Optional city filter |
 
 **Request Body**
 
 None.
 
-**Success Response (proposed)**
+**Success Response**
 
 ```json
 {
@@ -410,7 +407,7 @@ None.
       "id": "10",
       "title": "Baby Stroller",
       "category": "Strollers",
-      "condition": "Good",
+      "condition": "good",
       "city": "San Rafael",
       "photoUrls": ["https://example.com/stroller.jpg"],
       "status": "available"
@@ -435,8 +432,8 @@ Do not include private pickup addresses in public item listings.
 
 #### Get Item Details
 
-**Method:** GET  
-**Path:** `/api/items/:id`  
+**Method:** GET
+**Path:** `/api/items/:id`
 **Access:** Public (proposed)
 
 **Path Parameters**
@@ -453,7 +450,7 @@ None.
 
 None.
 
-**Success Response (proposed)**
+**Success Response**
 
 ```json
 {
@@ -489,8 +486,8 @@ Pickup address information should only be available to the item owner or approve
 
 #### Create Item
 
-**Method:** POST  
-**Path:** `/api/items`  
+**Method:** POST
+**Path:** `/api/items`
 **Access:** Signed-in users
 
 **Query Parameters**
@@ -517,7 +514,7 @@ None.
   "title": "Baby Stroller",
   "description": "A gently used baby stroller.",
   "categoryId": "1",
-  "condition": "Good",
+  "condition": "good",
   "ageMin": 0,
   "ageMax": 24,
   "addressId": "1",
@@ -566,8 +563,8 @@ Cloudinary upload flow is TBD. Confirm whether images are uploaded directly from
 
 #### Create Claim
 
-**Method:** POST  
-**Path:** `/api/items/:id/claims`  
+**Method:** POST
+**Path:** `/api/items/:id/claims`
 **Access:** Signed-in users (proposed)
 
 **Path Parameters**
@@ -618,8 +615,8 @@ Only signed-in users can submit claims. The server should prevent users from cla
 
 #### Get Item Claims
 
-**Method:** GET  
-**Path:** `/api/items/:id/claims`  
+**Method:** GET
+**Path:** `/api/items/:id/claims`
 **Access:** Item owner (proposed)
 
 **Path Parameters**
@@ -636,7 +633,7 @@ None proposed.
 
 None.
 
-**Success Response (proposed)**
+**Success Response**
 
 ```json
 {
@@ -673,15 +670,15 @@ Do not expose private information to unauthorized users.
 
 #### Update Claim
 
-**Method:** PATCH  
-**Path:** `/api/claims/:id`  
+**Method:** PATCH
+**Path:** `/api/claims/:id`
 **Access:** Item owner (proposed)
 
 **Path Parameters**
 
 | Parameter | Type   | Description               |
 | --------- | ------ | ------------------------- |
-| id        | string | ID of the claim; type TBD |
+| id | string | UUID of the claim |
 
 **Query Parameters**
 
@@ -735,8 +732,8 @@ Only the item owner should be able to approve or decline a claim (proposed).
 
 #### Cancel Claim
 
-**Method:** PATCH  
-**Path:** `/api/claims/:id/cancel`  
+**Method:** PATCH
+**Path:** `/api/claims/:id/cancel`
 **Access:** Claimer (proposed)
 
 **Path Parameters**
@@ -760,7 +757,7 @@ No request body is proposed. Confirm with the backend team.
   "success": true,
   "data": {
     "id": "20",
-    "status": "cancelled"
+    "status": "canceled"
   }
 }
 ```
@@ -786,8 +783,8 @@ Only the user who submitted the claim should be allowed to cancel it (proposed).
 
 #### Mark Claim as No-Show
 
-**Method:** PATCH  
-**Path:** `/api/claims/:id/no-show`  
+**Method:** PATCH
+**Path:** `/api/claims/:id/no-show`
 **Access:** Item owner (proposed)
 
 **Path Parameters**
@@ -811,7 +808,7 @@ No request body is proposed. Confirm with the backend team.
   "success": true,
   "data": {
     "id": "20",
-    "status": "no-show"
+    "status": "no_show"
   }
 }
 ```
@@ -837,8 +834,8 @@ Only the item owner should be allowed to mark a claimer as a no-show (proposed).
 
 #### Mark Item as Picked Up
 
-**Method:** PATCH  
-**Path:** `/api/items/:id/picked-up`  
+**Method:** PATCH
+**Path:** `/api/items/:id/picked-up`
 **Access:** Item owner (proposed)
 
 **Path Parameters**
@@ -888,8 +885,8 @@ The Profile API allows signed-in users to view their donations, claims, and acti
 
 #### Get My Items
 
-**Method:** GET  
-**Path:** `/api/profile/items`  
+**Method:** GET
+**Path:** `/api/profile/items`
 **Access:** Signed-in users
 
 **Query Parameters**
@@ -930,8 +927,8 @@ Only return items belonging to the signed-in user.
 
 #### Get My Claims
 
-**Method:** GET  
-**Path:** `/api/profile/claims`  
+**Method:** GET
+**Path:** `/api/profile/claims`
 **Access:** Signed-in users
 
 **Query Parameters**
@@ -972,8 +969,8 @@ Only return claims submitted by the signed-in user.
 
 #### Get Profile Statistics
 
-**Method:** GET  
-**Path:** `/api/profile/stats`  
+**Method:** GET
+**Path:** `/api/profile/stats`
 **Access:** Signed-in users
 
 **Query Parameters**
@@ -1043,8 +1040,8 @@ The Messages API allows users involved in a claim to communicate about the item.
 
 #### Send Message
 
-**Method:** POST  
-**Path:** `/api/claims/:id/messages`  
+**Method:** POST
+**Path:** `/api/claims/:id/messages`
 **Access:** Item owner or claimer (proposed)
 
 **Path Parameters**
@@ -1100,8 +1097,8 @@ Only authorized participants in the claim should be able to send messages (propo
 
 #### Get Messages
 
-**Method:** GET  
-**Path:** `/api/claims/:id/messages`  
+**Method:** GET
+**Path:** `/api/claims/:id/messages`
 **Access:** Item owner or claimer (proposed)
 
 **Path Parameters**
@@ -1151,8 +1148,8 @@ Only authorized participants in the claim should be able to view messages.
 
 #### Mark Messages as Read
 
-**Method:** PATCH  
-**Path:** `/api/claims/:id/messages/read`  
+**Method:** PATCH
+**Path:** `/api/claims/:id/messages/read`
 **Access:** Item owner or claimer (proposed)
 
 **Path Parameters**
