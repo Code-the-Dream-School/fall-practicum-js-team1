@@ -8,5 +8,8 @@ model ItemPickupDetail {
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  address Address @relation("AddressPickupDetails", fields: [addressId], references: [id], onDelete: Restrict)
+  item    Item    @relation("ItemPickupDetail", fields: [itemId], references: [id], onDelete: Cascade)
+
   @@map("item_pickup_details")
 }

@@ -6,5 +6,7 @@ model Category {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  items Item[] @relation("CategoryItems")
+
   @@map("categories")
 }

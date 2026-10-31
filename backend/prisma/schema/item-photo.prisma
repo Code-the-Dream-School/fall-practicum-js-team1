@@ -7,6 +7,8 @@ model ItemPhoto {
   altText   String?  @map("alt_text") @db.VarChar(200)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
+  item Item @relation("ItemPhotos", fields: [itemId], references: [id], onDelete: Cascade)
+
   @@unique([itemId, position])
   @@index([itemId])
   @@map("item_photos")
