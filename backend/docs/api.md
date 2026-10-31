@@ -1,0 +1,1242 @@
+﻿# Baby Gear Exchange API Documentation
+
+This document describes the API endpoints, request and response formats, authentication, and security requirements for the Baby Gear Exchange application.
+
+### Authentication Endpoints
+
+#### Register User
+
+**Method:** POST
+**Path:** `/api/users/register`
+**Access:** Public
+
+**Query Parameters**
+
+None.
+
+**Request Body**
+
+| Field    | Type   | Validation                                                                                          |
+| -------- | ------ | --------------------------------------------------------------------------------------------------- |
+| name     | string | Required, 2Ã¢â‚¬â€œ50 characters                                                                    |
+| email    | string | Required, valid email address                                                                       |
+| password | string | Required, minimum 8 characters, at least one uppercase letter, one lowercase letter, and one number |
+
+**Example Request**
+
+```json
+{
+  "name": "Jane Smith",
+  "email": "jane@example.com",
+  "password": "Password123"
+}
+```
+
+**Success Response (201 Created)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "role": "user"
+  },
+  "csrfToken": "example-csrf-token"
+}
+```
+
+**CSRF Token**
+
+After successful registration, the API returns a `csrfToken` in the JSON response. A JWT is stored in an httpOnly cookie with SameSite=Lax and a one-day expiration. The browser sends this cookie automatically.
+
+The frontend stores the `csrfToken` and sends it in the `X-CSRF-TOKEN` header for POST, PATCH, PUT, and DELETE requests. If the token is missing or invalid, the API returns HTTP 403.
+
+**Possible Errors**
+
+| Code | Meaning                          |
+| ---- | -------------------------------- |
+| 400  | Invalid name, email, or password |
+| 409  | Email already registered         |
+| 500  | Internal server error            |
+
+**Security**
+
+Registration does not require an `X-CSRF-TOKEN` request header.
+
+After successful registration, the server sets a JWT in an httpOnly cookie with SameSite=Lax and a one-day expiration. The API returns a `csrfToken` in the JSON response.
+
+The user's password must never be returned in the response.
+
+Never return the user's password in the response.
+
+**Note:** Response fields, ID type, and error cases must be confirmed with the backend team.
+
+#### Log In User
+
+**Method:** POST
+**Path:** `/api/users/logon`
+**Access:** Public
+
+**Query Parameters**
+
+None.
+
+**Request Body**
+
+| Field    | Type   | Validation                    |
+| -------- | ------ | ----------------------------- |
+| email    | string | Required; valid email address |
+| password | string | Required                      |
+
+**Example Request**
+
+```json
+{
+  "email": "jane@example.com",
+  "password": "Password123"
+}
+```
+
+**Success Response (proposed)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "role": "user"
+  },
+  "csrfToken": "example-csrf-token"
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning                   |
+| ---- | ------------------------- |
+| 400  | Missing or invalid input  |
+| 401  | Invalid email or password |
+| 500  | Internal server error     |
+
+**Security**
+Login does not require an X-CSRF-TOKEN request header.
+
+After successful login, the server sets a JWT in an httpOnly cookie with SameSite=Lax and a one-day expiration. The API returns a csrfToken in the JSON response. The frontend sends this token in the X-CSRF-TOKEN header for subsequent POST, PATCH, PUT, and DELETE requests.
+**Note:** The response fields and error cases are proposed and must be confirmed with the backend team.
+
+#### Log Out User
+
+**Method:** POST
+**Path:** `/api/users/logoff`
+**Access:** Signed-in users
+
+**Query Parameters**
+
+None.
+
+**Request Body**
+
+None proposed.
+
+**Success Response (proposed)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Logged out successfully"
+  }
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning                       |
+| ---- | ----------------------------- |
+| 401  | User is not signed in         |
+| 403  | Missing or invalid CSRF token |
+| 500  | Internal server error         |
+
+**Security**
+
+The request must include the `X-CSRF-TOKEN` header.
+
+The server should clear the user's authentication cookie.
+
+**Note:** The success response, cookie handling, and error cases must be confirmed with the backend team.
+
+#### Get Current User
+
+**Method:** GET
+**Path:** `/api/users/me`
+**Access:** Signed-in users
+
+**Query Parameters**
+
+None.
+
+**Request Body**
+
+None.
+
+**Success Response (proposed)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "1",
+    "name": "Jane Smith",
+    "email": "jane@example.com"
+  }
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning               |
+| ---- | --------------------- |
+| 401  | User is not signed in |
+| 500  | Internal server error |
+
+**Security**
+
+Uses the user's authentication cookie. A CSRF header is not required for this read-only GET request.
+
+Never return the user's password.
+
+### Categories Endpoints
+
+#### Get Categories
+
+**Method:** GET
+**Path:** `/api/categories`
+**Access:** Public
+
+**Query Parameters**
+
+None.
+
+**Request Body**
+
+None.
+
+**Success Response (proposed)**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "1",
+      "name": "Strollers"
+    },
+    {
+      "id": "2",
+      "name": "Clothing"
+    }
+  ]
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning               |
+| ---- | --------------------- |
+| 500  | Internal server error |
+
+**Security**
+
+No authentication required.
+
+### Addresses Endpoints
+
+#### Get Addresses
+
+**Method:** GET
+**Path:** `/api/addresses`
+**Access:** Signed-in users (proposed)
+
+**Query Parameters**
+
+None proposed.
+
+**Request Body**
+
+None.
+
+**Success Response (proposed)**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "line1": "123 Main Street",
+      "line2": "Apt 2",
+      "city": "San Rafael",
+      "state": "CA",
+      "postalCode": "94901"
+    }
+  ]
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning               |
+| ---- | --------------------- |
+| 401  | User is not signed in |
+| 500  | Internal server error |
+
+**Security**
+
+Uses the user's authentication cookie.
+
+Only return addresses the signed-in user is authorized to view. Do not expose other users' private pickup addresses.
+
+**Note:** Address fields, access rules, response fields, and error cases must be confirmed with the backend team.
+
+#### Create Address
+
+**Method:** POST
+**Path:** `/api/addresses`
+**Access:** Signed-in users (proposed)
+
+**Query Parameters**
+
+None.
+
+**Request Body (proposed)**
+
+| Field      | Type   | Validation                   |
+| ---------- | ------ | ---------------------------- |
+| line1      | string | Required; maximum length TBD |
+| line2      | string | Optional                     |
+| city       | string | Required; maximum length TBD |
+| state      | string | Required; format TBD         |
+| postalCode | string | Required; format TBD         |
+| country    | string | Optional; defaults to "US"   |
+
+**Open question for the team:** Please confirm the maximum lengths for line1 and city, and the accepted formats for state and postalCode.
+
+**Example Request**
+
+```json
+{
+  "line1": "123 Example Street",
+  "city": "San Rafael",
+  "state": "CA",
+  "postalCode": "94901"
+}
+```
+
+**Success Response (proposed)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "line1": "123 Main Street",
+    "line2": "Apt 2",
+    "city": "San Rafael",
+    "state": "CA",
+    "postalCode": "94901"
+  }
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning                           |
+| ---- | --------------------------------- |
+| 400  | Missing or invalid address fields |
+| 401  | User is not signed in             |
+| 500  | Internal server error             |
+
+**Security**
+
+The request must include the `X-CSRF-TOKEN` header.
+
+The address must belong to the signed-in user. Do not expose private pickup addresses to unauthorized users.
+
+**Note:** Request fields, validation limits, response fields, and access rules must be confirmed with the backend team.
+
+### Items Endpoints
+
+#### Get Items
+
+**Method:** GET
+**Path:** `/api/items`
+**Access:** Public
+
+**Query Parameters**
+
+| | Parameter | Type | Description |
+|-----------|------|-------------|
+| q | string | Optional search text |
+| category | string | Optional category filter |
+| condition | string | Optional item condition (new, like_new, good, used) |
+| ageMin | number | Optional minimum age in months |
+| ageMax | number | Optional maximum age in months |
+| city | string | Optional city filter |
+
+**Request Body**
+
+None.
+
+**Success Response**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "10",
+      "title": "Baby Stroller",
+      "category": "Strollers",
+      "condition": "good",
+      "city": "San Rafael",
+      "photoUrls": ["https://example.com/stroller.jpg"],
+      "status": "available"
+    }
+  ]
+}
+```
+
+**Possible Item Status Values:** `available`, `reserved`, `picked_up`, `withdrawn`
+
+**Possible Errors**
+
+| Code | Meaning                  |
+| ---- | ------------------------ |
+| 400  | Invalid query parameters |
+| 500  | Internal server error    |
+
+**Security**
+
+Do not include private pickup addresses in public item listings.
+
+**Note:** Query parameter types, filter behavior, response fields, and error cases must be confirmed with the backend team.
+
+#### Get Item Details
+
+**Method:** GET
+**Path:** `/api/items/:id`
+**Access:** Public (proposed)
+
+**Path Parameters**
+
+| Parameter | Type   | Description               |
+| --------- | ------ | ------------------------- |
+| id        | string | ID of the item; type UUID |
+
+**Query Parameters**
+
+None.
+
+**Request Body**
+
+None.
+
+**Success Response**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "10",
+    "title": "Baby Stroller",
+    "description": "A gently used baby stroller.",
+    "category": "Strollers",
+    "condition": "good",
+    "city": "San Rafael",
+    "photoUrls": ["https://example.com/stroller.jpg"],
+    "status": "available"
+  }
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning               |
+| ---- | --------------------- |
+| 400  | Invalid item ID       |
+| 404  | Item not found        |
+| 500  | Internal server error |
+
+**Security**
+
+Do not include the private pickup address in the public response.
+
+Pickup address information should only be available to the item owner or approved claimer through an authorized response.
+
+**Note:** Response fields, ID type, access rules, and error cases must be confirmed with the backend team.
+
+#### Create Item
+
+**Method:** POST
+**Path:** `/api/items`
+**Access:** Signed-in users
+
+**Query Parameters**
+
+None.
+**Open question for the team:** Please confirm the
+item ID format used by the backend.
+**Request Body (proposed)**
+
+| Field                            | Type             | Validation                                        |
+| -------------------------------- | ---------------- | ------------------------------------------------- |
+| title                            | string           | Required; length TBD                              |
+| description                      | string           | Required; length TBD                              |
+| categoryId                       | string           | Required; valid category ID                       |
+| condition                        | string           | Required; one of: new, like_new, good, used       |
+| ageMin                           | number           | Optional; minimum age                             |
+| ageMax                           | number           | Optional; maximum age                             |
+| addressId                        | string           | Required; valid address belonging to user         |
+| photos                           | array of strings | Optional; Cloudinary image references, limits TBD |
+| **Open questions for the team:** |
+
+- What are the maximum allowed lengths for the item title and description?
+- What is the maximum number of photos allowed per item?
+
+**Example Request (proposed)**
+
+```json
+{
+  "title": "Baby Stroller",
+  "description": "A gently used baby stroller.",
+  "categoryId": "1",
+  "condition": "good",
+  "ageMin": 0,
+  "ageMax": 24,
+  "addressId": "1",
+  "photos": []
+}
+```
+
+**Success Response (proposed)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "10",
+    "title": "Baby Stroller",
+    "status": "available"
+  }
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning                                   |
+| ---- | ----------------------------------------- |
+| 400  | Missing or invalid item fields            |
+| 401  | User is not signed in                     |
+| 403  | User is not authorized to use the address |
+| 404  | Category or address not found             |
+| 500  | Internal server error                     |
+
+**Security**
+
+The request must include the `X-CSRF-TOKEN` header.
+
+Only signed-in users can create items. The server must verify that the selected address belongs to the user.
+
+Do not expose the private pickup address in public item responses.
+
+**Photo Uploads**
+
+The browser uploads photos directly to Cloudinary using a short-lived signature provided by our API. Photos do not pass through our backend server.
+
+**Upload Signature Endpoint:** `POST /api/uploads/signature`
+
+**Access:** Signed-in users. Requires the `X-CSRF-TOKEN` header.
+
+**Success Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "cloudName": "example-cloud",
+    "apiKey": "example-api-key",
+    "timestamp": 1234567890,
+    "folder": "baby-gear",
+    "signature": "example-signature"
+  }
+}
+```
+
+The Cloudinary API secret must never be returned to the frontend.
+
+**Allowed image types:** jpg, png, webp.
+
+After uploading, the frontend sends each photo's `url`, `publicId`, and optional `altText` when creating an item.
+
+**Possible Errors:** 400 (invalid request), 401 (not signed in), 403 (missing or invalid CSRF token), 500 (server error).
+
+````
+
+
+
+
+### Claims Endpoints
+
+#### Create Claim
+
+**Method:** POST
+**Path:** `/api/items/:id/claims`
+**Access:** Signed-in users (proposed)
+
+**Path Parameters**
+
+| Parameter | Type   | Description                            |
+| --------- | ------ | -------------------------------------- |
+| id        | string | ID of the item being claimed; type TBD |
+
+**Query Parameters**
+
+None.
+
+**Request Body**
+
+
+The request body accepts an optional `message` field (string, trimmed, maximum 500 characters). If provided, it must not exceed 500 characters.
+
+**Example Request Body:**
+
+```json
+{
+  "message": "Hi, I am interested in this item. Is it still available?"
+}
+````
+
+If no message is provided, send an empty JSON object (`{}`).
+
+**Success Response (201 Created)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "itemId": "550e8400-e29b-41d4-a716-446655440001",
+    "status": "pending"
+  }
+}
+```
+
+**Possible Errors**
+
+**Possible Errors**
+
+| Code | Meaning                                                                                       |
+| ---- | --------------------------------------------------------------------------------------------- |
+| 400  | Invalid item ID or request body                                                               |
+| 401  | User is not signed in                                                                         |
+| 403  | User cannot claim an item they own                                                            |
+| 404  | Item not found                                                                                |
+| 409  | Item is picked_up or withdrawn, or the user already has an active claim (pending or approved) |
+| 500  | Internal server error                                                                         |
+
+**Waiting List:** Users may create claims on reserved items. These claims remain pending until the owner takes action.
+
+**Security**
+
+Only signed-in users can create claims. The request must include the `X-CSRF-TOKEN` header.
+
+The server verifies the user's JWT authentication cookie and CSRF token. A missing or invalid CSRF token returns 403.
+
+Users cannot claim their own items (403). Claims are allowed on available or reserved items, but not on picked_up or withdrawn items (409).
+
+A user cannot create another claim for the same item while they already have a pending or approved claim (409).
+
+#### Get Item Claims
+
+**Method:** GET
+**Path:** `/api/items/:id/claims`
+**Access:** Item owner (signed in)
+
+**Path Parameters**
+
+| Parameter | Type   | Description              |
+| --------- | ------ | ------------------------ |
+| id        | string | ID of the item; type TBD |
+
+**Query Parameters**
+
+None proposed.
+
+**Request Body**
+
+None.
+
+**Success Response**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "20",
+      "itemId": "10",
+      "status": "pending"
+    }
+  ]
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning                    |
+| ---- | -------------------------- |
+| 400  | Invalid item ID            |
+| 401  | User is not signed in      |
+| 403  | User is not the item owner |
+| 404  | Item not found             |
+| 500  | Internal server error      |
+
+**Security**
+
+Uses the user's authentication cookie.
+
+Only the item owner should be able to view claims submitted for their item (proposed).
+
+Do not expose private information to unauthorized users.
+
+**Note:** Access rules, response fields, and error cases must be confirmed with the backend team.
+
+#### Update Claim
+
+**Method:** PATCH
+**Path:** `/api/claims/:id`
+**Access:** Item owner (signed in)
+
+**Path Parameters**
+
+| Parameter | Type   | Description       |
+| --------- | ------ | ----------------- |
+| id        | string | UUID of the claim |
+
+**Query Parameters**
+
+None.
+
+**Request Body**
+
+| Field | Type | Validation |
+| ----- | ---- | ---------- |
+
+| status | string | Required; allowed values: `approved`, `declined`. Only a `pending` claim can be updated. |
+
+**Example Request**
+
+```json
+{
+  "status": "approved"
+}
+```
+
+**Success Response (proposed)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "20",
+    "status": "approved"
+  }
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning                                      |
+| ---- | -------------------------------------------- |
+| 400  | Invalid claim ID or status                   |
+| 401  | User is not signed in                        |
+| 403  | User is not the item owner                   |
+| 404  | Claim not found                              |
+| 409  | Claim cannot be updated in its current state |
+| 500  | Internal server error                        |
+
+**Security**
+
+The request must include the `X-CSRF-TOKEN` header.
+
+Only the item owner should be able to approve or decline a claim (proposed).
+
+**Note:** Allowed status values, request body, access rules, response fields, and error cases must be confirmed with the backend team.
+
+#### Cancel Claim
+
+**Method:** PATCH
+**Path:** `/api/claims/:id/cancel`
+**Access:** Claimer (proposed)
+
+**Path Parameters**
+
+| Parameter                                                                                  | Type   | Description               |
+| ------------------------------------------------------------------------------------------ | ------ | ------------------------- |
+| id                                                                                         | string | ID of the claim; type TBD |
+| **Open question for the team:** Please confirm the claim ID format used for this endpoint. |
+| **Query Parameters**                                                                       |
+
+None.
+**Request Body**
+
+No request body is proposed. Confirm with the backend team.
+
+**Success Response (proposed)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "20",
+    "status": "canceled"
+  }
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning                                        |
+| ---- | ---------------------------------------------- |
+| 400  | Invalid claim ID or request                    |
+| 401  | User is not signed in                          |
+| 403  | User is not the claimer                        |
+| 404  | Claim not found                                |
+| 409  | Claim cannot be cancelled in its current state |
+| 500  | Internal server error                          |
+
+**Security**
+
+The request must include the `X-CSRF-TOKEN` header.
+
+Only the user who submitted the claim should be allowed to cancel it (proposed).
+
+**Note:** Cancellation rules, status values, response fields, and error cases must be confirmed with the backend team.
+
+#### Mark Claim as No-Show
+
+**Method:** PATCH
+**Path:** `/api/claims/:id/no-show`
+**Access:** Item owner (proposed)
+
+**Path Parameters**
+
+| Parameter                                                                                    | Type   | Description               |
+| -------------------------------------------------------------------------------------------- | ------ | ------------------------- |
+| id                                                                                           | string | ID of the claim; type TBD |
+| **Open question for the team:** Please confirm the claim ID format for the No-Show endpoint. |
+
+**Query Parameters**
+
+None.
+
+**Request Body**
+
+No request body is proposed. Confirm with the backend team.
+
+**Success Response (proposed)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "no_show"
+  }
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning                                                |
+| ---- | ------------------------------------------------------ |
+| 400  | Invalid claim ID or request                            |
+| 401  | User is not signed in                                  |
+| 403  | User is not the item owner                             |
+| 404  | Claim not found                                        |
+| 409  | Claim cannot be marked as no-show in its current state |
+| 500  | Internal server error                                  |
+
+**Security**
+
+The request must include the `X-CSRF-TOKEN` header.
+
+Only the item owner should be allowed to mark a claimer as a no-show (proposed).
+
+**Note:** No-show rules, status values, response fields, and error cases must be confirmed with the backend team.
+
+#### Mark Item as Picked Up
+
+**Method:** PATCH
+**Path:** `/api/items/:id/picked-up`
+**Access:** Item owner (proposed)
+
+**Path Parameters**
+
+| Parameter                                                                                          | Type   | Description              |
+| -------------------------------------------------------------------------------------------------- | ------ | ------------------------ |
+| id                                                                                                 | string | ID of the item; type TBD |
+| **Open question for the team:** Please confirm the item ID format used for the Picked Up endpoint. |
+
+**Request Body**
+
+No request body is proposed. Confirm with the backend team.
+
+**Success Response (proposed)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "picked_up"
+  }
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning                                                 |
+| ---- | ------------------------------------------------------- |
+| 400  | Invalid item ID or request                              |
+| 401  | User is not signed in                                   |
+| 403  | User is not allowed to update this item                 |
+| 404  | Item not found                                          |
+| 409  | Item cannot be marked as picked up in its current state |
+| 500  | Internal server error                                   |
+
+**Security**
+
+The request must include the `X-CSRF-TOKEN` header.
+
+Only the item owner should be allowed to mark an item as picked up (proposed).
+
+**Note:** The status value, access rules, response fields, and error cases must be confirmed with the backend team.
+
+### Profile Endpoints
+
+The Profile API allows signed-in users to view their donations, claims, and activity statistics.
+
+#### Get My Items
+
+**Method:** GET
+**Path:** `/api/profile/items`
+**Access:** Signed-in users
+
+**Query Parameters**
+
+None specified in JIRA-48.
+
+**Request Body**
+
+None.
+
+**Success Response (proposed example)**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "title": "Baby Stroller",
+      "status": "available"
+    }
+  ]
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning               |
+| ---- | --------------------- |
+| 401  | User is not signed in |
+| 500  | Internal server error |
+
+**Security**
+
+Only return items belonging to the signed-in user.
+
+**Note:** The response fields, ID types, access rules, and error cases must be confirmed with the backend team.
+
+#### Get My Claims
+
+**Method:** GET
+**Path:** `/api/profile/claims`
+**Access:** Signed-in users
+
+**Query Parameters**
+
+None specified in JIRA-48.
+
+**Request Body**
+
+None.
+
+**Success Response (proposed example)**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "itemId": "550e8400-e29b-41d4-a716-446655440001",
+      "status": "pending"
+    }
+  ]
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning               |
+| ---- | --------------------- |
+| 401  | User is not signed in |
+| 500  | Internal server error |
+
+**Security**
+
+Only return claims submitted by the signed-in user.
+
+**Note:** The response fields, ID types, access rules, and error cases must be confirmed with the backend team.
+
+#### Get Profile Statistics
+
+**Method:** GET
+**Path:** `/api/profile/stats`
+**Access:** Signed-in users
+
+**Query Parameters**
+
+None.
+
+**Request Body**
+
+None.
+
+**Success Response (example)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "donations": {
+      "posted": 5,
+      "waitingForYou": 2,
+      "approved": 1,
+      "pickedUp": 2
+    },
+    "claims": {
+      "requested": 3,
+      "waitingForOwner": 1,
+      "approved": 1,
+      "pickedUp": 1
+    }
+  }
+}
+```
+
+**Response Fields**
+
+All statistics are whole numbers representing activity for the signed-in user.
+
+**Donations**
+
+- `posted`: Number of posted donations
+- `waitingForYou`: Donations with claims awaiting action from the signed-in item owner
+- `approved`: Approved donations
+- `pickedUp`: Donations marked as picked up
+
+**Claims**
+
+- `requested`: Number of claims requested
+- `waitingForOwner`: Claims waiting for owner action
+- `approved`: Approved claims
+- `pickedUp`: Claims for items picked up
+
+**Possible Errors**
+
+| Code | Meaning               |
+| ---- | --------------------- |
+| 401  | User is not signed in |
+| 500  | Internal server error |
+
+**Security**
+
+Only return statistics belonging to the signed-in user.
+
+**Note:** The response field names are required by JIRA-48. The exact counting rules and error cases must be confirmed with the backend team.
+
+### Messages Endpoints
+
+The Messages API allows users involved in a claim to communicate about the item.
+
+#### Send Message
+
+**Method:** POST
+**Path:** `/api/claims/:id/messages`
+**Access:** Item owner or claimer (proposed)
+
+**Path Parameters**
+
+| Parameter                                                                                     | Type   | Description               |
+| --------------------------------------------------------------------------------------------- | ------ | ------------------------- |
+| id                                                                                            | string | ID of the claim; type TBD |
+| **Open question for the team:** Please confirm the claim ID format used for sending messages. |
+| **Request Body (proposed)**                                                                   |
+
+| Field                                                                                                 | Type   | Validation                               |
+| ----------------------------------------------------------------------------------------------------- | ------ | ---------------------------------------- |
+| content                                                                                               | string | Required; minimum and maximum length TBD |
+| **Open question for the team:** What are the minimum and maximum allowed lengths for message content? |
+| **Example Request**                                                                                   |
+
+```json id="d29h3a"
+{
+  "content": "Hello, is the stroller still available for pickup?"
+}
+```
+
+**Success Response (proposed)**
+
+```json id="m18n4b"
+{
+  "success": true,
+  "data": {
+    "id": "1",
+    "claimId": "10",
+    "content": "Hello, is the stroller still available for pickup?"
+  }
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning                                         |
+| ---- | ----------------------------------------------- |
+| 400  | Invalid message content                         |
+| 401  | User is not signed in                           |
+| 403  | User is not allowed to message about this claim |
+| 404  | Claim not found                                 |
+| 500  | Internal server error                           |
+
+**Security**
+
+The request must include the `X-CSRF-TOKEN` header.
+
+Only authorized participants in the claim should be able to send messages (proposed).
+
+**Note:** Request fields, message length limits, response fields, access rules, and error cases must be confirmed with the backend team.
+
+#### Get Messages
+
+**Method:** GET
+**Path:** `/api/claims/:id/messages`
+**Access:** Item owner or claimer (proposed)
+
+**Path Parameters**
+
+| Parameter                                                                                        | Type   | Description               |
+| ------------------------------------------------------------------------------------------------ | ------ | ------------------------- |
+| id                                                                                               | string | ID of the claim; type TBD |
+| **Open question for the team:** Please confirm the claim ID format used for retrieving messages. |
+
+**Query Parameters**
+
+None proposed.
+
+**Request Body**
+
+None.
+
+**Success Response (proposed example)**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "1",
+      "claimId": "10",
+      "content": "Hello, is the stroller available for pickup?"
+    }
+  ]
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning                                       |
+| ---- | --------------------------------------------- |
+| 400  | Invalid claim ID                              |
+| 401  | User is not signed in                         |
+| 403  | User is not authorized to view these messages |
+| 404  | Claim not found                               |
+| 500  | Internal server error                         |
+
+**Security**
+
+Only authorized participants in the claim should be able to view messages.
+
+**Note:** Response fields, access rules, and error cases must be confirmed with the backend team.
+
+#### Mark Messages as Read
+
+**Method:** PATCH
+**Path:** `/api/claims/:id/messages/read`
+**Access:** Item owner or claimer (proposed)
+
+**Path Parameters**
+
+| Parameter                                                                                             | Type   | Description               |
+| ----------------------------------------------------------------------------------------------------- | ------ | ------------------------- |
+| id                                                                                                    | string | ID of the claim; type TBD |
+| **Open question for the team:** Please confirm the claim ID format used for marking messages as read. |
+
+**Request Body**
+
+No request body is proposed. Confirm with the backend team whether message IDs or other fields are required.
+
+**Success Response (proposed)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "updatedCount": 2
+  }
+}
+```
+
+**Possible Errors**
+
+| Code | Meaning                                         |
+| ---- | ----------------------------------------------- |
+| 400  | Invalid claim ID or request                     |
+| 401  | User is not signed in                           |
+| 403  | User is not authorized to update these messages |
+| 404  | Claim not found                                 |
+| 500  | Internal server error                           |
+
+**Security**
+
+The request must include the `X-CSRF-TOKEN` header.
+
+Only authorized claim participants should be allowed to mark messages addressed to them as read (proposed).
+
+**Note:** The request body, response fields, access rules, and error cases must be confirmed with the backend team.
