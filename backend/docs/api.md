@@ -1,4 +1,4 @@
-# Baby Gear Exchange API Documentation
+﻿# Baby Gear Exchange API Documentation
 
 This document describes the API endpoints, request and response formats, authentication, and security requirements for the Baby Gear Exchange application.
 
@@ -18,7 +18,7 @@ None.
 
 | Field    | Type   | Validation                                                                                          |
 | -------- | ------ | --------------------------------------------------------------------------------------------------- |
-| name     | string | Required, 2â€“50 characters                                                                         |
+| name     | string | Required, 2Ã¢â‚¬â€œ50 characters                                                                    |
 | email    | string | Required, valid email address                                                                       |
 | password | string | Required, minimum 8 characters, at least one uppercase letter, one lowercase letter, and one number |
 
@@ -276,9 +276,9 @@ None.
   "success": true,
   "data": [
     {
-      "id": "1",
-      "street1": "123 Main Street",
-      "street2": "Apt 2",
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "line1": "123 Main Street",
+      "line2": "Apt 2",
       "city": "San Rafael",
       "state": "CA",
       "postalCode": "94901"
@@ -314,20 +314,22 @@ None.
 
 **Request Body (proposed)**
 
-| | Field | Type | Validation |
-| ------- | ------ | --------------------- |
-| street | string | Required; length TBD |
-| city | string | Required; length TBD |
-| state | string | Required; format TBD |
-| zipCode | string | Required; format TBD |
+| Field      | Type   | Validation                   |
+| ---------- | ------ | ---------------------------- |
+| line1      | string | Required; maximum length TBD |
+| line2      | string | Optional                     |
+| city       | string | Required; maximum length TBD |
+| state      | string | Required; format TBD         |
+| postalCode | string | Required; format TBD         |
+| country    | string | Optional; defaults to "US"   |
 
-**Open question for the team:** Please confirm the maximum lengths for street and city, and the accepted formats for state and zipCode.
+**Open question for the team:** Please confirm the maximum lengths for line1 and city, and the accepted formats for state and postalCode.
 
 **Example Request**
 
 ```json
 {
-  "street": "123 Example Street",
+  "line1": "123 Example Street",
   "city": "San Rafael",
   "state": "CA",
   "postalCode": "94901"
@@ -340,9 +342,9 @@ None.
 {
   "success": true,
   "data": {
-    "id": "1",
-    "street1": "123 Main Street",
-    "street2": "Apt 2",
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "line1": "123 Main Street",
+    "line2": "Apt 2",
     "city": "San Rafael",
     "state": "CA",
     "postalCode": "94901"
@@ -431,9 +433,9 @@ Do not include private pickup addresses in public item listings.
 
 **Path Parameters**
 
-| Parameter | Type   | Description              |
-| --------- | ------ | ------------------------ |
-| id        | string | ID of the item; type TBD |
+| Parameter | Type   | Description               |
+| --------- | ------ | ------------------------- |
+| id        | string | ID of the item; type UUID |
 
 **Query Parameters**
 
@@ -553,9 +555,39 @@ Do not expose the private pickup address in public item responses.
 
 **Photo Uploads**
 
-Cloudinary upload flow is TBD. Confirm whether images are uploaded directly from the browser or through the backend API.
+The browser uploads photos directly to Cloudinary using a short-lived signature provided by our API. Photos do not pass through our backend server.
 
-**Note:** Request fields, validation limits, photo handling, response fields, and error cases must be confirmed with the backend team.
+**Upload Signature Endpoint:** `POST /api/uploads/signature`
+
+**Access:** Signed-in users. Requires the `X-CSRF-TOKEN` header.
+
+**Success Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "cloudName": "example-cloud",
+    "apiKey": "example-api-key",
+    "timestamp": 1234567890,
+    "folder": "baby-gear",
+    "signature": "example-signature"
+  }
+}
+```
+
+The Cloudinary API secret must never be returned to the frontend.
+
+**Allowed image types:** jpg, png, webp.
+
+After uploading, the frontend sends each photo's `url`, `publicId`, and optional `altText` when creating an item.
+
+**Possible Errors:** 400 (invalid request), 401 (not signed in), 403 (missing or invalid CSRF token), 500 (server error).
+
+````
+
+
+
 
 ### Claims Endpoints
 
@@ -577,16 +609,27 @@ None.
 
 **Request Body**
 
-No request body is proposed. Confirm with the backend team.
 
-**Success Response (proposed)**
+The request body accepts an optional `message` field (string, trimmed, maximum 500 characters). If provided, it must not exceed 500 characters.
+
+**Example Request Body:**
+
+```json
+{
+  "message": "Hi, I am interested in this item. Is it still available?"
+}
+````
+
+If no message is provided, send an empty JSON object (`{}`).
+
+**Success Response (201 Created)**
 
 ```json
 {
   "success": true,
   "data": {
-    "id": "20",
-    "itemId": "10",
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "itemId": "550e8400-e29b-41d4-a716-446655440001",
     "status": "pending"
   }
 }
@@ -594,28 +637,34 @@ No request body is proposed. Confirm with the backend team.
 
 **Possible Errors**
 
-| Code | Meaning                                |
-| ---- | -------------------------------------- |
-| 400  | Invalid item ID or request             |
-| 401  | User is not signed in                  |
-| 403  | User is not allowed to claim this item |
-| 404  | Item not found                         |
-| 409  | Item is unavailable or already claimed |
-| 500  | Internal server error                  |
+**Possible Errors**
+
+| Code | Meaning                                                                                       |
+| ---- | --------------------------------------------------------------------------------------------- |
+| 400  | Invalid item ID or request body                                                               |
+| 401  | User is not signed in                                                                         |
+| 403  | User cannot claim an item they own                                                            |
+| 404  | Item not found                                                                                |
+| 409  | Item is picked_up or withdrawn, or the user already has an active claim (pending or approved) |
+| 500  | Internal server error                                                                         |
+
+**Waiting List:** Users may create claims on reserved items. These claims remain pending until the owner takes action.
 
 **Security**
 
-The request must include the `X-CSRF-TOKEN` header.
+Only signed-in users can create claims. The request must include the `X-CSRF-TOKEN` header.
 
-Only signed-in users can submit claims. The server should prevent users from claiming their own items and enforce claim eligibility rules (proposed).
+The server verifies the user's JWT authentication cookie and CSRF token. A missing or invalid CSRF token returns 403.
 
-**Note:** Claim eligibility, request body, status values, response fields, and error cases must be confirmed with the backend team.
+Users cannot claim their own items (403). Claims are allowed on available or reserved items, but not on picked_up or withdrawn items (409).
+
+A user cannot create another claim for the same item while they already have a pending or approved claim (409).
 
 #### Get Item Claims
 
 **Method:** GET
 **Path:** `/api/items/:id/claims`
-**Access:** Item owner (proposed)
+**Access:** Item owner (signed in)
 
 **Path Parameters**
 
@@ -670,7 +719,7 @@ Do not expose private information to unauthorized users.
 
 **Method:** PATCH
 **Path:** `/api/claims/:id`
-**Access:** Item owner (proposed)
+**Access:** Item owner (signed in)
 
 **Path Parameters**
 
@@ -682,13 +731,14 @@ Do not expose private information to unauthorized users.
 
 None.
 
-**Request Body (proposed)**
+**Request Body**
 
-| Field  | Type   | Validation                                                                                      |
-| ------ | ------ | ----------------------------------------------------------------------------------------------- |
-| status | string | Required; allowed values: `pending`, `approved`, `declined`, `canceled`, `no_show`, `picked_up` |
+| Field | Type | Validation |
+| ----- | ---- | ---------- |
 
-**Example Request (proposed)**
+| status | string | Required; allowed values: `approved`, `declined`. Only a `pending` claim can be updated. |
+
+**Example Request**
 
 ```json
 {
@@ -804,7 +854,7 @@ No request body is proposed. Confirm with the backend team.
 {
   "success": true,
   "data": {
-    "id": "20",
+    "id": "550e8400-e29b-41d4-a716-446655440000",
     "status": "no_show"
   }
 }
@@ -852,8 +902,8 @@ No request body is proposed. Confirm with the backend team.
 {
   "success": true,
   "data": {
-    "id": "10",
-    "status": "picked-up"
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "picked_up"
   }
 }
 ```
@@ -902,7 +952,7 @@ None.
   "success": true,
   "data": [
     {
-      "id": "10",
+      "id": "550e8400-e29b-41d4-a716-446655440000",
       "title": "Baby Stroller",
       "status": "available"
     }
@@ -944,8 +994,8 @@ None.
   "success": true,
   "data": [
     {
-      "id": "1",
-      "itemId": "10",
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "itemId": "550e8400-e29b-41d4-a716-446655440001",
       "status": "pending"
     }
   ]
@@ -1008,7 +1058,7 @@ All statistics are whole numbers representing activity for the signed-in user.
 **Donations**
 
 - `posted`: Number of posted donations
-- `waitingForYou`: Donations waiting for owner action
+- `waitingForYou`: Donations with claims awaiting action from the signed-in item owner
 - `approved`: Approved donations
 - `pickedUp`: Donations marked as picked up
 
