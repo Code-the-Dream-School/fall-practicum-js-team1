@@ -314,12 +314,14 @@ None.
 
 **Request Body (proposed)**
 
-| Field   | Type   | Validation           |
-| ------- | ------ | -------------------- |
-| street  | string | Required; length TBD |
-| city    | string | Required; length TBD |
-| state   | string | Required; format TBD |
-| zipCode | string | Required; format TBD |
+| | Field   | Type   | Validation            |
+| ------- | ------ | --------------------- |
+| street  | string | Required; length TBD  |
+| city    | string | Required; length TBD  |
+| state   | string | Required; format TBD  |
+| zipCode | string | Required; format TBD  |
+
+**Open question for the team:** Please confirm the maximum lengths for street and city, and the accepted formats for state and zipCode.                   
 
 **Example Request**
 
@@ -484,19 +486,24 @@ Pickup address information should only be available to the item owner or approve
 **Query Parameters**
 
 None.
-
+**Open question for the team:** Please confirm the
+item ID format used by the backend.
 **Request Body (proposed)**
 
-| Field       | Type             | Validation                                        |
-| ----------- | ---------------- | ------------------------------------------------- |
-| title       | string           | Required; length TBD                              |
-| description | string           | Required; length TBD                              |
-| categoryId  | string           | Required; valid category ID                       |
-| condition   | string           | Required; allowed values TBD                      |
-| ageMin      | number           | Optional; minimum age                             |
-| ageMax      | number           | Optional; maximum age                             |
-| addressId   | string           | Required; valid address belonging to user         |
-| photos      | array of strings | Optional; Cloudinary image references, limits TBD |
+| Field                            | Type             | Validation                                        |
+| -------------------------------- | ---------------- | ------------------------------------------------- |
+| title                            | string           | Required; length TBD                              |
+| description                      | string           | Required; length TBD                              |
+| categoryId                       | string           | Required; valid category ID                       |
+| condition                        | string           | Required; one of: new, like_new, good, used       |
+| ageMin                           | number           | Optional; minimum age                             |
+| ageMax                           | number           | Optional; maximum age                             |
+| addressId                        | string           | Required; valid address belonging to user         |
+| photos                           | array of strings | Optional; Cloudinary image references, limits TBD |
+| **Open questions for the team:** |
+
+- What are the maximum allowed lengths for the item title and description?
+- What is the maximum number of photos allowed per item?
 
 **Example Request (proposed)**
 
@@ -728,14 +735,13 @@ Only the item owner should be able to approve or decline a claim (proposed).
 
 **Path Parameters**
 
-| Parameter | Type   | Description               |
-| --------- | ------ | ------------------------- |
-| id        | string | ID of the claim; type TBD |
-
-**Query Parameters**
+| Parameter                                                                                  | Type   | Description               |
+| ------------------------------------------------------------------------------------------ | ------ | ------------------------- |
+| id                                                                                         | string | ID of the claim; type TBD |
+| **Open question for the team:** Please confirm the claim ID format used for this endpoint. |
+| **Query Parameters**                                                                       |
 
 None.
-
 **Request Body**
 
 No request body is proposed. Confirm with the backend team.
@@ -779,9 +785,10 @@ Only the user who submitted the claim should be allowed to cancel it (proposed).
 
 **Path Parameters**
 
-| Parameter | Type   | Description               |
-| --------- | ------ | ------------------------- |
-| id        | string | ID of the claim; type TBD |
+| Parameter                                                                                    | Type   | Description               |
+| -------------------------------------------------------------------------------------------- | ------ | ------------------------- |
+| id                                                                                           | string | ID of the claim; type TBD |
+| **Open question for the team:** Please confirm the claim ID format for the No-Show endpoint. |
 
 **Query Parameters**
 
@@ -830,9 +837,10 @@ Only the item owner should be allowed to mark a claimer as a no-show (proposed).
 
 **Path Parameters**
 
-| Parameter | Type   | Description              |
-| --------- | ------ | ------------------------ |
-| id        | string | ID of the item; type TBD |
+| Parameter                                                                                          | Type   | Description              |
+| -------------------------------------------------------------------------------------------------- | ------ | ------------------------ |
+| id                                                                                                 | string | ID of the item; type TBD |
+| **Open question for the team:** Please confirm the item ID format used for the Picked Up endpoint. |
 
 **Request Body**
 
@@ -1036,17 +1044,17 @@ The Messages API allows users involved in a claim to communicate about the item.
 
 **Path Parameters**
 
-| Parameter | Type   | Description               |
-| --------- | ------ | ------------------------- |
-| id        | string | ID of the claim; type TBD |
+| Parameter                                                                                     | Type   | Description               |
+| --------------------------------------------------------------------------------------------- | ------ | ------------------------- |
+| id                                                                                            | string | ID of the claim; type TBD |
+| **Open question for the team:** Please confirm the claim ID format used for sending messages. |
+| **Request Body (proposed)**                                                                   |
 
-**Request Body (proposed)**
-
-| Field   | Type   | Validation                               |
-| ------- | ------ | ---------------------------------------- |
-| content | string | Required; minimum and maximum length TBD |
-
-**Example Request**
+| Field                                                                                                 | Type   | Validation                               |
+| ----------------------------------------------------------------------------------------------------- | ------ | ---------------------------------------- |
+| content                                                                                               | string | Required; minimum and maximum length TBD |
+| **Open question for the team:** What are the minimum and maximum allowed lengths for message content? |
+| **Example Request**                                                                                   |
 
 ```json id="d29h3a"
 {
@@ -1093,9 +1101,10 @@ Only authorized participants in the claim should be able to send messages (propo
 
 **Path Parameters**
 
-| Parameter | Type   | Description               |
-| --------- | ------ | ------------------------- |
-| id        | string | ID of the claim; type TBD |
+| Parameter                                                                                        | Type   | Description               |
+| ------------------------------------------------------------------------------------------------ | ------ | ------------------------- |
+| id                                                                                               | string | ID of the claim; type TBD |
+| **Open question for the team:** Please confirm the claim ID format used for retrieving messages. |
 
 **Query Parameters**
 
@@ -1144,9 +1153,10 @@ Only authorized participants in the claim should be able to view messages.
 
 **Path Parameters**
 
-| Parameter | Type   | Description               |
-| --------- | ------ | ------------------------- |
-| id        | string | ID of the claim; type TBD |
+| Parameter                                                                                             | Type   | Description               |
+| ----------------------------------------------------------------------------------------------------- | ------ | ------------------------- |
+| id                                                                                                    | string | ID of the claim; type TBD |
+| **Open question for the team:** Please confirm the claim ID format used for marking messages as read. |
 
 **Request Body**
 
