@@ -314,14 +314,14 @@ None.
 
 **Request Body (proposed)**
 
-| | Field   | Type   | Validation            |
+| | Field | Type | Validation |
 | ------- | ------ | --------------------- |
-| street  | string | Required; length TBD  |
-| city    | string | Required; length TBD  |
-| state   | string | Required; format TBD  |
-| zipCode | string | Required; format TBD  |
+| street | string | Required; length TBD |
+| city | string | Required; length TBD |
+| state | string | Required; format TBD |
+| zipCode | string | Required; format TBD |
 
-**Open question for the team:** Please confirm the maximum lengths for street and city, and the accepted formats for state and zipCode.                   
+**Open question for the team:** Please confirm the maximum lengths for street and city, and the accepted formats for state and zipCode.
 
 **Example Request**
 
