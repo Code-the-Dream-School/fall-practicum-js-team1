@@ -1,6 +1,6 @@
 import axios from 'axios'
-import AxiosMockAdapter from 'axios-mock-adapter';
 import type { AxiosInstance } from 'axios'
+import { setupMock } from './mockService'
 
 if (process.env['REACT_APP_API_BASE_URL'] === undefined) {
   throw new Error('API url not defined')
@@ -23,8 +23,9 @@ const axiosInstance: AxiosInstance = axios.create({
   timeout: 5000,
 })
 
-const mockClient = new AxiosMockAdapter(axiosInstance)
-const client = process.env['REACT_APP_USE_MOCKED_API_CALLS'] ? axiosInstance : mockClient
+if (process.env['REACT_APP_USE_MOCKED_API_CALLS'])
+  setupMock(axiosInstance)
+
 
 export function test(): string {
   return ''
