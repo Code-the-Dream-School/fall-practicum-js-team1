@@ -110,22 +110,16 @@ The user is signed in right away. The password is never returned.
 
 #### Log In User
 
-**Method:** POST
-**Path:** `/api/users/logon`
-**Access:** Public
+`POST /api/users/logon` | Access: Public
 
-**Query Parameters**
+**Request body**
 
-None.
-
-**Request Body**
-
-| Field    | Type   | Validation                    |
+| Field    | Type   | Rules                         |
 | -------- | ------ | ----------------------------- |
-| email    | string | Required; valid email address |
+| email    | string | Required, valid email address |
 | password | string | Required                      |
 
-**Example Request**
+**Example request**
 
 ```json
 {
@@ -134,34 +128,29 @@ None.
 }
 ```
 
-**Success Response (proposed)**
+**Success response (200 OK)**
 
 ```json
 {
   "success": true,
   "data": {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "name": "Jane Smith",
-    "email": "jane@example.com",
-    "role": "user"
-  },
-  "csrfToken": "example-csrf-token"
+    "user": {
+      "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "role": "user"
+    },
+    "csrfToken": "example-csrf-token"
+  }
 }
 ```
 
-**Possible Errors**
+**Errors**
 
-| Code | Meaning                   |
-| ---- | ------------------------- |
-| 400  | Missing or invalid input  |
-| 401  | Invalid email or password |
-| 500  | Internal server error     |
-
-**Security**
-Login does not require an X-CSRF-TOKEN request header.
-
-After successful login, the server sets a JWT in an httpOnly cookie with SameSite=Lax and a one-day expiration. The API returns a csrfToken in the JSON response. The frontend sends this token in the X-CSRF-TOKEN header for subsequent POST, PATCH, PUT, and DELETE requests.
-**Note:** The response fields and error cases are proposed and must be confirmed with the backend team.
+| Code | Meaning                                                                                  |
+| ---- | ---------------------------------------------------------------------------------------- |
+| 400  | Missing or invalid input                                                                 |
+| 401  | Incorrect email or password (the same message for a wrong password and an unknown email) |
 
 #### Log Out User
 
