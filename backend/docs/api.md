@@ -586,58 +586,50 @@ If there is no message, send an empty object (`{}`).
 
 #### Get Item Claims
 
-**Method:** GET
-**Path:** `/api/items/:id/claims`
-**Access:** Item owner (signed in)
+`GET /api/items/:id/claims` | Access: Item owner
 
-**Path Parameters**
+Newest first. It never includes the pickup address.
 
-| Parameter | Type   | Description              |
-| --------- | ------ | ------------------------ |
-| id        | string | ID of the item; type TBD |
+**Path parameters**
 
-**Query Parameters**
+| Parameter | Type   | Description           |
+| --------- | ------ | --------------------- |
+| id        | string | ID (UUID) of the item |
 
-None proposed.
+**Query parameters** (optional)
 
-**Request Body**
+| Parameter | Type   | Description                                         |
+| --------- | ------ | --------------------------------------------------- |
+| status    | string | Only claims with this status, for example `pending` |
 
-None.
-
-**Success Response**
+**Success response (200 OK)**
 
 ```json
 {
   "success": true,
   "data": [
     {
-      "id": "20",
-      "itemId": "10",
-      "status": "pending"
+      "id": "9b2f3c1e-6d4a-4f7b-8c2d-1a5e7f9b3c4d",
+      "itemId": "550e8400-e29b-41d4-a716-446655440000",
+      "status": "pending",
+      "message": "Hi, I am interested in this item.",
+      "claimer": {
+        "id": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
+        "name": "Sam Lee"
+      },
+      "createdAt": "2026-10-21T10:00:00.000Z"
     }
   ]
 }
 ```
 
-**Possible Errors**
+**Errors**
 
-| Code | Meaning                    |
-| ---- | -------------------------- |
-| 400  | Invalid item ID            |
-| 401  | User is not signed in      |
-| 403  | User is not the item owner |
-| 404  | Item not found             |
-| 500  | Internal server error      |
-
-**Security**
-
-Uses the user's authentication cookie.
-
-Only the item owner should be able to view claims submitted for their item (proposed).
-
-Do not expose private information to unauthorized users.
-
-**Note:** Access rules, response fields, and error cases must be confirmed with the backend team.
+| Code | Meaning                        |
+| ---- | ------------------------------ |
+| 400  | Invalid item ID or status      |
+| 403  | The user is not the item owner |
+| 404  | Item not found                 |
 
 #### Update Claim
 
