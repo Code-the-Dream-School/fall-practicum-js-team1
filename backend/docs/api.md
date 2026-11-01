@@ -315,58 +315,65 @@ The new address, in the same shape as Get Addresses.
 
 #### Get Items
 
-**Method:** GET
-**Path:** `/api/items`
-**Access:** Public
+`GET /api/items` | Access: Public
 
-**Query Parameters**
+**Query parameters** (all optional)
 
-| | Parameter | Type | Description |
-|-----------|------|-------------|
-| q | string | Optional search text |
-| category | string | Optional category filter |
-| condition | string | Optional item condition (new, like_new, good, used) |
-| ageMin | number | Optional minimum age in months |
-| ageMax | number | Optional maximum age in months |
-| city | string | Optional city filter |
+| Parameter | Type   | Description                                                      |
+| --------- | ------ | ---------------------------------------------------------------- |
+| q         | string | Search text. Matches the title or the description, ignoring case |
+| category  | string | Category key, for example `strollers` (exact match)              |
+| condition | string | One of `new`, `like_new`, `good`, `used` (exact match)           |
+| ageMin    | number | Minimum age in months                                            |
+| ageMax    | number | Maximum age in months                                            |
+| city      | string | City name, ignoring case                                         |
+| page      | number | Page number, default 1                                           |
+| limit     | number | Items per page, default 12, maximum 50                           |
 
-**Request Body**
+An item matches the age filter when its age range overlaps `ageMin` to `ageMax`. An item with no minimum or no maximum counts as open on that side.
 
-None.
+**Success response (200 OK)**
 
-**Success Response**
+Newest first. Withdrawn items are never returned. Reserved and picked up items are returned with their status. Each item has no description, owner or address.
 
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "id": "10",
-      "title": "Baby Stroller",
-      "category": "Strollers",
-      "condition": "good",
-      "city": "San Rafael",
-      "photoUrls": ["https://example.com/stroller.jpg"],
-      "status": "available"
+  "data": {
+    "items": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "title": "Baby Stroller",
+        "condition": "good",
+        "ageMinMonths": 0,
+        "ageMaxMonths": 24,
+        "city": "San Rafael",
+        "state": "CA",
+        "status": "available",
+        "category": { "key": "strollers", "name": "Strollers" },
+        "coverPhoto": {
+          "url": "https://res.cloudinary.com/example/image/upload/hand-me-down/items/stroller.jpg",
+          "altText": "Grey baby stroller"
+        }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 12,
+      "total": 1,
+      "pages": 1,
+      "hasNext": false,
+      "hasPrev": false
     }
-  ]
+  }
 }
 ```
 
-**Possible Item Status Values:** `available`, `reserved`, `picked_up`, `withdrawn`
-
-**Possible Errors**
+**Errors**
 
 | Code | Meaning                  |
 | ---- | ------------------------ |
 | 400  | Invalid query parameters |
-| 500  | Internal server error    |
-
-**Security**
-
-Do not include private pickup addresses in public item listings.
-
-**Note:** Query parameter types, filter behavior, response fields, and error cases must be confirmed with the backend team.
 
 #### Get Item Details
 
