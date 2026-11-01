@@ -246,50 +246,29 @@ Sorted by `sortOrder`. The `key` is the value used to filter items and to create
 
 #### Get Addresses
 
-**Method:** GET
-**Path:** `/api/addresses`
-**Access:** Signed-in users (proposed)
+`GET /api/addresses` | Access: Signed in
 
-**Query Parameters**
+Returns only the signed-in user's own addresses, with the default address first.
 
-None proposed.
-
-**Request Body**
-
-None.
-
-**Success Response (proposed)**
+**Success response (200 OK)**
 
 ```json
 {
   "success": true,
   "data": [
     {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "id": "a3bb189e-8bf9-4888-9912-ace4e6543002",
+      "nickname": "Home",
       "line1": "123 Main Street",
       "line2": "Apt 2",
       "city": "San Rafael",
       "state": "CA",
-      "postalCode": "94901"
+      "postalCode": "94901",
+      "isDefault": true
     }
   ]
 }
 ```
-
-**Possible Errors**
-
-| Code | Meaning               |
-| ---- | --------------------- |
-| 401  | User is not signed in |
-| 500  | Internal server error |
-
-**Security**
-
-Uses the user's authentication cookie.
-
-Only return addresses the signed-in user is authorized to view. Do not expose other users' private pickup addresses.
-
-**Note:** Address fields, access rules, response fields, and error cases must be confirmed with the backend team.
 
 #### Create Address
 
