@@ -195,43 +195,24 @@ The server should clear the user's authentication cookie.
 
 #### Get Current User
 
-**Method:** GET
-**Path:** `/api/users/me`
-**Access:** Signed-in users
+`GET /api/users/me` | Access: Signed in
 
-**Query Parameters**
-
-None.
-
-**Request Body**
-
-None.
-
-**Success Response (proposed)**
+**Success response (200 OK)**
 
 ```json
 {
   "success": true,
   "data": {
-    "id": "1",
-    "name": "Jane Smith",
-    "email": "jane@example.com"
+    "user": {
+      "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "role": "user"
+    },
+    "csrfToken": "example-csrf-token"
   }
 }
 ```
-
-**Possible Errors**
-
-| Code | Meaning               |
-| ---- | --------------------- |
-| 401  | User is not signed in |
-| 500  | Internal server error |
-
-**Security**
-
-Uses the user's authentication cookie. A CSRF header is not required for this read-only GET request.
-
-Never return the user's password.
 
 ### Categories Endpoints
 
