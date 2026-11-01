@@ -687,53 +687,40 @@ The owner approves or declines a pending claim.
 
 #### Cancel Claim
 
-**Method:** PATCH
-**Path:** `/api/claims/:id/cancel`
-**Access:** Claimer (proposed)
+`PATCH /api/claims/:id/cancel` | Access: Claimer, CSRF header required
 
-**Path Parameters**
+No request body.
 
-| Parameter                                                                                  | Type   | Description               |
-| ------------------------------------------------------------------------------------------ | ------ | ------------------------- |
-| id                                                                                         | string | ID of the claim; type TBD |
-| **Open question for the team:** Please confirm the claim ID format used for this endpoint. |
-| **Query Parameters**                                                                       |
+**Path parameters**
 
-None.
-**Request Body**
+| Parameter | Type   | Description            |
+| --------- | ------ | ---------------------- |
+| id        | string | ID (UUID) of the claim |
 
-No request body is proposed. Confirm with the backend team.
+**What happens**
 
-**Success Response (proposed)**
+- Allowed only while the claim is `pending` or `approved`.
+- Cancelling an approved claim also sets the item back to `available` (and clears its reserved time), in one transaction.
+
+**Success response (200 OK)**
 
 ```json
 {
   "success": true,
   "data": {
-    "id": "20",
-    "status": "canceled"
+    "id": "9b2f3c1e-6d4a-4f7b-8c2d-1a5e7f9b3c4d",
+    "status": "cancelled"
   }
 }
 ```
 
-**Possible Errors**
+**Errors**
 
-| Code | Meaning                                        |
-| ---- | ---------------------------------------------- |
-| 400  | Invalid claim ID or request                    |
-| 401  | User is not signed in                          |
-| 403  | User is not the claimer                        |
-| 404  | Claim not found                                |
-| 409  | Claim cannot be cancelled in its current state |
-| 500  | Internal server error                          |
-
-**Security**
-
-The request must include the `X-CSRF-TOKEN` header.
-
-Only the user who submitted the claim should be allowed to cancel it (proposed).
-
-**Note:** Cancellation rules, status values, response fields, and error cases must be confirmed with the backend team.
+| Code | Meaning                              |
+| ---- | ------------------------------------ |
+| 403  | The user is not the claimer          |
+| 404  | Claim not found                      |
+| 409  | The claim is not pending or approved |
 
 #### Mark Claim as No-Show
 
