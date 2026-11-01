@@ -15,7 +15,7 @@ type ItemCardProps = {
     ageMinMonths: number | null;
     ageMaxMonths: number | null;
     city: string;
-    coverPhotoUrl: string | null;
+    coverPhoto: { url: string; altText: string } | null;
   };
 };
 
@@ -24,10 +24,10 @@ export const ItemCard = ({ item }: ItemCardProps) => {
     <Link to={`/items/${item.id}`} className="group block min-w-0">
       <Card className="gap-0 py-0 transition-shadow group-hover:shadow-md">
         <AspectRatio ratio={1}>
-          {item.coverPhotoUrl ? (
+          {item.coverPhoto ? (
             <img
-              src={item.coverPhotoUrl}
-              alt=""
+              src={item.coverPhoto.url}
+              alt={item.coverPhoto.altText}
               className="size-full object-cover transition-opacity group-hover:opacity-90"
             />
           ) : (

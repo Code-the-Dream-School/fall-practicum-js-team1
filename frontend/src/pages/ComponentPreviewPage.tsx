@@ -51,7 +51,10 @@ const testItems = [
     ageMaxMonths: THREE_YEARS_MONTHS,
     city: 'Seattle',
     status: 'available',
-    coverPhotoUrl: 'https://picsum.photos/400/300',
+    coverPhoto: {
+      url: 'https://picsum.photos/400/300',
+      altText: 'Grey baby stroller',
+    },
   },
   {
     id: '2',
@@ -61,7 +64,7 @@ const testItems = [
     ageMaxMonths: null,
     city: 'Portland',
     status: 'reserved',
-    coverPhotoUrl: null,
+    coverPhoto: null,
   },
   {
     id: '3',
@@ -71,7 +74,7 @@ const testItems = [
     ageMaxMonths: null,
     city: 'Boise',
     status: 'picked_up',
-    coverPhotoUrl: null,
+    coverPhoto: null,
   },
   {
     id: '4',
@@ -81,7 +84,10 @@ const testItems = [
     ageMaxMonths: ONE_YEAR_MONTHS,
     city: 'Tacoma',
     status: 'withdrawn',
-    coverPhotoUrl: 'https://picsum.photos/400/400',
+    coverPhoto: {
+      url: 'https://picsum.photos/400/400',
+      altText: 'Green baby bouncer',
+    },
   },
 ] as const;
 
