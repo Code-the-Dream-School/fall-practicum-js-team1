@@ -836,19 +836,11 @@ The claims the signed-in user has made, newest first.
 
 #### Get Profile Statistics
 
-**Method:** GET
-**Path:** `/api/profile/stats`
-**Access:** Signed-in users
+`GET /api/profile/stats` | Access: Signed in
 
-**Query Parameters**
+Every number is a whole number for the signed-in user. A user with no activity gets zeros.
 
-None.
-
-**Request Body**
-
-None.
-
-**Success Response (example)**
+**Success response (200 OK)**
 
 ```json
 {
@@ -870,36 +862,19 @@ None.
 }
 ```
 
-**Response Fields**
-
-All statistics are whole numbers representing activity for the signed-in user.
-
 **Donations**
 
-- `posted`: Number of posted donations
-- `waitingForYou`: Donations with claims awaiting action from the signed-in item owner
-- `approved`: Approved donations
-- `pickedUp`: Donations marked as picked up
+- `posted`: items you posted, not counting withdrawn items
+- `waitingForYou`: pending claims on your items, waiting for your decision
+- `approved`: your items that have an approved claim
+- `pickedUp`: your items that were picked up
 
 **Claims**
 
-- `requested`: Number of claims requested
-- `waitingForOwner`: Claims waiting for owner action
-- `approved`: Approved claims
-- `pickedUp`: Claims for items picked up
-
-**Possible Errors**
-
-| Code | Meaning               |
-| ---- | --------------------- |
-| 401  | User is not signed in |
-| 500  | Internal server error |
-
-**Security**
-
-Only return statistics belonging to the signed-in user.
-
-**Note:** The response field names are required by JIRA-48. The exact counting rules and error cases must be confirmed with the backend team.
+- `requested`: claims you have made
+- `waitingForOwner`: your claims that are pending, waiting for the owner
+- `approved`: your claims that the owner approved
+- `pickedUp`: your claims for items that were picked up
 
 ### Messages Endpoints
 
