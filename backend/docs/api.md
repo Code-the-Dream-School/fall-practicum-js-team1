@@ -272,69 +272,44 @@ Returns only the signed-in user's own addresses, with the default address first.
 
 #### Create Address
 
-**Method:** POST
-**Path:** `/api/addresses`
-**Access:** Signed-in users (proposed)
+`POST /api/addresses` | Access: Signed in, CSRF header required
 
-**Query Parameters**
+The first address a user creates becomes their default. If `isDefault` is `true` on a new address, the old default is cleared.
 
-None.
+**Request body**
 
-**Request Body (proposed)**
+| Field      | Type    | Rules                        |
+| ---------- | ------- | ---------------------------- |
+| line1      | string  | Required                     |
+| line2      | string  | Optional                     |
+| city       | string  | Required                     |
+| state      | string  | Required                     |
+| postalCode | string  | Required                     |
+| nickname   | string  | Optional, for example "Home" |
+| isDefault  | boolean | Optional, default `false`    |
 
-| Field      | Type   | Validation                   |
-| ---------- | ------ | ---------------------------- |
-| line1      | string | Required; maximum length TBD |
-| line2      | string | Optional                     |
-| city       | string | Required; maximum length TBD |
-| state      | string | Required; format TBD         |
-| postalCode | string | Required; format TBD         |
-| country    | string | Optional; defaults to "US"   |
-
-**Open question for the team:** Please confirm the maximum lengths for line1 and city, and the accepted formats for state and postalCode.
-
-**Example Request**
+**Example request**
 
 ```json
 {
-  "line1": "123 Example Street",
+  "nickname": "Home",
+  "line1": "123 Main Street",
   "city": "San Rafael",
   "state": "CA",
-  "postalCode": "94901"
+  "postalCode": "94901",
+  "isDefault": true
 }
 ```
 
-**Success Response (proposed)**
+**Success response (201 Created)**
 
-```json
-{
-  "success": true,
-  "data": {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "line1": "123 Main Street",
-    "line2": "Apt 2",
-    "city": "San Rafael",
-    "state": "CA",
-    "postalCode": "94901"
-  }
-}
-```
+The new address, in the same shape as Get Addresses.
 
-**Possible Errors**
+**Errors**
 
 | Code | Meaning                           |
 | ---- | --------------------------------- |
 | 400  | Missing or invalid address fields |
-| 401  | User is not signed in             |
-| 500  | Internal server error             |
-
-**Security**
-
-The request must include the `X-CSRF-TOKEN` header.
-
-The address must belong to the signed-in user. Do not expose private pickup addresses to unauthorized users.
-
-**Note:** Request fields, validation limits, response fields, and access rules must be confirmed with the backend team.
 
 ### Items Endpoints
 
