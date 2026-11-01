@@ -837,8 +837,6 @@ Only the item owner should be allowed to mark an item as picked up (proposed).
 
 ### Profile Endpoints
 
-The Profile API allows signed-in users to view their donations, claims, and activity statistics.
-
 #### Get My Items
 
 **Method:** GET
