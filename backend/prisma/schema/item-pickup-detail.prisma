@@ -10,6 +10,6 @@ model ItemPickupDetail {
 
   address Address @relation("AddressPickupDetails", fields: [addressId], references: [id], onDelete: Restrict)
   item    Item    @relation("ItemPickupDetail", fields: [itemId], references: [id], onDelete: Cascade)
-
+  @@index([addressId])
   @@map("item_pickup_details")
 }
