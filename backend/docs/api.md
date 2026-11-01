@@ -1070,46 +1070,29 @@ Only authorized participants in the claim should be able to view messages.
 
 #### Mark Messages as Read
 
-**Method:** PATCH
-**Path:** `/api/claims/:id/messages/read`
-**Access:** Item owner or claimer (proposed)
+`PATCH /api/claims/:id/messages/read` | Access: Item owner or claimer, CSRF header required
 
-**Path Parameters**
+Marks the unread messages that the other person sent on this claim as read. No request body.
 
-| Parameter                                                                                             | Type   | Description               |
-| ----------------------------------------------------------------------------------------------------- | ------ | ------------------------- |
-| id                                                                                                    | string | ID of the claim; type TBD |
-| **Open question for the team:** Please confirm the claim ID format used for marking messages as read. |
+**Path parameters**
 
-**Request Body**
+| Parameter | Type   | Description            |
+| --------- | ------ | ---------------------- |
+| id        | string | ID (UUID) of the claim |
 
-No request body is proposed. Confirm with the backend team whether message IDs or other fields are required.
-
-**Success Response (proposed)**
+**Success response (200 OK)**
 
 ```json
 {
   "success": true,
-  "data": {
-    "updatedCount": 2
-  }
+  "data": { "updatedCount": 2 }
 }
 ```
 
-**Possible Errors**
+**Errors**
 
-| Code | Meaning                                         |
-| ---- | ----------------------------------------------- |
-| 400  | Invalid claim ID or request                     |
-| 401  | User is not signed in                           |
-| 403  | User is not authorized to update these messages |
-| 404  | Claim not found                                 |
-| 500  | Internal server error                           |
-
-**Security**
-
-The request must include the `X-CSRF-TOKEN` header.
-
-Only authorized claim participants should be allowed to mark messages addressed to them as read (proposed).
-
-**Note:** The request body, response fields, access rules, and error cases must be confirmed with the backend team.
+| Code | Meaning                                       |
+| ---- | --------------------------------------------- |
+| 400  | Invalid claim ID                              |
+| 403  | The user is not the item owner or the claimer |
+| 404  | Claim not found                               |
