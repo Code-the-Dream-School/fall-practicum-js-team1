@@ -752,19 +752,11 @@ The item must be `reserved`. In one transaction, the approved claim becomes `pic
 
 #### Get My Items
 
-**Method:** GET
-**Path:** `/api/profile/items`
-**Access:** Signed-in users
+`GET /api/profile/items` | Access: Signed in
 
-**Query Parameters**
+The signed-in user's own items, newest first, in the same short shape as the items in Get Items. Withdrawn items are included, so the owner can restore them.
 
-None specified in JIRA-48.
-
-**Request Body**
-
-None.
-
-**Success Response (proposed example)**
+**Success response (200 OK)**
 
 ```json
 {
@@ -773,24 +765,21 @@ None.
     {
       "id": "550e8400-e29b-41d4-a716-446655440000",
       "title": "Baby Stroller",
-      "status": "available"
+      "condition": "good",
+      "ageMinMonths": 0,
+      "ageMaxMonths": 24,
+      "city": "San Rafael",
+      "state": "CA",
+      "status": "withdrawn",
+      "category": { "key": "strollers", "name": "Strollers" },
+      "coverPhoto": {
+        "url": "https://res.cloudinary.com/example/image/upload/hand-me-down/items/stroller.jpg",
+        "altText": "Grey baby stroller"
+      }
     }
   ]
 }
 ```
-
-**Possible Errors**
-
-| Code | Meaning               |
-| ---- | --------------------- |
-| 401  | User is not signed in |
-| 500  | Internal server error |
-
-**Security**
-
-Only return items belonging to the signed-in user.
-
-**Note:** The response fields, ID types, access rules, and error cases must be confirmed with the backend team.
 
 #### Get My Claims
 
