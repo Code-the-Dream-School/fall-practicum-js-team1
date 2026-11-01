@@ -62,23 +62,17 @@ To keep each endpoint short, the sections after this one only list the errors ma
 
 #### Register User
 
-**Method:** POST
-**Path:** `/api/users/register`
-**Access:** Public
+`POST /api/users/register` | Access: Public
 
-**Query Parameters**
+**Request body**
 
-None.
+| Field    | Type   | Rules                                                                                   |
+| -------- | ------ | --------------------------------------------------------------------------------------- |
+| name     | string | Required, 2 to 50 characters                                                            |
+| email    | string | Required, valid email address (saved in lowercase)                                      |
+| password | string | Required, at least 8 characters, with 1 lowercase letter, 1 capital letter and 1 number |
 
-**Request Body**
-
-| Field    | Type   | Validation                                                                                          |
-| -------- | ------ | --------------------------------------------------------------------------------------------------- |
-| name     | string | Required, 2Ã¢â‚¬â€œ50 characters                                                                    |
-| email    | string | Required, valid email address                                                                       |
-| password | string | Required, minimum 8 characters, at least one uppercase letter, one lowercase letter, and one number |
-
-**Example Request**
+**Example request**
 
 ```json
 {
@@ -88,46 +82,31 @@ None.
 }
 ```
 
-**Success Response (201 Created)**
+**Success response (201 Created)**
+
+The user is signed in right away. The password is never returned.
 
 ```json
 {
   "success": true,
   "data": {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "name": "Jane Smith",
-    "email": "jane@example.com",
-    "role": "user"
-  },
-  "csrfToken": "example-csrf-token"
+    "user": {
+      "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "role": "user"
+    },
+    "csrfToken": "example-csrf-token"
+  }
 }
 ```
 
-**CSRF Token**
-
-After successful registration, the API returns a `csrfToken` in the JSON response. A JWT is stored in an httpOnly cookie with SameSite=Lax and a one-day expiration. The browser sends this cookie automatically.
-
-The frontend stores the `csrfToken` and sends it in the `X-CSRF-TOKEN` header for POST, PATCH, PUT, and DELETE requests. If the token is missing or invalid, the API returns HTTP 403.
-
-**Possible Errors**
+**Errors**
 
 | Code | Meaning                          |
 | ---- | -------------------------------- |
-| 400  | Invalid name, email, or password |
-| 409  | Email already registered         |
-| 500  | Internal server error            |
-
-**Security**
-
-Registration does not require an `X-CSRF-TOKEN` request header.
-
-After successful registration, the server sets a JWT in an httpOnly cookie with SameSite=Lax and a one-day expiration. The API returns a `csrfToken` in the JSON response.
-
-The user's password must never be returned in the response.
-
-Never return the user's password in the response.
-
-**Note:** Response fields, ID type, and error cases must be confirmed with the backend team.
+| 400  | Invalid name, email or password  |
+| 409  | That email is already registered |
 
 #### Log In User
 
