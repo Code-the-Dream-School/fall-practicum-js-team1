@@ -633,28 +633,23 @@ Newest first. It never includes the pickup address.
 
 #### Update Claim
 
-**Method:** PATCH
-**Path:** `/api/claims/:id`
-**Access:** Item owner (signed in)
+`PATCH /api/claims/:id` | Access: Item owner, CSRF header required
 
-**Path Parameters**
+The owner approves or declines a pending claim.
 
-| Parameter | Type   | Description       |
-| --------- | ------ | ----------------- |
-| id        | string | UUID of the claim |
+**Path parameters**
 
-**Query Parameters**
+| Parameter | Type   | Description            |
+| --------- | ------ | ---------------------- |
+| id        | string | ID (UUID) of the claim |
 
-None.
+**Request body**
 
-**Request Body**
+| Field  | Type   | Rules                              |
+| ------ | ------ | ---------------------------------- |
+| status | string | Required, `approved` or `declined` |
 
-| Field | Type | Validation |
-| ----- | ---- | ---------- |
-
-| status | string | Required; allowed values: `approved`, `declined`. Only a `pending` claim can be updated. |
-
-**Example Request**
+**Example request**
 
 ```json
 {
@@ -662,36 +657,33 @@ None.
 }
 ```
 
-**Success Response (proposed)**
+**What happens**
+
+- Only a `pending` claim can be updated.
+- Approve: the claim becomes `approved` and the item becomes `reserved`, in one transaction. Other pending claims are not changed, so they stay as a waiting list.
+- If the item already has an approved claim, the request returns 409 with a clear message. If two approvals arrive at the same time, only one succeeds and the other returns 409.
+- Decline changes only that claim.
+
+**Success response (200 OK)**
 
 ```json
 {
   "success": true,
   "data": {
-    "id": "20",
+    "id": "9b2f3c1e-6d4a-4f7b-8c2d-1a5e7f9b3c4d",
     "status": "approved"
   }
 }
 ```
 
-**Possible Errors**
+**Errors**
 
-| Code | Meaning                                      |
-| ---- | -------------------------------------------- |
-| 400  | Invalid claim ID or status                   |
-| 401  | User is not signed in                        |
-| 403  | User is not the item owner                   |
-| 404  | Claim not found                              |
-| 409  | Claim cannot be updated in its current state |
-| 500  | Internal server error                        |
-
-**Security**
-
-The request must include the `X-CSRF-TOKEN` header.
-
-Only the item owner should be able to approve or decline a claim (proposed).
-
-**Note:** Allowed status values, request body, access rules, response fields, and error cases must be confirmed with the backend team.
+| Code | Meaning                                                             |
+| ---- | ------------------------------------------------------------------- |
+| 400  | Invalid claim ID or status                                          |
+| 403  | The user is not the item owner                                      |
+| 404  | Claim not found                                                     |
+| 409  | The claim is not pending, or the item already has an approved claim |
 
 #### Cancel Claim
 
