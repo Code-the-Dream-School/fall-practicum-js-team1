@@ -429,77 +429,56 @@ Photos are ordered by `position`.
 
 #### Create Item
 
-**Method:** POST
-**Path:** `/api/items`
-**Access:** Signed-in users
+`POST /api/items` | Access: Signed in, CSRF header required
 
-**Query Parameters**
+The owner is always the signed-in user, never a value from the request body. The item's city, state and postal code are copied from the chosen address. The item, its photos and its pickup details are saved together, so a failure leaves nothing half saved.
 
-None.
-**Open question for the team:** Please confirm the
-item ID format used by the backend.
-**Request Body (proposed)**
+**Request body**
 
-| Field                            | Type             | Validation                                        |
-| -------------------------------- | ---------------- | ------------------------------------------------- |
-| title                            | string           | Required; length TBD                              |
-| description                      | string           | Required; length TBD                              |
-| categoryId                       | string           | Required; valid category ID                       |
-| condition                        | string           | Required; one of: new, like_new, good, used       |
-| ageMin                           | number           | Optional; minimum age                             |
-| ageMax                           | number           | Optional; maximum age                             |
-| addressId                        | string           | Required; valid address belonging to user         |
-| photos                           | array of strings | Optional; Cloudinary image references, limits TBD |
-| **Open questions for the team:** |
+| Field        | Type   | Rules                                                                                                                    |
+| ------------ | ------ | ------------------------------------------------------------------------------------------------------------------------ |
+| title        | string | Required, up to 80 characters                                                                                            |
+| description  | string | Required, up to 1000 characters                                                                                          |
+| category     | string | Required, the key of an existing category, for example `strollers`                                                       |
+| condition    | string | Required, one of `new`, `like_new`, `good`, `used`                                                                       |
+| ageMinMonths | number | Optional, whole number from 0 to 120, not greater than `ageMaxMonths`                                                    |
+| ageMaxMonths | number | Optional, whole number from 0 to 120                                                                                     |
+| addressId    | string | Required, ID of one of the user's own addresses                                                                          |
+| photos       | array  | Required, 1 to 6 objects of `url`, `publicId` and optional `altText`. Each `url` must start with our Cloudinary base URL |
+| instructions | string | Optional, up to 300 characters                                                                                           |
+| availability | string | Optional, up to 200 characters                                                                                           |
 
-- What are the maximum allowed lengths for the item title and description?
-- What is the maximum number of photos allowed per item?
-
-**Example Request (proposed)**
+**Example request**
 
 ```json
 {
   "title": "Baby Stroller",
   "description": "A gently used baby stroller.",
-  "categoryId": "1",
+  "category": "strollers",
   "condition": "good",
-  "ageMin": 0,
-  "ageMax": 24,
-  "addressId": "1",
-  "photos": []
+  "ageMinMonths": 0,
+  "ageMaxMonths": 24,
+  "addressId": "a3bb189e-8bf9-4888-9912-ace4e6543002",
+  "photos": [
+    {
+      "url": "https://res.cloudinary.com/example/image/upload/hand-me-down/items/stroller.jpg",
+      "publicId": "hand-me-down/items/stroller",
+      "altText": "Grey baby stroller"
+    }
+  ]
 }
 ```
 
-**Success Response (proposed)**
+**Success response (201 Created)**
 
-```json
-{
-  "success": true,
-  "data": {
-    "id": "10",
-    "title": "Baby Stroller",
-    "status": "available"
-  }
-}
-```
+The new item with status `available`, in the same shape as Get Item Details. It does not include the street address.
 
-**Possible Errors**
+**Errors**
 
-| Code | Meaning                                   |
-| ---- | ----------------------------------------- |
-| 400  | Missing or invalid item fields            |
-| 401  | User is not signed in                     |
-| 403  | User is not authorized to use the address |
-| 404  | Category or address not found             |
-| 500  | Internal server error                     |
-
-**Security**
-
-The request must include the `X-CSRF-TOKEN` header.
-
-Only signed-in users can create items. The server must verify that the selected address belongs to the user.
-
-Do not expose the private pickup address in public item responses.
+| Code | Meaning                                                                                     |
+| ---- | ------------------------------------------------------------------------------------------- |
+| 400  | Missing or invalid item fields                                                              |
+| 404  | Category or address not found (an address that belongs to another user counts as not found) |
 
 ### Uploads Endpoints
 
