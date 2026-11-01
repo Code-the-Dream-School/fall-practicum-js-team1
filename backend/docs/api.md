@@ -536,72 +536,53 @@ The Cloudinary API secret is never returned.
 
 #### Create Claim
 
-**Method:** POST
-**Path:** `/api/items/:id/claims`
-**Access:** Signed-in users (proposed)
+`POST /api/items/:id/claims` | Access: Signed in, CSRF header required
 
-**Path Parameters**
+A new claim starts as `pending`. Users can also claim a reserved item. Those claims stay pending and join the waiting list.
 
-| Parameter | Type   | Description                            |
-| --------- | ------ | -------------------------------------- |
-| id        | string | ID of the item being claimed; type TBD |
+**Path parameters**
 
-**Query Parameters**
+| Parameter | Type   | Description                         |
+| --------- | ------ | ----------------------------------- |
+| id        | string | ID (UUID) of the item being claimed |
 
-None.
+**Request body**
 
-**Request Body**
+| Field   | Type   | Rules                                   |
+| ------- | ------ | --------------------------------------- |
+| message | string | Optional, trimmed, up to 500 characters |
 
+If there is no message, send an empty object (`{}`).
 
-The request body accepts an optional `message` field (string, trimmed, maximum 500 characters). If provided, it must not exceed 500 characters.
-
-**Example Request Body:**
+**Example request**
 
 ```json
 {
   "message": "Hi, I am interested in this item. Is it still available?"
 }
-````
+```
 
-If no message is provided, send an empty JSON object (`{}`).
-
-**Success Response (201 Created)**
+**Success response (201 Created)**
 
 ```json
 {
   "success": true,
   "data": {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "itemId": "550e8400-e29b-41d4-a716-446655440001",
+    "id": "9b2f3c1e-6d4a-4f7b-8c2d-1a5e7f9b3c4d",
+    "itemId": "550e8400-e29b-41d4-a716-446655440000",
     "status": "pending"
   }
 }
 ```
 
-**Possible Errors**
+**Errors**
 
-**Possible Errors**
-
-| Code | Meaning                                                                                       |
-| ---- | --------------------------------------------------------------------------------------------- |
-| 400  | Invalid item ID or request body                                                               |
-| 401  | User is not signed in                                                                         |
-| 403  | User cannot claim an item they own                                                            |
-| 404  | Item not found                                                                                |
-| 409  | Item is picked_up or withdrawn, or the user already has an active claim (pending or approved) |
-| 500  | Internal server error                                                                         |
-
-**Waiting List:** Users may create claims on reserved items. These claims remain pending until the owner takes action.
-
-**Security**
-
-Only signed-in users can create claims. The request must include the `X-CSRF-TOKEN` header.
-
-The server verifies the user's JWT authentication cookie and CSRF token. A missing or invalid CSRF token returns 403.
-
-Users cannot claim their own items (403). Claims are allowed on available or reserved items, but not on picked_up or withdrawn items (409).
-
-A user cannot create another claim for the same item while they already have a pending or approved claim (409).
+| Code | Meaning                                                                                                     |
+| ---- | ----------------------------------------------------------------------------------------------------------- |
+| 400  | Invalid item ID or message                                                                                  |
+| 403  | The user owns the item                                                                                      |
+| 404  | Item not found                                                                                              |
+| 409  | The item is `picked_up` or `withdrawn`, or the user already has an active (pending or approved) claim on it |
 
 #### Get Item Claims
 
