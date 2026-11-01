@@ -996,60 +996,56 @@ The Messages API allows users involved in a claim to communicate about the item.
 
 #### Send Message
 
-**Method:** POST
-**Path:** `/api/claims/:id/messages`
-**Access:** Item owner or claimer (proposed)
+`POST /api/claims/:id/messages` | Access: Item owner or claimer, CSRF header required
 
-**Path Parameters**
+Only the item owner and the claimer of this claim can send a message, and only while the claim is `pending` or `approved`.
 
-| Parameter                                                                                     | Type   | Description               |
-| --------------------------------------------------------------------------------------------- | ------ | ------------------------- |
-| id                                                                                            | string | ID of the claim; type TBD |
-| **Open question for the team:** Please confirm the claim ID format used for sending messages. |
-| **Request Body (proposed)**                                                                   |
+**Path parameters**
 
-| Field                                                                                                 | Type   | Validation                               |
-| ----------------------------------------------------------------------------------------------------- | ------ | ---------------------------------------- |
-| content                                                                                               | string | Required; minimum and maximum length TBD |
-| **Open question for the team:** What are the minimum and maximum allowed lengths for message content? |
-| **Example Request**                                                                                   |
+| Parameter | Type   | Description            |
+| --------- | ------ | ---------------------- |
+| id        | string | ID (UUID) of the claim |
 
-```json id="d29h3a"
+**Request body**
+
+| Field | Type   | Rules                                   |
+| ----- | ------ | --------------------------------------- |
+| body  | string | Required, trimmed, 1 to 2000 characters |
+
+**Example request**
+
+```json
 {
-  "content": "Hello, is the stroller still available for pickup?"
+  "body": "Hello, is the stroller still available for pickup?"
 }
 ```
 
-**Success Response (proposed)**
+**Success response (201 Created)**
 
-```json id="m18n4b"
+`readAt` is `null` until the other person reads the message.
+
+```json
 {
   "success": true,
   "data": {
-    "id": "1",
-    "claimId": "10",
-    "content": "Hello, is the stroller still available for pickup?"
+    "id": "e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b",
+    "claimId": "9b2f3c1e-6d4a-4f7b-8c2d-1a5e7f9b3c4d",
+    "senderId": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
+    "body": "Hello, is the stroller still available for pickup?",
+    "readAt": null,
+    "createdAt": "2026-10-21T10:05:00.000Z"
   }
 }
 ```
 
-**Possible Errors**
+**Errors**
 
-| Code | Meaning                                         |
-| ---- | ----------------------------------------------- |
-| 400  | Invalid message content                         |
-| 401  | User is not signed in                           |
-| 403  | User is not allowed to message about this claim |
-| 404  | Claim not found                                 |
-| 500  | Internal server error                           |
-
-**Security**
-
-The request must include the `X-CSRF-TOKEN` header.
-
-Only authorized participants in the claim should be able to send messages (proposed).
-
-**Note:** Request fields, message length limits, response fields, access rules, and error cases must be confirmed with the backend team.
+| Code | Meaning                                       |
+| ---- | --------------------------------------------- |
+| 400  | Invalid claim ID or message body              |
+| 403  | The user is not the item owner or the claimer |
+| 404  | Claim not found                               |
+| 409  | The claim is not pending or approved          |
 
 #### Get Messages
 
