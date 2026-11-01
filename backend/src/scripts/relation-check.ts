@@ -68,7 +68,15 @@ try {
   }
 
   console.log('Relation query successful!');
-  console.dir(result, { depth: null });
+  console.dir(
+    {
+      item: result.title,
+      owner: result.owner.email,
+      category: result.category.name,
+      photos: result.photos.length,
+    },
+    { depth: null },
+  );
 } catch (error) {
   console.error('Relation query failed:', error);
   process.exitCode = 1;
