@@ -1,6 +1,62 @@
-﻿# Baby Gear Exchange API Documentation
+# Baby Gear Exchange API Documentation
 
-This document describes the API endpoints, request and response formats, authentication, and security requirements for the Baby Gear Exchange application.
+This document describes every API endpoint of the Baby Gear Exchange application. The backend and the frontend both build from it, so update this file first whenever an endpoint changes.
+
+## Conventions
+
+These rules apply to every endpoint, so they are written once here and not repeated below.
+
+**Paths and format:** every path starts with `/api`, and requests and responses use JSON.
+
+**Access levels:** Public means anyone. Signed in means a logged-in user. Item owner means the signed-in user who posted the item. Claimer means the signed-in user who made the claim.
+
+**Response format**
+
+Success:
+
+```json
+{ "success": true, "data": { "id": "550e8400-e29b-41d4-a716-446655440000" } }
+```
+
+Error:
+
+```json
+{ "success": false, "message": "Item not found" }
+```
+
+Everything the frontend needs is inside `data`. Nothing else sits next to it.
+
+**Error codes**
+
+| Code | Meaning                                                                      | Written on each endpoint?                                                              |
+| ---- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 400  | Invalid input                                                                | Yes                                                                                    |
+| 401  | Not signed in                                                                | No, it applies to every endpoint that needs a signed-in user                           |
+| 403  | Signed in but not allowed. Also used when the CSRF token is missing or wrong | Only the "not allowed" case. The CSRF case applies to every endpoint that changes data |
+| 404  | Not found                                                                    | Yes                                                                                    |
+| 409  | Conflicts with the current state (for example, the item is already reserved) | Yes                                                                                    |
+| 429  | Too many requests                                                            | Yes                                                                                    |
+| 500  | Server error                                                                 | No, it applies to every endpoint                                                       |
+
+To keep each endpoint short, the sections after this one only list the errors marked "Yes" in the last column.
+
+**IDs:** all ids are UUID strings, for example `550e8400-e29b-41d4-a716-446655440000`.
+
+**Values** (they must match the database)
+
+- Item condition: `new`, `like_new`, `good`, `used`
+- Item status: `available`, `reserved`, `picked_up`, `withdrawn`
+- Claim status: `pending`, `approved`, `declined`, `cancelled`, `no_show`, `picked_up`
+- Ages are in months.
+
+**Signing in and CSRF**
+
+- Register and log in set a JWT in an httpOnly cookie (SameSite=Lax, secure in production, expires in 1 day). The browser sends it automatically on every request.
+- Register, log in and `GET /api/users/me` return a `csrfToken` inside `data`. The frontend keeps it and sends it in the `X-CSRF-TOKEN` header on every POST, PATCH, PUT and DELETE request. If it is missing or does not match, the API returns 403.
+- Register and log in are the only requests that change data without this header, because the token does not exist yet.
+- Endpoints marked "CSRF header required" below follow this rule.
+
+**Private pickup address:** the street address, pickup instructions and availability are never in a public response (the item list or the item details). A claimer receives them only inside their own claim in `GET /api/profile/claims`, and only while that claim is `approved`. Once the item is picked up, the address is no longer shared.
 
 ### Authentication Endpoints
 
