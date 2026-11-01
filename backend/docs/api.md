@@ -761,22 +761,21 @@ No request body.
 
 #### Mark Item as Picked Up
 
-**Method:** PATCH
-**Path:** `/api/items/:id/picked-up`
-**Access:** Item owner (proposed)
+`PATCH /api/items/:id/picked-up` | Access: Item owner, CSRF header required
 
-**Path Parameters**
+No request body.
 
-| Parameter                                                                                          | Type   | Description              |
-| -------------------------------------------------------------------------------------------------- | ------ | ------------------------ |
-| id                                                                                                 | string | ID of the item; type TBD |
-| **Open question for the team:** Please confirm the item ID format used for the Picked Up endpoint. |
+**Path parameters**
 
-**Request Body**
+| Parameter | Type   | Description           |
+| --------- | ------ | --------------------- |
+| id        | string | ID (UUID) of the item |
 
-No request body is proposed. Confirm with the backend team.
+**What happens**
 
-**Success Response (proposed)**
+The item must be `reserved`. In one transaction, the approved claim becomes `picked_up`, the item becomes `picked_up`, and every remaining pending claim becomes `declined`.
+
+**Success response (200 OK)**
 
 ```json
 {
@@ -788,24 +787,13 @@ No request body is proposed. Confirm with the backend team.
 }
 ```
 
-**Possible Errors**
+**Errors**
 
-| Code | Meaning                                                 |
-| ---- | ------------------------------------------------------- |
-| 400  | Invalid item ID or request                              |
-| 401  | User is not signed in                                   |
-| 403  | User is not allowed to update this item                 |
-| 404  | Item not found                                          |
-| 409  | Item cannot be marked as picked up in its current state |
-| 500  | Internal server error                                   |
-
-**Security**
-
-The request must include the `X-CSRF-TOKEN` header.
-
-Only the item owner should be allowed to mark an item as picked up (proposed).
-
-**Note:** The status value, access rules, response fields, and error cases must be confirmed with the backend team.
+| Code | Meaning                        |
+| ---- | ------------------------------ |
+| 403  | The user is not the item owner |
+| 404  | Item not found                 |
+| 409  | The item is not reserved       |
 
 ### Profile Endpoints
 
