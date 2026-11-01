@@ -841,45 +841,56 @@ Only return items belonging to the signed-in user.
 
 #### Get My Claims
 
-**Method:** GET
-**Path:** `/api/profile/claims`
-**Access:** Signed-in users
+`GET /api/profile/claims` | Access: Signed in
 
-**Query Parameters**
+The claims the signed-in user has made, newest first.
 
-None specified in JIRA-48.
+**Query parameters** (optional)
 
-**Request Body**
+| Parameter | Type   | Description                                          |
+| --------- | ------ | ---------------------------------------------------- |
+| status    | string | Only claims with this status, for example `approved` |
 
-None.
+**Success response (200 OK)**
 
-**Success Response (proposed example)**
+`pickup` is `null` unless the claim is `approved`. This is the only place a claimer receives the street address, and it stops being shared once the item is picked up.
 
 ```json
 {
   "success": true,
   "data": [
     {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
-      "itemId": "550e8400-e29b-41d4-a716-446655440001",
-      "status": "pending"
+      "id": "9b2f3c1e-6d4a-4f7b-8c2d-1a5e7f9b3c4d",
+      "status": "approved",
+      "createdAt": "2026-10-21T10:00:00.000Z",
+      "item": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "title": "Baby Stroller",
+        "status": "reserved",
+        "coverPhoto": {
+          "url": "https://res.cloudinary.com/example/image/upload/hand-me-down/items/stroller.jpg",
+          "altText": "Grey baby stroller"
+        }
+      },
+      "pickup": {
+        "line1": "123 Main Street",
+        "line2": "Apt 2",
+        "city": "San Rafael",
+        "state": "CA",
+        "postalCode": "94901",
+        "instructions": "Ring the bell twice",
+        "availability": "Weekdays after 5pm"
+      }
     }
   ]
 }
 ```
 
-**Possible Errors**
+**Errors**
 
-| Code | Meaning               |
-| ---- | --------------------- |
-| 401  | User is not signed in |
-| 500  | Internal server error |
-
-**Security**
-
-Only return claims submitted by the signed-in user.
-
-**Note:** The response fields, ID types, access rules, and error cases must be confirmed with the backend team.
+| Code | Meaning        |
+| ---- | -------------- |
+| 400  | Invalid status |
 
 #### Get Profile Statistics
 
