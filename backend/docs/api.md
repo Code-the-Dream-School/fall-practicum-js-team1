@@ -218,45 +218,29 @@ The server should clear the user's authentication cookie.
 
 #### Get Categories
 
-**Method:** GET
-**Path:** `/api/categories`
-**Access:** Public
+`GET /api/categories` | Access: Public
 
-**Query Parameters**
+Sorted by `sortOrder`. The `key` is the value used to filter items and to create an item. The `name` is the text shown to users.
 
-None.
-
-**Request Body**
-
-None.
-
-**Success Response (proposed)**
+**Success response (200 OK)**
 
 ```json
 {
   "success": true,
   "data": [
     {
-      "id": "1",
+      "id": "b7c1d3a2-5e4f-4a6b-9c8d-2e1f0a9b8c7d",
+      "key": "strollers",
       "name": "Strollers"
     },
     {
-      "id": "2",
+      "id": "c8d9e0f1-a2b3-4c4d-8e5f-6a7b8c9d0e1f",
+      "key": "clothing",
       "name": "Clothing"
     }
   ]
 }
 ```
-
-**Possible Errors**
-
-| Code | Meaning               |
-| ---- | --------------------- |
-| 500  | Internal server error |
-
-**Security**
-
-No authentication required.
 
 ### Addresses Endpoints
 
