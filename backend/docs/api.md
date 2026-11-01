@@ -501,15 +501,15 @@ Only signed-in users can create items. The server must verify that the selected 
 
 Do not expose the private pickup address in public item responses.
 
-**Photo Uploads**
+### Uploads Endpoints
 
-The browser uploads photos directly to Cloudinary using a short-lived signature provided by our API. Photos do not pass through our backend server.
+#### Get Upload Signature
 
-**Upload Signature Endpoint:** `POST /api/uploads/signature`
+`POST /api/uploads/signature` | Access: Signed in, CSRF header required
 
-**Access:** Signed-in users. Requires the `X-CSRF-TOKEN` header.
+The browser uploads photos straight to Cloudinary with a short-lived signature from this endpoint, so photos never pass through our server. The folder is fixed on the server, and the allowed image types are jpg, png and webp. After uploading, the frontend sends each photo's `url`, `publicId` and optional `altText` when it creates the item.
 
-**Success Response:**
+**Success response (200 OK)**
 
 ```json
 {
@@ -518,24 +518,19 @@ The browser uploads photos directly to Cloudinary using a short-lived signature 
     "cloudName": "example-cloud",
     "apiKey": "example-api-key",
     "timestamp": 1234567890,
-    "folder": "baby-gear",
+    "folder": "hand-me-down/items",
     "signature": "example-signature"
   }
 }
 ```
 
-The Cloudinary API secret must never be returned to the frontend.
+The Cloudinary API secret is never returned.
 
-**Allowed image types:** jpg, png, webp.
+**Errors**
 
-After uploading, the frontend sends each photo's `url`, `publicId`, and optional `altText` when creating an item.
-
-**Possible Errors:** 400 (invalid request), 401 (not signed in), 403 (missing or invalid CSRF token), 500 (server error).
-
-````
-
-
-
+| Code | Meaning                                                    |
+| ---- | ---------------------------------------------------------- |
+| 429  | Too many signature requests (the endpoint is rate limited) |
 
 ### Claims Endpoints
 
