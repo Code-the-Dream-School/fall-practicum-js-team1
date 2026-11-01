@@ -3,18 +3,8 @@ import User from './user'
 impoirt Address from './address'
 
 export interface ItemPhoto {
-  id: number,
-  item: Item,
   url: string,
-  position: number,
   altText: string,
-}
-
-export interface ItemPickupDetail {
-  item: Item,
-  address: Address,
-  instructions: string,
-  availability: string,
 }
 
 export default interface Item {

@@ -1,7 +1,160 @@
 {
-  "users": {
-  },
-  "items": {
-  },
-  ""
+  "users": [
+    {
+      "id": 1,
+      "name": "Mocked Logged-in User",
+      "email": "fake_email@example.com",
+      "role": "user",
+      "avatarUrl": "",
+      "emailVerifiedAt": "2026-10-29T22:15:39.367Z",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "deactivatedAt": null
+    }
+  ],
+  "items": [
+    {
+      "id": 1,
+      "title": "new available Stroller",
+      "description": "A description for a new stroller",
+      "condition": "new",
+      "status": "available",
+      "ageMinMonths": 1,
+      "ageMaxMonths": 2,
+      "reservedAt": null,
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "strollers",
+        "name": "Strollers"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "new reserved Stroller",
+      "description": "A description for a new stroller, reserved",
+      "condition": "new",
+      "status": "reserved",
+      "ageMinMonths": 1,
+      "ageMaxMonths": 2,
+      "reservedAt": "2026-10-29T22:15:39.367Z",
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "strollers",
+        "name": "Strollers"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "new picked up Stroller",
+      "description": "A description for a new stroller, picked up",
+      "condition": "new",
+      "status": "picked_up",
+      "ageMinMonths": 1,
+      "ageMaxMonths": 2,
+      "reservedAt": "2026-10-29T22:15:39.367Z",
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "strollers",
+        "name": "Strollers"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "new withdrawn Stroller",
+      "description": "A description for a new stroller, withdrawn",
+      "condition": "new",
+      "status": "withdrawn",
+      "ageMinMonths": 1,
+      "ageMaxMonths": 2,
+      "reservedAt": null,
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "strollers",
+        "name": "Strollers"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "key": "strollers",
+      "name": "Strollers"
+    },
+    {
+      "id": 2,
+      "key": "cribs",
+      "name": "Cribs"
+    },
+    {
+      "id": 3,
+      "key": "feeding",
+      "name": "Feeding"
+    },
+    {
+      "id": 4,
+      "key": "toys",
+      "name": "Toys"
+    },
+    {
+      "id": 5,
+      "key": "clothing",
+      "name": "Clothing"
+    }
+  ]
 }
