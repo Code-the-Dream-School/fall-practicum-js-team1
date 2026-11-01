@@ -933,55 +933,41 @@ Only the item owner and the claimer of this claim can send a message, and only w
 
 #### Get Messages
 
-**Method:** GET
-**Path:** `/api/claims/:id/messages`
-**Access:** Item owner or claimer (proposed)
+`GET /api/claims/:id/messages` | Access: Item owner or claimer
 
-**Path Parameters**
+The messages of one claim, oldest first, so the thread reads from top to bottom.
 
-| Parameter                                                                                        | Type   | Description               |
-| ------------------------------------------------------------------------------------------------ | ------ | ------------------------- |
-| id                                                                                               | string | ID of the claim; type TBD |
-| **Open question for the team:** Please confirm the claim ID format used for retrieving messages. |
+**Path parameters**
 
-**Query Parameters**
+| Parameter | Type   | Description            |
+| --------- | ------ | ---------------------- |
+| id        | string | ID (UUID) of the claim |
 
-None proposed.
-
-**Request Body**
-
-None.
-
-**Success Response (proposed example)**
+**Success response (200 OK)**
 
 ```json
 {
   "success": true,
   "data": [
     {
-      "id": "1",
-      "claimId": "10",
-      "content": "Hello, is the stroller available for pickup?"
+      "id": "e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b",
+      "claimId": "9b2f3c1e-6d4a-4f7b-8c2d-1a5e7f9b3c4d",
+      "senderId": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
+      "body": "Hello, is the stroller still available for pickup?",
+      "readAt": null,
+      "createdAt": "2026-10-21T10:05:00.000Z"
     }
   ]
 }
 ```
 
-**Possible Errors**
+**Errors**
 
 | Code | Meaning                                       |
 | ---- | --------------------------------------------- |
 | 400  | Invalid claim ID                              |
-| 401  | User is not signed in                         |
-| 403  | User is not authorized to view these messages |
+| 403  | The user is not the item owner or the claimer |
 | 404  | Claim not found                               |
-| 500  | Internal server error                         |
-
-**Security**
-
-Only authorized participants in the claim should be able to view messages.
-
-**Note:** Response fields, access rules, and error cases must be confirmed with the backend team.
 
 #### Mark Messages as Read
 
