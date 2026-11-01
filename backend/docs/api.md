@@ -154,44 +154,18 @@ The user is signed in right away. The password is never returned.
 
 #### Log Out User
 
-**Method:** POST
-**Path:** `/api/users/logoff`
-**Access:** Signed-in users
+`POST /api/users/logoff` | Access: Signed in, CSRF header required
 
-**Query Parameters**
+Clears the login cookie.
 
-None.
-
-**Request Body**
-
-None proposed.
-
-**Success Response (proposed)**
+**Success response (200 OK)**
 
 ```json
 {
   "success": true,
-  "data": {
-    "message": "Logged out successfully"
-  }
+  "data": { "message": "Logged out successfully" }
 }
 ```
-
-**Possible Errors**
-
-| Code | Meaning                       |
-| ---- | ----------------------------- |
-| 401  | User is not signed in         |
-| 403  | Missing or invalid CSRF token |
-| 500  | Internal server error         |
-
-**Security**
-
-The request must include the `X-CSRF-TOKEN` header.
-
-The server should clear the user's authentication cookie.
-
-**Note:** The success response, cookie handling, and error cases must be confirmed with the backend team.
 
 #### Get Current User
 
