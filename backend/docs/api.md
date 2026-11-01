@@ -903,8 +903,6 @@ Only return statistics belonging to the signed-in user.
 
 ### Messages Endpoints
 
-The Messages API allows users involved in a claim to communicate about the item.
-
 #### Send Message
 
 `POST /api/claims/:id/messages` | Access: Item owner or claimer, CSRF header required
