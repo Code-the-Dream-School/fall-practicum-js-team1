@@ -737,55 +737,40 @@ Only the user who submitted the claim should be allowed to cancel it (proposed).
 
 #### Mark Claim as No-Show
 
-**Method:** PATCH
-**Path:** `/api/claims/:id/no-show`
-**Access:** Item owner (proposed)
+`PATCH /api/claims/:id/no-show` | Access: Item owner, CSRF header required
 
-**Path Parameters**
+No request body.
 
-| Parameter                                                                                    | Type   | Description               |
-| -------------------------------------------------------------------------------------------- | ------ | ------------------------- |
-| id                                                                                           | string | ID of the claim; type TBD |
-| **Open question for the team:** Please confirm the claim ID format for the No-Show endpoint. |
+**Path parameters**
 
-**Query Parameters**
+| Parameter | Type   | Description            |
+| --------- | ------ | ---------------------- |
+| id        | string | ID (UUID) of the claim |
 
-None.
+**What happens**
 
-**Request Body**
+- The claim must be `approved`.
+- The claim becomes `no_show` and the item becomes `available`, in one transaction, so the owner can approve another pending claim.
 
-No request body is proposed. Confirm with the backend team.
-
-**Success Response (proposed)**
+**Success response (200 OK)**
 
 ```json
 {
   "success": true,
   "data": {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "id": "9b2f3c1e-6d4a-4f7b-8c2d-1a5e7f9b3c4d",
     "status": "no_show"
   }
 }
 ```
 
-**Possible Errors**
+**Errors**
 
-| Code | Meaning                                                |
-| ---- | ------------------------------------------------------ |
-| 400  | Invalid claim ID or request                            |
-| 401  | User is not signed in                                  |
-| 403  | User is not the item owner                             |
-| 404  | Claim not found                                        |
-| 409  | Claim cannot be marked as no-show in its current state |
-| 500  | Internal server error                                  |
-
-**Security**
-
-The request must include the `X-CSRF-TOKEN` header.
-
-Only the item owner should be allowed to mark a claimer as a no-show (proposed).
-
-**Note:** No-show rules, status values, response fields, and error cases must be confirmed with the backend team.
+| Code | Meaning                        |
+| ---- | ------------------------------ |
+| 403  | The user is not the item owner |
+| 404  | Claim not found                |
+| 409  | The claim is not approved      |
 
 #### Mark Item as Picked Up
 
