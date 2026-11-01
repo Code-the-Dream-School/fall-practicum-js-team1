@@ -377,57 +377,55 @@ Newest first. Withdrawn items are never returned. Reserved and picked up items a
 
 #### Get Item Details
 
-**Method:** GET
-**Path:** `/api/items/:id`
-**Access:** Public (proposed)
+`GET /api/items/:id` | Access: Public
 
-**Path Parameters**
+**Path parameters**
 
-| Parameter | Type   | Description               |
-| --------- | ------ | ------------------------- |
-| id        | string | ID of the item; type UUID |
+| Parameter | Type   | Description           |
+| --------- | ------ | --------------------- |
+| id        | string | ID (UUID) of the item |
 
-**Query Parameters**
+**Success response (200 OK)**
 
-None.
-
-**Request Body**
-
-None.
-
-**Success Response**
+Photos are ordered by `position`.
 
 ```json
 {
   "success": true,
   "data": {
-    "id": "10",
+    "id": "550e8400-e29b-41d4-a716-446655440000",
     "title": "Baby Stroller",
     "description": "A gently used baby stroller.",
-    "category": "Strollers",
+    "category": { "key": "strollers", "name": "Strollers" },
+    "owner": {
+      "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "name": "Jane Smith"
+    },
     "condition": "good",
+    "ageMinMonths": 0,
+    "ageMaxMonths": 24,
     "city": "San Rafael",
-    "photoUrls": ["https://example.com/stroller.jpg"],
-    "status": "available"
+    "state": "CA",
+    "postalCode": "94901",
+    "status": "available",
+    "photos": [
+      {
+        "id": "d4e5f6a7-b8c9-4d0e-a1b2-c3d4e5f6a7b8",
+        "url": "https://res.cloudinary.com/example/image/upload/hand-me-down/items/stroller.jpg",
+        "altText": "Grey baby stroller",
+        "position": 0
+      }
+    ],
+    "createdAt": "2026-10-20T15:04:05.000Z"
   }
 }
 ```
 
-**Possible Errors**
+**Errors**
 
-| Code | Meaning               |
-| ---- | --------------------- |
-| 400  | Invalid item ID       |
-| 404  | Item not found        |
-| 500  | Internal server error |
-
-**Security**
-
-Do not include the private pickup address in the public response.
-
-Pickup address information should only be available to the item owner or approved claimer through an authorized response.
-
-**Note:** Response fields, ID type, access rules, and error cases must be confirmed with the backend team.
+| Code | Meaning                                                                 |
+| ---- | ----------------------------------------------------------------------- |
+| 404  | Item not found (not a valid id, no such item, or the item is withdrawn) |
 
 #### Create Item
 
