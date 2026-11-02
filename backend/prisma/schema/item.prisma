@@ -34,7 +34,24 @@ model Item {
   reservedAt   DateTime?     @map("reserved_at") @db.Timestamptz(6)
   pickedUpAt   DateTime?     @map("picked_up_at") @db.Timestamptz(6)
   createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                String        @id @default(uuid()) @db.Uuid
+  ownerId           String        @map("owner_id") @db.Uuid
+  categoryId        String        @map("category_id") @db.Uuid
+  title             String        @db.VarChar(80)
+  description       String        @db.VarChar(1000)
+  condition         ItemCondition
+  status            ItemStatus    @default(available)
+  childAgeMinMonths Int?          @map("child_age_min_months")
+  childAgeMaxMonths Int?          @map("child_age_max_months")
+  city              String
+  state             String
+  postalCode        String        @map("postal_code")
+  latitude          Float?
+  longitude         Float?
+  reservedAt        DateTime?     @map("reserved_at") @db.Timestamptz(6)
+  pickedUpAt        DateTime?     @map("picked_up_at") @db.Timestamptz(6)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   owner        User              @relation("ItemOwner", fields: [ownerId], references: [id], onDelete: Restrict)
   category     Category          @relation("CategoryItems", fields: [categoryId], references: [id], onDelete: Restrict)
