@@ -24,8 +24,8 @@ model Item {
   description  String        @db.VarChar(1000)
   condition    ItemCondition
   status       ItemStatus    @default(available)
-  ageMinMonths Int?          @map("age_min_months")
-  ageMaxMonths Int?          @map("age_max_months")
+  childAgeMinMonths Int?     @map("child_age_min_months")
+  childAgeMaxMonths Int?     @map("child_age_max_months")
   city         String
   state        String
   postalCode   String        @map("postal_code")
