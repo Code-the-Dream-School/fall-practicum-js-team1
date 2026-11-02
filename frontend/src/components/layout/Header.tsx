@@ -7,11 +7,16 @@ import { useEffect, useState } from 'react';
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
-    cn('py-1', isActive && 'underline decoration-2 underline-offset-8');
+    cn(
+      'py-1',
+      isActive &&
+        'underline decoration-nav-underline decoration-2 underline-offset-8',
+    );
   const mobileLinkClassName = ({ isActive }: { isActive: boolean }) =>
     cn(
       'flex min-h-11 w-full items-center justify-center',
-      isActive && 'font-semibold underline decoration-2 underline-offset-8',
+      isActive &&
+        'font-semibold underline decoration-nav-underline decoration-2 underline-offset-8',
     );
   const closeMenu = () => setIsMenuOpen(false);
   const toggleMenu = () => setIsMenuOpen((open) => !open);
