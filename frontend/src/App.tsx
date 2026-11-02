@@ -8,8 +8,6 @@ import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
-// TEMPORARY (JIRA-50)
-import ComponentPreviewPage from './pages/ComponentPreviewPage';
 
 function App() {
   return (
@@ -21,7 +19,6 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/preview" element={<ComponentPreviewPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
