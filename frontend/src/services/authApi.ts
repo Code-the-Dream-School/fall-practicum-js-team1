@@ -1,4 +1,3 @@
-
 import type { RegisterFormValues } from '@/schemas/registerSchema';
 import type { LoginFormValues } from '@/schemas/loginSchema';
 import type { AuthUser } from '@/store/authStore';
@@ -38,9 +37,7 @@ export async function registerUser(
 }
 
 // Login
-export async function loginUser(
-  data: LoginFormValues,
-): Promise<AuthResponse> {
+export async function loginUser(data: LoginFormValues): Promise<AuthResponse> {
   const response = await fetch('/api/users/logon', {
     method: 'POST',
     headers: {
@@ -62,9 +59,7 @@ export async function loginUser(
 }
 
 // Logout
-export async function logoutUser(
-  csrfToken: string,
-): Promise<void> {
+export async function logoutUser(csrfToken: string): Promise<void> {
   const response = await fetch('/api/users/logoff', {
     method: 'POST',
     headers: {
@@ -73,7 +68,9 @@ export async function logoutUser(
     credentials: 'include',
   });
 
-  if (!response.ok) {
+  // A 401 means the session has already expired.
+  // Treat it as a successful logout.
+  if (!response.ok && response.status !== 401) {
     throw new Error(await getErrorMessage(response));
   }
 }
@@ -97,9 +94,7 @@ export async function getCurrentUser(): Promise<AuthResponse | null> {
 }
 
 // Extract an API error message
-async function getErrorMessage(
-  response: Response,
-): Promise<string> {
+async function getErrorMessage(response: Response): Promise<string> {
   try {
     const result = await response.json();
 
@@ -115,14 +110,19 @@ async function getErrorMessage(
 
 // Validate the authentication response
 function parseAuthResponse(result: unknown): AuthResponse {
+  const data =
+    typeof result === 'object' && result !== null && 'data' in result
+      ? result.data
+      : null;
+
   if (
-    typeof result !== 'object' ||
-    result === null ||
-    !('user' in result) ||
-    !('csrfToken' in result)
+    typeof data !== 'object' ||
+    data === null ||
+    !('user' in data) ||
+    !('csrfToken' in data)
   ) {
     throw new Error('Invalid authentication response');
   }
 
-  return result as AuthResponse;
+  return data as AuthResponse;
 }

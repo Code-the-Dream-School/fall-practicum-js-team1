@@ -1,8 +1,6 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useLocation, useNavigate } from 'react-router';
 
 import { registerUser } from '@/services/authApi';
 import { useAuthStore } from '@/store/authStore';
@@ -10,6 +8,11 @@ import {
   registerSchema,
   type RegisterFormValues,
 } from '@/schemas/registerSchema';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function RegisterPage() {
   // API error state
@@ -19,21 +22,16 @@ export default function RegisterPage() {
   const setUser = useAuthStore((state) => state.setUser);
   const setCsrfToken = useAuthStore((state) => state.setCsrfToken);
 
-  // React Router navigation
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // Redirect to the originally requested page or Home
-  const from = location.state?.from?.pathname || '/';
-
   // React Hook Form with Zod validation
   const {
     register,
     handleSubmit,
+    getValues,
+    trigger,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    mode: 'onBlur',
+    mode: 'onTouched',
   });
 
   // Handle registration submission
@@ -43,12 +41,10 @@ export default function RegisterPage() {
     try {
       const result = await registerUser(data);
 
-      // Save authenticated user and CSRF token in Zustand
-      setUser(result.user);
+      // Save authenticated user and CSRF token in Zustand.
+      // GuestRoute handles the redirect.
       setCsrfToken(result.csrfToken);
-
-      // Redirect after successful registration
-      navigate(from, { replace: true });
+      setUser(result.user);
     } catch (error) {
       if (error instanceof Error) {
         setApiError(error.message);
@@ -60,47 +56,36 @@ export default function RegisterPage() {
 
   return (
     <main className="mx-auto max-w-md px-6 py-10">
-      <h1 className="mb-6 text-2xl font-semibold">
-        Create an account
-      </h1>
+      <h1 className="mb-6 text-2xl font-semibold">Create an account</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         {/* API Error Message */}
         {apiError && (
-          <p
-            role="alert"
-            className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700"
-          >
-            {apiError}
-          </p>
+          <Alert variant="destructive" role="alert" className="mb-4">
+            <AlertDescription>{apiError}</AlertDescription>
+          </Alert>
         )}
 
         {/* Full Name */}
         <div className="mb-4">
-          <label
-            htmlFor="name"
-            className="mb-2 block font-medium"
-          >
+          <Label htmlFor="name" className="mb-2">
             Full name
-          </label>
+          </Label>
 
-          <input
+          <Input
             id="name"
             type="text"
             autoComplete="name"
             {...register('name')}
             aria-invalid={!!errors.name}
-            aria-describedby={
-              errors.name ? 'name-error' : undefined
-            }
-            className="w-full rounded-md border px-3 py-2"
+            aria-describedby={errors.name ? 'name-error' : undefined}
           />
 
           {errors.name && (
             <p
               id="name-error"
               role="alert"
-              className="mt-1 text-sm text-red-600"
+              className="mt-1 text-sm text-destructive"
             >
               {errors.name.message}
             </p>
@@ -109,30 +94,24 @@ export default function RegisterPage() {
 
         {/* Email */}
         <div className="mb-4">
-          <label
-            htmlFor="email"
-            className="mb-2 block font-medium"
-          >
+          <Label htmlFor="email" className="mb-2">
             Email
-          </label>
+          </Label>
 
-          <input
+          <Input
             id="email"
             type="email"
             autoComplete="email"
             {...register('email')}
             aria-invalid={!!errors.email}
-            aria-describedby={
-              errors.email ? 'email-error' : undefined
-            }
-            className="w-full rounded-md border px-3 py-2"
+            aria-describedby={errors.email ? 'email-error' : undefined}
           />
 
           {errors.email && (
             <p
               id="email-error"
               role="alert"
-              className="mt-1 text-sm text-red-600"
+              className="mt-1 text-sm text-destructive"
             >
               {errors.email.message}
             </p>
@@ -141,41 +120,38 @@ export default function RegisterPage() {
 
         {/* Password */}
         <div className="mb-4">
-          <label
-            htmlFor="password"
-            className="mb-2 block font-medium"
-          >
+          <Label htmlFor="password" className="mb-2">
             Password
-          </label>
+          </Label>
 
-          <input
+          <Input
             id="password"
             type="password"
             autoComplete="new-password"
-            {...register('password')}
+            {...register('password', {
+              onChange: () => {
+                if (getValues('confirmPassword')) {
+                  void trigger('confirmPassword');
+                }
+              },
+            })}
             aria-invalid={!!errors.password}
             aria-describedby={
-              errors.password
-                ? 'password-help password-error'
-                : 'password-help'
+              errors.password ? 'password-help password-error' : 'password-help'
             }
-            className="w-full rounded-md border px-3 py-2"
           />
 
           {/* Password requirements */}
-          <p
-            id="password-help"
-            className="mt-1 text-sm text-gray-500"
-          >
-            At least 8 characters, 1 lowercase letter,
-            1 capital letter, and 1 number.
+          <p id="password-help" className="mt-1 text-sm text-muted-foreground">
+            At least 8 characters, 1 lowercase letter, 1 capital letter, and 1
+            number.
           </p>
 
           {errors.password && (
             <p
               id="password-error"
               role="alert"
-              className="mt-1 text-sm text-red-600"
+              className="mt-1 text-sm text-destructive"
             >
               {errors.password.message}
             </p>
@@ -184,32 +160,26 @@ export default function RegisterPage() {
 
         {/* Confirm Password */}
         <div className="mb-4">
-          <label
-            htmlFor="confirmPassword"
-            className="mb-2 block font-medium"
-          >
+          <Label htmlFor="confirmPassword" className="mb-2">
             Confirm password
-          </label>
+          </Label>
 
-          <input
+          <Input
             id="confirmPassword"
             type="password"
             autoComplete="new-password"
             {...register('confirmPassword')}
             aria-invalid={!!errors.confirmPassword}
             aria-describedby={
-              errors.confirmPassword
-                ? 'confirm-password-error'
-                : undefined
+              errors.confirmPassword ? 'confirm-password-error' : undefined
             }
-            className="w-full rounded-md border px-3 py-2"
           />
 
           {errors.confirmPassword && (
             <p
               id="confirm-password-error"
               role="alert"
-              className="mt-1 text-sm text-red-600"
+              className="mt-1 text-sm text-destructive"
             >
               {errors.confirmPassword.message}
             </p>
@@ -217,13 +187,9 @@ export default function RegisterPage() {
         </div>
 
         {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded-md bg-gray-900 px-4 py-2 font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? 'Registering...' : 'Register'}
-        </button>
+        </Button>
       </form>
     </main>
   );

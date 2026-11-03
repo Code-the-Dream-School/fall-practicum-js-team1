@@ -1,4 +1,3 @@
-
 import { useEffect, type ReactNode } from 'react';
 import { getCurrentUser } from '@/services/authApi';
 import { useAuthStore } from '@/store/authStore';
@@ -7,9 +6,7 @@ type AuthInitializerProps = {
   children: ReactNode;
 };
 
-export default function AuthInitializer({
-  children,
-}: AuthInitializerProps) {
+export default function AuthInitializer({ children }: AuthInitializerProps) {
   useEffect(() => {
     let active = true;
 

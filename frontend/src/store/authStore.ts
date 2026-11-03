@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 
 export type AuthUser = {
@@ -28,8 +27,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   setCsrfToken: (token) => set({ csrfToken: token }),
 
-  setIsCheckingSession: (checking) =>
-    set({ isCheckingSession: checking }),
+  setIsCheckingSession: (checking) => set({ isCheckingSession: checking }),
 
   clearAuth: () =>
     set({

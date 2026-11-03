@@ -19,12 +19,12 @@ function App() {
         <Route path="/items/:id" element={<ItemDetailsPage />} />
         <Route path="*" element={<NotFoundPage />} />
         <Route element={<ProtectedRoute />}>
-            <Route path="/items/new" element={<PostItemPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/items/new" element={<PostItemPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
         <Route element={<GuestRoute />}>
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
         </Route>
       </Route>
     </Routes>

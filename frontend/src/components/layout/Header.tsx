@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,9 +17,7 @@ export default function Header() {
   const user = useAuthStore((state) => state.user);
   const csrfToken = useAuthStore((state) => state.csrfToken);
   const clearAuth = useAuthStore((state) => state.clearAuth);
-  const isCheckingSession = useAuthStore(
-    (state) => state.isCheckingSession,
-  );
+  const isCheckingSession = useAuthStore((state) => state.isCheckingSession);
 
   // Navigation and TanStack Query
   const navigate = useNavigate();
@@ -43,32 +40,34 @@ export default function Header() {
   const closeMenu = () => setIsMenuOpen(false);
   const toggleMenu = () => setIsMenuOpen((open) => !open);
 
+  // Clear local authentication and return home
+  const finishLogout = () => {
+    clearAuth();
+    queryClient.clear();
+    closeMenu();
+    navigate('/', { replace: true });
+  };
+
   // Logout handler
   const handleLogout = async () => {
     if (isLoggingOut) return;
 
     setLogoutError(null);
 
+    // Missing token: clear the unusable local session.
     if (!csrfToken) {
-      setLogoutError('Unable to log out. Please try again.');
+      finishLogout();
       return;
     }
 
     setIsLoggingOut(true);
 
     try {
-      // Notify backend to end the session
+      // End the backend session.
+      // An expired session (401) is treated as success by logoutUser.
       await logoutUser(csrfToken);
 
-      // Clear authentication state
-      clearAuth();
-
-      // Clear cached user-specific data
-      queryClient.clear();
-
-      // Close mobile menu and redirect home
-      closeMenu();
-      navigate('/', { replace: true });
+      finishLogout();
     } catch (error) {
       console.error('Logout failed:', error);
       setLogoutError('Unable to log out. Please try again.');
@@ -87,8 +86,7 @@ export default function Header() {
 
     document.addEventListener('keydown', closeOnEscape);
 
-    return () =>
-      document.removeEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
   }, [isMenuOpen]);
 
   return (
@@ -122,9 +120,7 @@ export default function Header() {
           {!isCheckingSession &&
             (user ? (
               <>
-                <span className="font-medium">
-                  {firstName}
-                </span>
+                <span className="font-medium">{firstName}</span>
 
                 <Button
                   type="button"
@@ -143,9 +139,7 @@ export default function Header() {
                 </NavLink>
 
                 <Button asChild className="rounded-full px-5">
-                  <Link to="/register">
-                    Register
-                  </Link>
+                  <Link to="/register">Register</Link>
                 </Button>
               </>
             ))}
@@ -199,9 +193,7 @@ export default function Header() {
           {!isCheckingSession &&
             (user ? (
               <>
-                <span className="py-3 font-medium">
-                  {firstName}
-                </span>
+                <span className="py-3 font-medium">{firstName}</span>
 
                 <Button
                   type="button"
@@ -223,10 +215,7 @@ export default function Header() {
                   Log in
                 </NavLink>
 
-                <Button
-                  asChild
-                  className="mt-2 h-11 w-full rounded-full"
-                >
+                <Button asChild className="mt-2 h-11 w-full rounded-full">
                   <Link to="/register" onClick={closeMenu}>
                     Register
                   </Link>
@@ -240,7 +229,7 @@ export default function Header() {
       {logoutError && (
         <p
           role="alert"
-          className="mx-auto max-w-6xl px-6 pb-3 text-sm text-red-600"
+          className="mx-auto max-w-6xl px-6 pb-3 text-sm text-destructive"
         >
           {logoutError}
         </p>

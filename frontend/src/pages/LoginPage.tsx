@@ -1,12 +1,15 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useLocation, useNavigate } from 'react-router';
 
 import { loginSchema, type LoginFormValues } from '@/schemas/loginSchema';
 import { loginUser } from '@/services/authApi';
 import { useAuthStore } from '@/store/authStore';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const [apiError, setApiError] = useState<string | null>(null);
@@ -14,13 +17,6 @@ export default function LoginPage() {
   // Zustand authentication store
   const setUser = useAuthStore((state) => state.setUser);
   const setCsrfToken = useAuthStore((state) => state.setCsrfToken);
-
-  // React Router navigation
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // Return to the originally requested page, or Home
-  const from = location.state?.from?.pathname || '/';
 
   // React Hook Form with Zod validation
   const {
@@ -39,12 +35,10 @@ export default function LoginPage() {
     try {
       const result = await loginUser(data);
 
-      // Save authentication information in Zustand
-      setUser(result.user);
+      // Save authentication information in Zustand.
+      // GuestRoute handles the redirect.
       setCsrfToken(result.csrfToken);
-
-      // Redirect after successful login
-      navigate(from, { replace: true });
+      setUser(result.user);
     } catch (error) {
       if (error instanceof Error) {
         setApiError(error.message);
@@ -56,47 +50,36 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto max-w-md px-6 py-10">
-      <h1 className="mb-6 text-2xl font-semibold">
-        Log in
-      </h1>
+      <h1 className="mb-6 text-2xl font-semibold">Log in</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         {/* API Error Message */}
         {apiError && (
-          <p
-            role="alert"
-            className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700"
-          >
-            {apiError}
-          </p>
+          <Alert variant="destructive" role="alert" className="mb-4">
+            <AlertDescription>{apiError}</AlertDescription>
+          </Alert>
         )}
 
         {/* Email Field */}
         <div className="mb-4">
-          <label
-            htmlFor="email"
-            className="mb-2 block font-medium"
-          >
+          <Label htmlFor="email" className="mb-2">
             Email
-          </label>
+          </Label>
 
-          <input
+          <Input
             id="email"
             type="email"
             autoComplete="email"
             {...register('email')}
             aria-invalid={!!errors.email}
-            aria-describedby={
-              errors.email ? 'email-error' : undefined
-            }
-            className="w-full rounded-md border px-3 py-2"
+            aria-describedby={errors.email ? 'email-error' : undefined}
           />
 
           {errors.email && (
             <p
               id="email-error"
               role="alert"
-              className="mt-1 text-sm text-red-600"
+              className="mt-1 text-sm text-destructive"
             >
               {errors.email.message}
             </p>
@@ -105,30 +88,24 @@ export default function LoginPage() {
 
         {/* Password Field */}
         <div className="mb-4">
-          <label
-            htmlFor="password"
-            className="mb-2 block font-medium"
-          >
+          <Label htmlFor="password" className="mb-2">
             Password
-          </label>
+          </Label>
 
-          <input
+          <Input
             id="password"
             type="password"
             autoComplete="current-password"
             {...register('password')}
             aria-invalid={!!errors.password}
-            aria-describedby={
-              errors.password ? 'password-error' : undefined
-            }
-            className="w-full rounded-md border px-3 py-2"
+            aria-describedby={errors.password ? 'password-error' : undefined}
           />
 
           {errors.password && (
             <p
               id="password-error"
               role="alert"
-              className="mt-1 text-sm text-red-600"
+              className="mt-1 text-sm text-destructive"
             >
               {errors.password.message}
             </p>
@@ -136,13 +113,9 @@ export default function LoginPage() {
         </div>
 
         {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded-md bg-gray-900 px-4 py-2 font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? 'Logging in...' : 'Log in'}
-        </button>
+        </Button>
       </form>
     </main>
   );
