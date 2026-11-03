@@ -1,6 +1,5 @@
-import Category from './category'
-import User from './user'
-impoirt Address from './address'
+import type Category from './category'
+import type User from './user'
 
 export interface ItemPhoto {
   url: string,
@@ -15,8 +14,8 @@ export default interface Item {
   description: string,
   condition: string,
   status: string,
-  ageMinMonths: number,
-  ageMaxMonths: number,
+  childAgeMinMonths: number,
+  childAgeMaxMonths: number,
   city: string,
   state: string,
   postalCode: string,
