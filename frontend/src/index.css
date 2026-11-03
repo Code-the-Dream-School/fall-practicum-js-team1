@@ -5,40 +5,243 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ==========================================================================
+   - Palette: every color lives here and nowhere else
+   - Theme colors: named by what they change, light and dark side by side
+   - Tailwind names: turns the variables into classes like bg-hero
+   ========================================================================== */
+
+/* ==========================================================================
+   PALETTE
+   ========================================================================== */
+@theme {
+  /* neutrals */
+  --color-white: oklch(1 0 0);
+  --color-cream-100: oklch(0.977 0.007 80.7);
+  --color-cream-300: oklch(0.936 0.027 85.7);
+  --color-taupe-100: oklch(0.963 0.012 79.8);
+  --color-taupe-200: oklch(0.926 0.009 78.3);
+  --color-taupe-300: oklch(0.878 0.011 76.6);
+  --color-taupe-400: oklch(0.825 0.012 79.8);
+  --color-taupe-500: oklch(0.804 0.013 75.3);
+  --color-taupe-700: oklch(0.566 0.009 61.4);
+  --color-brown-900: oklch(0.359 0.014 54.1);
+  /* neutrals, dark */
+  --color-night: oklch(0.273 0.009 53.1);
+  --color-night-raised: oklch(0.314 0.011 55.9);
+  --color-night-oat: oklch(0.327 0.013 57.8);
+  --color-night-warm-grey: oklch(0.755 0.012 63.3);
+  --color-night-line: oklch(0.404 0.014 54.2);
+  --color-night-divider: oklch(0.369 0.013 57.9);
+  --color-night-avatar: oklch(0.444 0.014 59.3);
+  --color-night-avatar-soft: oklch(0.386 0.014 54.2);
+  --color-night-border: oklch(1 0 0 / 10%);
+  --color-night-input: oklch(1 0 0 / 15%);
+
+  /* coral */
+  --color-coral-100: oklch(0.87 0.05 46.8);
+  --color-coral-200: oklch(0.845 0.051 48.1);
+  --color-coral-500: oklch(0.712 0.143 29.4);
+  --color-coral-600: oklch(0.665 0.158 30.2);
+  --color-coral-800: oklch(0.5 0.13 30);
+  /* coral, dark */
+  --color-night-coral-soft: oklch(0.386 0.046 33.2);
+  --color-night-coral-muted: oklch(0.419 0.062 34.1);
+  --color-night-coral-text: oklch(0.8 0.1 35);
+
+  /* blue */
+  --color-sky-100: oklch(0.906 0.038 248.2);
+  --color-sky-300: oklch(0.794 0.086 248.4);
+  --color-blue-100: oklch(0.931 0.008 241.7);
+  --color-blue-200: oklch(0.879 0.042 237.2);
+  --color-blue-500: oklch(0.656 0.103 248.4);
+  --color-blue-700: oklch(0.559 0.115 249);
+  /* blue, dark */
+  --color-night-hero-blue: oklch(0.4 0.058 250.3);
+  --color-night-hero-blue-light: oklch(0.462 0.067 250.9);
+  --color-night-blue: oklch(0.36 0.06 252);
+  --color-night-blue-text: oklch(0.75 0.092 248.7);
+
+  /* green */
+  --color-green-100: oklch(0.956 0.016 133.8);
+  --color-green-200: oklch(0.878 0.05 154.2);
+  --color-green-500: oklch(0.718 0.15 151.9);
+  --color-green-700: oklch(0.595 0.144 151.2);
+  /* green, dark */
+  --color-night-green: oklch(0.344 0.045 155.6);
+  --color-night-green-text: oklch(0.79 0.131 154.4);
+
+  /* yellow */
+  --color-yellow-100: oklch(0.934 0.042 86);
+  --color-yellow-200: oklch(0.913 0.049 87.6);
+  --color-yellow-400: oklch(0.797 0.144 84.2);
+  --color-yellow-700: oklch(0.617 0.118 80.1);
+  /* yellow, dark */
+  --color-night-yellow: oklch(0.366 0.049 86.5);
+
+  /* pink */
+  --color-pink-100: oklch(0.939 0.014 6.7);
+  --color-pink-200: oklch(0.885 0.047 1.3);
+  --color-pink-400: oklch(0.745 0.088 346.3);
+  --color-pink-700: oklch(0.584 0.109 347.8);
+
+  /* red */
+  --color-red-100: oklch(0.94 0.03 20);
+  --color-red-600: oklch(0.577 0.245 27.325);
+  --color-red-700: oklch(0.5 0.17 25);
+  /* red, dark */
+  --color-night-red: oklch(0.35 0.06 20);
+  --color-night-red-text: oklch(0.78 0.11 20);
+  --color-night-danger: oklch(0.704 0.191 22.216);
+
+  /* purple */
+  --color-purple-100: oklch(0.94 0.03 305);
+  --color-purple-700: oklch(0.5 0.13 305);
+  /* purple, dark */
+  --color-night-purple: oklch(0.343 0.045 305);
+  --color-night-purple-text: oklch(0.78 0.1 305);
+
+  /* orange */
+  --color-orange-100: oklch(0.945 0.045 70);
+  --color-orange-700: oklch(0.5 0.12 55);
+  /* orange, dark */
+  --color-night-orange: oklch(0.37 0.05 65);
+  --color-night-orange-text: oklch(0.8 0.11 65);
+
+  /* condition colors (only used by the condition chips) */
+  --color-lime-200: oklch(0.9 0.09 125);
+  --color-teal-200: oklch(0.86 0.065 190);
+  --color-rose-200: oklch(0.88 0.06 355);
+  --color-tan-200: oklch(0.84 0.05 65);
+  /* condition colors, dark */
+  --color-night-lime: oklch(0.42 0.08 125);
+  --color-night-teal: oklch(0.42 0.07 190);
+  --color-night-rose: oklch(0.4 0.07 355);
+  --color-night-tan: oklch(0.4 0.05 65);
+}
+
+/* ==========================================================================
+   THEME COLORS
+   Format: light-dark(light color, dark color)
+   The .dark class on the page is what flips to its second color
+   ========================================================================== */
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+:root {
+  --radius: 0.625rem;
+
+  /* Page */
+  --background: light-dark(var(--color-cream-100), var(--color-night));
+  --foreground: light-dark(var(--color-brown-900), var(--color-cream-100));
+  --muted-foreground: light-dark(var(--color-taupe-700), var(--color-night-warm-grey));
+
+  /* Cards and popups */
+  --card: light-dark(var(--color-white), var(--color-night-raised));
+  --card-foreground: light-dark(var(--color-brown-900), var(--color-cream-100));
+  --popover: light-dark(var(--color-white), var(--color-night-raised));
+  --popover-foreground: light-dark(var(--color-brown-900), var(--color-cream-100));
+
+  /* Buttons */
+  --primary: var(--color-coral-500);
+  --primary-foreground: light-dark(var(--color-white), var(--color-night));
+  --secondary: light-dark(var(--color-cream-300), var(--color-brown-900));
+  --secondary-foreground: light-dark(var(--color-brown-900), var(--color-cream-100));
+
+  /* Quiet backgrounds */
+  --muted: light-dark(var(--color-cream-300), var(--color-brown-900));
+  --accent: light-dark(var(--color-cream-300), var(--color-brown-900));
+  --accent-foreground: light-dark(var(--color-brown-900), var(--color-cream-100));
+
+  /* Borders, inputs and focus ring */
+  --border: light-dark(var(--color-taupe-400), var(--color-night-border));
+  --input: light-dark(var(--color-taupe-400), var(--color-night-input));
+  --ring: var(--color-coral-500);
+
+  /* Errors */
+  --destructive: light-dark(var(--color-red-600), var(--color-night-danger));
+
+  /* Hero */
+  --hero: light-dark(var(--color-sky-300), var(--color-night-hero-blue));
+  --hero-image: light-dark(var(--color-sky-100), var(--color-night-hero-blue-light));
+
+  /* Sections and lines */
+  --section: light-dark(var(--color-cream-300), var(--color-night-oat));
+  --divider: light-dark(var(--color-taupe-300), var(--color-night-divider));
+
+  /* Nav, filters and tabs */
+  --nav-underline: var(--color-coral-500);
+  --filter-selected: light-dark(var(--color-coral-100), var(--color-night-coral-soft));
+  --tab-selected: light-dark(var(--color-coral-200), var(--color-night-coral-muted));
+
+  /* How a claim works */
+  --step-number: var(--color-coral-600);
+
+  /* Photos and avatars */
+  --photo-placeholder: light-dark(var(--color-taupe-200), var(--color-brown-900));
+  --avatar: light-dark(var(--color-taupe-500), var(--color-night-avatar));
+  --avatar-initials: light-dark(var(--color-taupe-100), var(--color-night-avatar-soft));
+
+  /* Profile stat card top bars */
+  --stat-bar-blue: var(--color-blue-500);
+  --stat-bar-yellow: var(--color-yellow-400);
+  --stat-bar-green: var(--color-green-500);
+  --stat-bar-pink: var(--color-pink-400);
+
+  /* Charts */
+  --chart-1: var(--color-coral-500);
+  --chart-2: light-dark(var(--color-sky-300), var(--color-night-hero-blue));
+  --chart-3: var(--color-yellow-200);
+  --chart-4: light-dark(var(--color-taupe-700), var(--color-night-warm-grey));
+  --chart-5: light-dark(var(--color-brown-900), var(--color-cream-100));
+
+  /* Sidebar */
+  --sidebar: light-dark(var(--color-cream-100), var(--color-night-raised));
+  --sidebar-foreground: light-dark(var(--color-brown-900), var(--color-cream-100));
+  --sidebar-primary: var(--color-coral-500);
+  --sidebar-primary-foreground: light-dark(var(--color-white), var(--color-night));
+  --sidebar-accent: light-dark(var(--color-cream-300), var(--color-brown-900));
+  --sidebar-accent-foreground: light-dark(var(--color-brown-900), var(--color-cream-100));
+  --sidebar-border: light-dark(var(--color-taupe-400), var(--color-night-border));
+  --sidebar-ring: var(--color-coral-500);
+
+  /* Condition chips */
+  --condition-new: light-dark(var(--color-lime-200), var(--color-night-lime));
+  --condition-like-new: light-dark(var(--color-teal-200), var(--color-night-teal));
+  --condition-good: light-dark(var(--color-rose-200), var(--color-night-rose));
+  --condition-used: light-dark(var(--color-tan-200), var(--color-night-tan));
+
+  /* Status chips */
+  --status-pending: light-dark(var(--color-yellow-100), var(--color-night-yellow));
+  --status-pending-foreground: light-dark(var(--color-yellow-700), var(--color-yellow-400));
+  --status-approved: light-dark(var(--color-green-100), var(--color-night-green));
+  --status-approved-foreground: light-dark(var(--color-green-700), var(--color-night-green-text));
+  --status-picked-up: light-dark(var(--color-purple-100), var(--color-night-purple));
+  --status-picked-up-foreground: light-dark(var(--color-purple-700), var(--color-night-purple-text));
+  --status-available: light-dark(var(--color-coral-100), var(--color-night-coral-soft));
+  --status-available-foreground: light-dark(var(--color-coral-800), var(--color-night-coral-text));
+  --status-reserved: light-dark(var(--color-blue-200), var(--color-night-blue));
+  --status-reserved-foreground: light-dark(var(--color-blue-700), var(--color-night-blue-text));
+  --status-declined: light-dark(var(--color-red-100), var(--color-night-red));
+  --status-declined-foreground: light-dark(var(--color-red-700), var(--color-night-red-text));
+  --status-no-show: light-dark(var(--color-orange-100), var(--color-night-orange));
+  --status-no-show-foreground: light-dark(var(--color-orange-700), var(--color-night-orange-text));
+  --status-inactive: light-dark(var(--color-taupe-200), var(--color-night-avatar-soft));
+  --status-inactive-foreground: light-dark(var(--color-taupe-700), var(--color-night-warm-grey));
+}
+
+/* ==========================================================================
+   TAILWIND NAMES
+   ========================================================================== */
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: 'Geist Variable', sans-serif;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -46,75 +249,76 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-}
 
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --color-hero: var(--hero);
+  --color-hero-image: var(--hero-image);
+  --color-section: var(--section);
+  --color-divider: var(--divider);
+  --color-nav-underline: var(--nav-underline);
+  --color-filter-selected: var(--filter-selected);
+  --color-tab-selected: var(--tab-selected);
+  --color-step-number: var(--step-number);
+  --color-photo-placeholder: var(--photo-placeholder);
+  --color-avatar: var(--avatar);
+  --color-avatar-initials: var(--avatar-initials);
+  --color-stat-bar-blue: var(--stat-bar-blue);
+  --color-stat-bar-yellow: var(--stat-bar-yellow);
+  --color-stat-bar-green: var(--stat-bar-green);
+  --color-stat-bar-pink: var(--stat-bar-pink);
+
+  --color-condition-new: var(--condition-new);
+  --color-condition-like-new: var(--condition-like-new);
+  --color-condition-good: var(--condition-good);
+  --color-condition-used: var(--condition-used);
+
+  --color-status-pending: var(--status-pending);
+  --color-status-pending-foreground: var(--status-pending-foreground);
+  --color-status-approved: var(--status-approved);
+  --color-status-approved-foreground: var(--status-approved-foreground);
+  --color-status-picked-up: var(--status-picked-up);
+  --color-status-picked-up-foreground: var(--status-picked-up-foreground);
+  --color-status-available: var(--status-available);
+  --color-status-available-foreground: var(--status-available-foreground);
+  --color-status-reserved: var(--status-reserved);
+  --color-status-reserved-foreground: var(--status-reserved-foreground);
+  --color-status-declined: var(--status-declined);
+  --color-status-declined-foreground: var(--status-declined-foreground);
+  --color-status-no-show: var(--status-no-show);
+  --color-status-no-show-foreground: var(--status-no-show-foreground);
+  --color-status-inactive: var(--status-inactive);
+  --color-status-inactive-foreground: var(--status-inactive-foreground);
 }
 
 @layer base {

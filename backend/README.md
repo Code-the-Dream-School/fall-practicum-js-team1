@@ -279,6 +279,38 @@ Prisma Studio will open in your browser and let you view and manage database rec
 
 **Note:** Prisma Studio may show no tables if the Prisma schema does not yet define any database models.
 
+## 🩺 Health Check
+
+`GET /api/health` checks that the API and the database are up. It needs no login.
+
+**200: everything works**
+
+```json
+{
+  "success": true,
+  "data": {
+    "status": "ok",
+    "uptime": 123.45,
+    "db": "ok"
+  }
+}
+```
+
+**503: the database is unavailable**
+
+```json
+{
+  "success": false,
+  "data": {
+    "status": "ok",
+    "uptime": 123.45,
+    "db": "unavailable"
+  }
+}
+```
+
+`uptime` is the number of seconds the server has been running. The response never includes the connection string.
+
 ## 📄 License
 
 Educational use only.

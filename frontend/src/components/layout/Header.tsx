@@ -26,14 +26,19 @@ export default function Header() {
   // Display the user's first name
   const firstName = user?.name.split(' ')[0];
 
-  // Existing navigation styling
+  // Navigation styling from JIRA-50
   const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
-    cn('py-1', isActive && 'underline decoration-2 underline-offset-8');
+    cn(
+      'py-1',
+      isActive &&
+        'underline decoration-nav-underline decoration-2 underline-offset-8',
+    );
 
   const mobileLinkClassName = ({ isActive }: { isActive: boolean }) =>
     cn(
       'flex min-h-11 w-full items-center justify-center',
-      isActive && 'font-semibold underline decoration-2 underline-offset-8',
+      isActive &&
+        'font-semibold underline decoration-nav-underline decoration-2 underline-offset-8',
     );
 
   // Mobile menu handlers
@@ -63,8 +68,8 @@ export default function Header() {
     setIsLoggingOut(true);
 
     try {
-      // End the backend session.
-      // An expired session (401) is treated as success by logoutUser.
+      // Notify backend to end the session.
+      // A 401 response is treated as success by logoutUser.
       await logoutUser(csrfToken);
 
       finishLogout();
