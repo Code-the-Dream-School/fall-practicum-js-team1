@@ -1,3 +1,6 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateEnum
 CREATE TYPE "claim_status" AS ENUM ('pending', 'approved', 'declined', 'cancelled', 'no_show', 'picked_up');
 
@@ -91,8 +94,8 @@ CREATE TABLE "items" (
     "description" VARCHAR(1000) NOT NULL,
     "condition" "item_condition" NOT NULL,
     "status" "item_status" NOT NULL DEFAULT 'available',
-    "age_min_months" INTEGER,
-    "age_max_months" INTEGER,
+    "child_age_min_months" INTEGER,
+    "child_age_max_months" INTEGER,
     "city" TEXT NOT NULL,
     "state" TEXT NOT NULL,
     "postal_code" TEXT NOT NULL,
@@ -141,6 +144,9 @@ CREATE INDEX "item_photos_item_id_idx" ON "item_photos"("item_id");
 CREATE UNIQUE INDEX "item_photos_item_id_position_key" ON "item_photos"("item_id", "position");
 
 -- CreateIndex
+CREATE INDEX "item_pickup_details_address_id_idx" ON "item_pickup_details"("address_id");
+
+-- CreateIndex
 CREATE INDEX "items_status_created_at_idx" ON "items"("status", "created_at" DESC);
 
 -- CreateIndex
@@ -152,18 +158,27 @@ CREATE INDEX "items_owner_id_idx" ON "items"("owner_id");
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
---One active claim per user and item
-CREATE UNIQUE INDEX "claims_one_active_per_user_item"
-ON "claims" ("claimer_id", "item_id")
-WHERE "status" IN ('pending', 'approved');
+-- AddForeignKey
+ALTER TABLE "addresses" ADD CONSTRAINT "addresses_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
---One winning claim per item
-CREATE UNIQUE INDEX "claims_one_winner_per_item"
-ON "claims" ("item_id")
-WHERE "status" IN ('approved', 'picked_up');
+-- AddForeignKey
+ALTER TABLE "claims" ADD CONSTRAINT "claims_item_id_fkey" FOREIGN KEY ("item_id") REFERENCES "items"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
---One default address per user
-CREATE UNIQUE INDEX "addresses_one_default_per_user"
-ON "addresses" ("user_id")
-WHERE "is_default" = true;
+-- AddForeignKey
+ALTER TABLE "claims" ADD CONSTRAINT "claims_claimer_id_fkey" FOREIGN KEY ("claimer_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "item_photos" ADD CONSTRAINT "item_photos_item_id_fkey" FOREIGN KEY ("item_id") REFERENCES "items"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "item_pickup_details" ADD CONSTRAINT "item_pickup_details_address_id_fkey" FOREIGN KEY ("address_id") REFERENCES "addresses"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "item_pickup_details" ADD CONSTRAINT "item_pickup_details_item_id_fkey" FOREIGN KEY ("item_id") REFERENCES "items"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "items" ADD CONSTRAINT "items_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "items" ADD CONSTRAINT "items_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
