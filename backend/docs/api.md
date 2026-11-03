@@ -1,4 +1,4 @@
-# Baby Gear Exchange API Documentation
+﻿# Baby Gear Exchange API Documentation
 
 This document describes every API endpoint of the Baby Gear Exchange application. The backend and the frontend both build from it, so update this file first whenever an endpoint changes.
 
@@ -319,8 +319,8 @@ Newest first. Withdrawn items are never returned. Reserved and picked up items a
         "id": "550e8400-e29b-41d4-a716-446655440000",
         "title": "Baby Stroller",
         "condition": "good",
-        "ageMinMonths": 0,
-        "ageMaxMonths": 24,
+        "childAgeMinMonths": 0,
+        "childMaxAgeMonths": 24,
         "city": "San Rafael",
         "state": "CA",
         "status": "available",
@@ -376,8 +376,8 @@ Photos are ordered by `position`.
       "name": "Jane Smith"
     },
     "condition": "good",
-    "ageMinMonths": 0,
-    "ageMaxMonths": 24,
+    "childAgeMinMonths": 0,
+    "childMaxAgeMonths": 24,
     "city": "San Rafael",
     "state": "CA",
     "postalCode": "94901",
@@ -415,8 +415,8 @@ The owner is always the signed-in user, never a value from the request body. The
 | description  | string | Required, up to 1000 characters                                                                                          |
 | category     | string | Required, the key of an existing category, for example `strollers`                                                       |
 | condition    | string | Required, one of `new`, `like_new`, `good`, `used`                                                                       |
-| ageMinMonths | number | Optional, whole number from 0 to 120, not greater than `ageMaxMonths`                                                    |
-| ageMaxMonths | number | Optional, whole number from 0 to 120                                                                                     |
+| childAgeMinMonths | number | Optional, whole number from 0 to 120, not greater than `childMaxAgeMonths`                                                    |
+| childMaxAgeMonths | number | Optional, whole number from 0 to 120                                                                                     |
 | addressId    | string | Required, ID of one of the user's own addresses                                                                          |
 | photos       | array  | Required, 1 to 6 objects of `url`, `publicId` and optional `altText`. Each `url` must start with our Cloudinary base URL |
 | instructions | string | Optional, up to 300 characters                                                                                           |
@@ -430,8 +430,8 @@ The owner is always the signed-in user, never a value from the request body. The
   "description": "A gently used baby stroller.",
   "category": "strollers",
   "condition": "good",
-  "ageMinMonths": 0,
-  "ageMaxMonths": 24,
+  "childAgeMinMonths": 0,
+  "childMaxAgeMonths": 24,
   "addressId": "a3bb189e-8bf9-4888-9912-ace4e6543002",
   "photos": [
     {
@@ -766,8 +766,8 @@ The signed-in user's own items, newest first, in the same short shape as the ite
       "id": "550e8400-e29b-41d4-a716-446655440000",
       "title": "Baby Stroller",
       "condition": "good",
-      "ageMinMonths": 0,
-      "ageMaxMonths": 24,
+      "childAgeMinMonths": 0,
+      "childMaxAgeMonths": 24,
       "city": "San Rafael",
       "state": "CA",
       "status": "withdrawn",
