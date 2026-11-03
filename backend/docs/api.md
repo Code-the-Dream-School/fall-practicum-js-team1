@@ -409,18 +409,18 @@ The owner is always the signed-in user, never a value from the request body. The
 
 **Request body**
 
-| Field        | Type   | Rules                                                                                                                    |
-| ------------ | ------ | ------------------------------------------------------------------------------------------------------------------------ |
-| title        | string | Required, up to 80 characters                                                                                            |
-| description  | string | Required, up to 1000 characters                                                                                          |
-| category     | string | Required, the key of an existing category, for example `strollers`                                                       |
-| condition    | string | Required, one of `new`, `like_new`, `good`, `used`                                                                       |
-| childAgeMinMonths | number | Optional, whole number from 0 to 120, not greater than `childMaxAgeMonths`                                                    |
+| Field             | Type   | Rules                                                                                                                    |
+| ----------------- | ------ | ------------------------------------------------------------------------------------------------------------------------ |
+| title             | string | Required, up to 80 characters                                                                                            |
+| description       | string | Required, up to 1000 characters                                                                                          |
+| category          | string | Required, the key of an existing category, for example `strollers`                                                       |
+| condition         | string | Required, one of `new`, `like_new`, `good`, `used`                                                                       |
+| childAgeMinMonths | number | Optional, whole number from 0 to 120, not greater than `childMaxAgeMonths`                                               |
 | childMaxAgeMonths | number | Optional, whole number from 0 to 120                                                                                     |
-| addressId    | string | Required, ID of one of the user's own addresses                                                                          |
-| photos       | array  | Required, 1 to 6 objects of `url`, `publicId` and optional `altText`. Each `url` must start with our Cloudinary base URL |
-| instructions | string | Optional, up to 300 characters                                                                                           |
-| availability | string | Optional, up to 200 characters                                                                                           |
+| addressId         | string | Required, ID of one of the user's own addresses                                                                          |
+| photos            | array  | Required, 1 to 6 objects of `url`, `publicId` and optional `altText`. Each `url` must start with our Cloudinary base URL |
+| instructions      | string | Optional, up to 300 characters                                                                                           |
+| availability      | string | Optional, up to 200 characters                                                                                           |
 
 **Example request**
 
