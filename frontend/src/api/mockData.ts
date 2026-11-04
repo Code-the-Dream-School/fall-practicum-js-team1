@@ -62,8 +62,5 @@ export function getUser(): User {
 }
 
 export function getItems(): Item[] {
-  // TODO: add filtering
-  const items = mockData.items
-
-  return items
+  return mockData.items
 }

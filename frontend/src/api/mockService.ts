@@ -54,13 +54,43 @@ export const setupMock = (axiosInstance: typeof axios) => {
       condition,
       ageMin,
       ageMax,
-      city,
+      city, // Do we need state too?
       page,
       limit,
     } = config.params || {}
 
+    let items = getItems()
+
     if (q) {
+      items = items.filter((item) => item.description.toLowerCase() === q.toLowerCase())
     }
+
+    if (category) {
+      items = items.filter((item) => item.category.key === category.toLowerCase())
+    }
+
+    if (condition) {
+      items = items.filter((item) => item.condition === condition.toLowerCase())
+    }
+
+    if (ageMin) {
+    }
+
+    if (ageMax) {
+    }
+
+    if (city) {
+    }
+
+    if (page) {
+    }
+
+    return [
+      200,
+      {
+        data: items,
+      }
+    ]
   })
   // claim routes
 }
