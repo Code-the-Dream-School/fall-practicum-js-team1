@@ -55,9 +55,9 @@ export const setupMock = (axiosInstance: typeof axios) => {
       ageMin,
       ageMax,
       city, // Do we need state too?
-      page,
-      limit,
     } = config.params || {}
+    const limit = config.params?.limit || 10
+    const page = config.params?.page || 1
 
     let items = getItems()
 
@@ -74,21 +74,28 @@ export const setupMock = (axiosInstance: typeof axios) => {
     }
 
     if (ageMin) {
+      items = items.filter((item) => item.childAgeMinMonths >= ageMin)
     }
 
     if (ageMax) {
+      items = items.filter((item) => item.childAgeMaxMonths <= ageMax)
     }
 
     if (city) {
+      items = items.filter((item) => item.city.toLowerCase() === city.toLowerCase())
     }
 
     if (page) {
+      const startIndex = (page - 1) * limit;
+      items = items.slice(startIndex, startIndex + Number(limit))
     }
 
     return [
       200,
       {
         data: items,
+        total: items.length,
+        page: Number(page),
       }
     ]
   })
