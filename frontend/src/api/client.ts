@@ -9,8 +9,10 @@ if (import.meta.env['VITE_API_BASE_URL'] === undefined) {
 }
 const BASE_URL: string = `${import.meta.env['VITE_API_BASE_URL']}/api`
 
+// Global axios defaults
 axios.defaults.baseURL = BASE_URL
 axios.defaults.headers.post['Content-Type'] = 'application/json'
+axios.defaults.withCredentials = true
 
 if (import.meta.env['VITE_USE_MOCKED_API_CALLS'] == 'true') {
   console.warn('API client is in mock mode!')

@@ -3,6 +3,7 @@ import mockData from './mockData.json' with { type: 'json' }
 import type Claim from '../types/claim'
 import type Item from '../types/item'
 import type User from '../types/user'
+import type Category from '../types/categrory'
 
 const USERS = mockData.users
 
@@ -62,5 +63,14 @@ export function getUser(): User {
 }
 
 export function getItems(): Item[] {
-  return mockData.items
+  let items = mockData.items.filter((item) => item !== 'withdrawn')
+  return items.sort((a, b) => b.createdAt - a.createdAt)
+}
+
+export function getCategories(): Category[] {
+  return mockData.categories;
+}
+
+export function getAddresses(): Address[] {
+  return ADDRESSES;
 }

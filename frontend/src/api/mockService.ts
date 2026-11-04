@@ -1,8 +1,10 @@
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import {
+  mockData,
   getUser,
-  getItems
+  getItems,
+  getAddresses,
 } from './mockData';
 //import
 
@@ -15,28 +17,81 @@ export const setupMock = (axiosInstance: typeof axios) => {
   mock.onGet('/users/me').reply(
     200,
     {
-      user: getUser(),
-      csrfToken
+      success: true,
+      data: {
+        user: getUser(),
+        csrfToken
+      }
     }
   )
   mock.onPost('/users/register').reply(
     201,
     {
-      user: getUser(),
-      csrfToken
+      success: true,
+      {
+        user: getUser(),
+        csrfToken
+      }
     }
   )
   mock.onPost('/users/logon').reply(
     200,
     {
-      user: getUser(),
-      csrfToken
+      success: true,
+      data: {
+        user: getUser(),
+        csrfToken
+      }
     }
   )
   mock.onPost('/users/logoff').reply(
     200,
     {
-      message: 'Logged out successfully',
+      success: true,
+      data: {
+        message: 'Logged out successfully',
+      }
+    }
+  )
+  mock.onGet('/users/me').reply(
+    200,
+    {
+      success: true,
+      data: {
+        user: getUsers(),
+        csrfToken
+      }
+    }
+  )
+
+  // category routes
+  mock.onGet('/categories').reply(
+    200,
+    {
+      success: true,
+      data: {
+        categories: getCategories(),
+      }
+    }
+  );
+
+  // address routes
+  mock.onGet('/addresses').reply(
+    200,
+    {
+      success: true,
+      data: {
+        addresses: getAddresses(),
+      }
+    }
+  )
+  mock.onPost('/addresses').reply(
+    201,
+    {
+      success: true,
+      data: {
+        address: getAddresses()[0],
+      }
     }
   )
 
@@ -48,56 +103,72 @@ export const setupMock = (axiosInstance: typeof axios) => {
 
   // item routes
   mock.onGet('/items').reply((config) => {
-    const {
+    let {
       q,
       category,
       condition,
       ageMin,
       ageMax,
       city, // Do we need state too?
+      limit,
+      page,
     } = config.params || {}
-    const limit = config.params?.limit || 10
-    const page = config.params?.page || 1
+    limit ||= 10
+    page ||= 1
 
     let items = getItems()
 
     if (q) {
-      items = items.filter((item) => item.description.toLowerCase() === q.toLowerCase())
+      q = q.toLowerCase()
+      items = items.filter((item) => item.description.toLowerCase() === q)
     }
 
     if (category) {
-      items = items.filter((item) => item.category.key === category.toLowerCase())
+      category = category.toLowerCase()
+      items = items.filter((item) => item.category.key === category)
     }
 
     if (condition) {
-      items = items.filter((item) => item.condition === condition.toLowerCase())
+      condition = condition.toLowerCase()
+      items = items.filter((item) => item.condition === condition)
     }
 
     if (ageMin) {
+      ageMin = Number(ageMin)
       items = items.filter((item) => item.childAgeMinMonths >= ageMin)
     }
 
     if (ageMax) {
+      ageMax = Number(ageMax)
       items = items.filter((item) => item.childAgeMaxMonths <= ageMax)
     }
 
     if (city) {
-      items = items.filter((item) => item.city.toLowerCase() === city.toLowerCase())
+      city = city.toLowerCase()
+      items = items.filter((item) => item.city.toLowerCase() === city)
     }
 
-    if (page) {
-      const startIndex = (page - 1) * limit;
-      items = items.slice(startIndex, startIndex + Number(limit))
-    }
+    page = Number(page)
+    limit = Number(limit)
+    const startIndex = (page - 1) * limit;
+    items = items.slice(startIndex, startIndex + limit)
+    const pages = Math.ceil(items.length / limit)
 
     return [
       200,
       {
         data: items,
-        total: items.length,
-        page: Number(page),
+        pagination: {
+          page,
+          limit,
+          total: items.length,
+          pages,
+          hasNext: page < pages,
+          hasPrev: page > 1,
+        }
       }
     ]
   })
+
   // claim routes
 }

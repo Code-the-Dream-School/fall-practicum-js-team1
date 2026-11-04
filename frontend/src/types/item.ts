@@ -1,14 +1,18 @@
 import type Category from './category'
 import type User from './user'
 
-export interface ItemPhoto {
+export interface ItemCoverPhoto {
   url: string,
   altText: string,
 }
 
+export interface ItemPhoto extends ItemCoverPhoto {
+  position: number,
+}
+
 export default interface Item {
   id: number,
-  owner: User,
+  owner?: User,
   category: Category,
   title: string,
   description: string,
@@ -20,11 +24,9 @@ export default interface Item {
   state: string,
   postalCode: string,
   country: string,
-  latitude: number,
-  longitude: number,
   reservedAt: Date,
   pickedUpAt: Date,
   createdAt: Date,
-  updatedAt: Date,
-  photos: ItemPhoto[],
+  coverPhoto: ItemPhoto,
+  photos?: ItemPhoto[],
 }
