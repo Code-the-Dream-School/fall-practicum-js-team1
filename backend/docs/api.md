@@ -259,6 +259,7 @@ The first address a user creates becomes their default. If `isDefault` is `true`
 | city       | string  | Required                     |
 | state      | string  | Required                     |
 | postalCode | string  | Required                     |
+| country    | string  | Required                     |
 | nickname   | string  | Optional, for example "Home" |
 | isDefault  | boolean | Optional, default `false`    |
 
