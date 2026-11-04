@@ -1,11 +1,11 @@
-import User from './user'
+import type User from './user'
 
 export default interface Address {
   id: number,
   user: User,
   nickname: string,
   line1: string,
-  line2: string,
+  line2: string | null,
   city: string,
   state: string,
   postalCode: string,
@@ -16,4 +16,3 @@ export default interface Address {
   createdAt: Date,
   updatedAt: Date,
 }
-

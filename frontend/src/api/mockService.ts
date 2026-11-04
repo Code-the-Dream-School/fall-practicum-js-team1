@@ -1,25 +1,66 @@
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
-//import * as TYPES from '../types/index'
+import {
+  getUser,
+  getItems
+} from './mockData';
+//import
 
-import mockData from './mockData.json' with { type: 'json' }
-
-export const setupMock = (axiosInstance: typeof axios, baseUrl: string) => {
-  console.log('setupMock()')
+export const setupMock = (axiosInstance: typeof axios) => {
   const mock = new AxiosMockAdapter(axiosInstance, { delayResponse: 300 })
 
-  const profileItemsUrl = `${baseUrl}/profile/items`
-  console.log(`profile urL ${profileItemsUrl}`)
-  mock.onGet(profileItemsUrl).reply(
+  const csrfToken: string = 'mocked-placehodlder'
+
+  // user routes
+  mock.onGet('/users/me').reply(
     200,
-    mockData.items,
-  )
-  mock.onPost(`${baseUrl}/users/register`).reply(
-    201,
     {
-      success: true,
-      data: mockData.users[0],
-      csrfToken: 'abc',
+      user: getUser(),
+      csrfToken
     }
   )
+  mock.onPost('/users/register').reply(
+    201,
+    {
+      user: getUser(),
+      csrfToken
+    }
+  )
+  mock.onPost('/users/logon').reply(
+    200,
+    {
+      user: getUser(),
+      csrfToken
+    }
+  )
+  mock.onPost('/users/logoff').reply(
+    200,
+    {
+      message: 'Logged out successfully',
+    }
+  )
+
+  // profile routes
+  mock.onGet('/profile/items').reply(
+    200,
+    getItems(),
+  )
+
+  // item routes
+  mock.onGet('/items').reply((config) => {
+    const {
+      q,
+      category,
+      condition,
+      ageMin,
+      ageMax,
+      city,
+      page,
+      limit,
+    } = config.params || {}
+
+    if (q) {
+    }
+  })
+  // claim routes
 }

@@ -1,5 +1,5 @@
-import Item from './item'
-import User from './user'
+import type Item from './item'
+import type User from './user'
 
 export default interface Claim {
   id: number,

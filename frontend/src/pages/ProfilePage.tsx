@@ -6,8 +6,8 @@ export default function ProfilePage() {
   useEffect(() => {
     const getItems = async () => {
       try {
-      const resp = await getMyItems()
-      console.log('UE resp:', resp)
+        const resp = await getMyItems()
+        console.log('UE resp:', resp)
       } catch (err) {
         console.log(err)
       }

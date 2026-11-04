@@ -10,6 +10,17 @@
       "createdAt": "2026-10-29T22:15:39.367Z",
       "updatedAt": "2026-10-29T22:16:38.073Z",
       "deactivatedAt": null
+    },
+    {
+      "id": 2,
+      "name": "Mocked owner",
+      "email": "owner@example.com",
+      "role": "user",
+      "avatarUrl": "",
+      "emailVerifiedAt": "2026-10-29T22:15:39.367Z",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "deactivatedAt": null
     }
   ],
   "items": [
@@ -719,6 +730,44 @@
       "id": 5,
       "key": "clothing",
       "name": "Clothing"
+    }
+  ],
+  "addresses": [
+    {
+      "id": 1,
+      "user": {
+        "id": 1
+      },
+      "nickanme": "Home",
+      "line1": "1234 Taraval Street",
+      "line2": null,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94116",
+      "country": "US",
+      "latitude": 40,
+      "longitude": 40,
+      "isDefault": true,
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z"
+    },
+    {
+      "id": 2,
+      "user": {
+        "id": 2
+      },
+      "nickanme": "Home",
+      "line1": "1234 Santiago Street",
+      "line2": "#567",
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94116",
+      "country": "US",
+      "latitude": 40,
+      "longitude": 40,
+      "isDefault": true,
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z"
     }
   ]
 }

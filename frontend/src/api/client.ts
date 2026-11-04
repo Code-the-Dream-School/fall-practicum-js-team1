@@ -4,24 +4,20 @@ import type { AxiosInstance } from 'axios'
 import { setupMock } from './mockService'
 import { type SuccessResponse, type ErrorResponse } from './responseTypes'
 
-console.log("ENV:", import.meta.env)
-console.log("api url:", import.meta.env['VITE_API_BASE_URL'])
 if (import.meta.env['VITE_API_BASE_URL'] === undefined) {
   throw new Error('API url not defined')
 }
 const BASE_URL: string = `${import.meta.env['VITE_API_BASE_URL']}/api`
 
-const axiosInstance: AxiosInstance = axios.create({
-  baseURL: BASE_URL,
-  timeout: 5000,
-})
+axios.defaults.baseURL = BASE_URL
+axios.defaults.headers.post['Content-Type'] = 'application/json'
 
-if (import.meta.env['VITE_USE_MOCKED_API_CALLS']) {
-  console.log('API client is in MOCK mode')
-  setupMock(axios, BASE_URL)
+if (import.meta.env['VITE_USE_MOCKED_API_CALLS'] == 'true') {
+  console.warn('API client is in mock mode!')
+  setupMock(axios)
 }
 
-function requestErrorHandler(error: unknown): ErrorResponse {
+function handleError(error: unknown): ErrorResponse {
   let message;
   if (error.response) {
     console.log('response error')
@@ -49,29 +45,39 @@ function requestErrorHandler(error: unknown): ErrorResponse {
   }
 }
 
+// User routes
 export async function registerUser({ email, name, password }: { email: string, name: string, password: string }): Promise<SuccessResponse | ErrorResponse> {
-  const resp = await axiosInstance.post(
-    `${BASE_URL}/users/register`,
-    { email, name, password }
-  )
+  try {
+    const resp = await axios.post(
+      '/users/register',
+      { email, name, password }
+    )
 
-  return {
-    success: true,
-    data: {}
+    return {
+      success: true,
+      data: resp.data,
+    }
+  } catch (error) {
+    return handleError(error)
   }
 }
 
+export async function logonUser({ email, name, password }: { email: string, name: string, password: string }): Promise<SuccessResponse | ErrorResponse> {
+}
+
+export async function logoffUser(): Promise<SuccessResponse | ErrorResponse> {
+}
+// end User routes
+
 export async function getMyItems(): Promise<SuccessResponse | ErrorResponse> {
-  console.log('getProfile()')
-  const resp = await axiosInstance.get(`${BASE_URL}/profile/items`).catch((error) => {
-    console.log("INside catch")
-    console.error(`type: ${typeof error}`)
-    console.error(error)
-    return requestErrorHandler(error)
-  })
-  console.log(`res:`, resp)
-  return {
-    success: true,
-    data: [],
+  const profileItemsUrl = '/profile/items'
+  try {
+    const resp = await axios.get(profileItemsUrl)
+    return {
+      success: true,
+      data: resp.data,
+    }
+  } catch (error) {
+    return handleError(error)
   }
 }
