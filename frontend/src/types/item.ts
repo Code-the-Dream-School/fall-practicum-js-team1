@@ -2,6 +2,7 @@ import type Category from './category'
 import type User from './user'
 
 export interface ItemCoverPhoto {
+  id: number,
   url: string,
   altText: string,
 }
@@ -10,23 +11,27 @@ export interface ItemPhoto extends ItemCoverPhoto {
   position: number,
 }
 
+// Used in /api/items index call
 export default interface Item {
-  id: number,
-  owner?: User,
+  id: string,
   category: Category,
   title: string,
-  description: string,
   condition: string,
   status: string,
   childAgeMinMonths: number,
   childAgeMaxMonths: number,
   city: string,
   state: string,
-  postalCode: string,
   country: string,
   reservedAt: Date,
   pickedUpAt: Date,
-  createdAt: Date,
   coverPhoto: ItemPhoto,
-  photos?: ItemPhoto[],
+}
+
+export interface ItemShow extends Item {
+  owner: User,
+  description: string,
+  photos: ItemPhoto[],
+  postalCode: string,
+  createdAt: Date,
 }

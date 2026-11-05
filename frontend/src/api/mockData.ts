@@ -62,8 +62,10 @@ export function getUser(): User {
   return mockData.users[0]
 }
 
-export function getItems(): Item[] {
-  let items = mockData.items.filter((item) => item !== 'withdrawn')
+export function getItems(isOwn?: boolean = false): Item[] {
+  let items = isOwn ?
+    mockData.items :
+    mockData.items.filter((item) => item !== 'withdrawn')
   return items.sort((a, b) => b.createdAt - a.createdAt)
 }
 

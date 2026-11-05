@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { AxiosInstance } from 'axios'
+import { AxiosError } from 'axios'
 
 import { setupMock } from './mockService'
 import { type SuccessResponse, type ErrorResponse } from './responseTypes'
@@ -19,7 +19,7 @@ if (import.meta.env['VITE_USE_MOCKED_API_CALLS'] == 'true') {
   setupMock(axios)
 }
 
-function handleError(error: unknown): ErrorResponse {
+function handleError(error: AxiosError): ErrorResponse {
   let message;
   if (error.response) {
     console.log('response error')
@@ -55,10 +55,7 @@ export async function registerUser({ email, name, password }: { email: string, n
       { email, name, password }
     )
 
-    return {
-      success: true,
-      data: resp.data,
-    }
+    return resp.data
   } catch (error) {
     return handleError(error)
   }

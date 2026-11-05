@@ -2,10 +2,13 @@ import type Item from './item'
 import type User from './user'
 
 export default interface Claim {
-  id: number,
+  id: string,
   item: Item,
-  claimer: User,
   status: string,
+}
+
+export interface ClaimIndex extends Claim {
+  claimer: User,
   message: string,
   decidedAt: Date,
   pickedUpAt: Date,
