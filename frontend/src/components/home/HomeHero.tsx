@@ -26,18 +26,18 @@ export const HomeHero = ({
   return (
     <section className="bg-hero">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-12 lg:flex-row lg:items-center lg:gap-14 lg:py-20">
-        <div className="flex-1 space-y-6">
+        <div className="flex-1 space-y-6 max-lg:text-center">
           <h1 className="text-4xl leading-tight font-bold tracking-tight text-balance lg:text-5xl">
             Somebody in your community has the thing your baby needs next.
           </h1>
-          <p className="max-w-xl text-base text-foreground/80 lg:text-lg">
+          <p className="max-w-xl text-base max-lg:mx-auto text-foreground/80 lg:text-lg">
             Free baby and toddler gear from families in your neighborhood. Claim
             what you need, and pass on what your kids have outgrown.
           </p>
 
           <form
             onSubmit={handleSubmit}
-            className="flex max-w-xl items-center rounded-full bg-background p-1.5 shadow-sm ring-1 ring-border focus-within:ring-2 focus-within:ring-ring"
+            className="flex max-w-xl items-center rounded-full max-lg:mx-auto bg-background p-1.5 shadow-sm ring-1 ring-border focus-within:ring-2 focus-within:ring-ring"
           >
             <div className="relative flex-1">
               <Search
@@ -62,7 +62,7 @@ export const HomeHero = ({
             </Button>
           </form>
 
-          <div className="flex flex-wrap items-center gap-2 text-sm">
+          <div className="flex flex-wrap items-center gap-2 text-sm max-lg:justify-center">
             <span className="font-medium">Popular:</span>
             {popularCategories.map((category) => (
               <button
@@ -76,7 +76,7 @@ export const HomeHero = ({
             ))}
           </div>
 
-          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium">
+          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium max-lg:justify-center">
             <li className="flex items-center gap-1.5">
               <Check className="size-4" aria-hidden="true" />
               Owners approve each claim

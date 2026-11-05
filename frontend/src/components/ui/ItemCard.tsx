@@ -50,8 +50,11 @@ export const ItemCard = ({ item }: ItemCardProps) => {
           </div>
 
           <p className="text-sm text-muted-foreground">
-            {formatAgeRange(item.childAgeMinMonths, item.childAgeMaxMonths)} ·{' '}
-            {item.city}
+            <span className="block sm:inline">
+              {formatAgeRange(item.childAgeMinMonths, item.childAgeMaxMonths)}
+            </span>
+            <span className="hidden sm:inline"> · </span>
+            <span className="block sm:inline">{item.city}</span>
           </p>
         </CardContent>
       </Card>

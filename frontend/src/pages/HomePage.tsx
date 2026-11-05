@@ -26,12 +26,12 @@ const conditionOptions = [
 ];
 
 const ageOptions = [
-  { value: 'under-1', label: 'Under 1 year', ageMin: 0, ageMax: ONE_YEAR },
+  { value: 'under-1', label: 'Under 1 year', ageMin: 0, ageMax: ONE_YEAR - 1 },
   {
     value: '1-3',
     label: '1 to 3 years',
     ageMin: ONE_YEAR,
-    ageMax: THREE_YEARS,
+    ageMax: THREE_YEARS - 1,
   },
   {
     value: '3-5',

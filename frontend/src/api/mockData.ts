@@ -230,7 +230,7 @@ const itemMatches = (item: Item, filters: ItemFilters): boolean => {
   }
 
   const city = getAddressOfItem(item).city.toLowerCase();
-  if (filters.city && city !== filters.city.toLowerCase()) {
+  if (filters.city && !city.startsWith(filters.city.trim().toLowerCase())) {
     return false;
   }
 
