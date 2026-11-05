@@ -182,3 +182,27 @@ ALTER TABLE "items" ADD CONSTRAINT "items_owner_id_fkey" FOREIGN KEY ("owner_id"
 -- AddForeignKey
 ALTER TABLE "items" ADD CONSTRAINT "items_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
+-- One active claim per user and item
+CREATE UNIQUE INDEX "claims_one_active_per_user_item"
+ON "claims" ("claimer_id", "item_id")
+WHERE "status" IN ('pending', 'approved');
+-- One winning claim per item
+CREATE UNIQUE INDEX "claims_one_winner_per_item"
+ON "claims" ("item_id")
+WHERE "status" IN ('approved', 'picked_up');
+-- One default address per user
+CREATE UNIQUE INDEX "addresses_one_default_per_user"
+ON "addresses" ("user_id")
+WHERE "is_default" = true;
+-- Ensure minimum child age does not exceed maximum child age
+ALTER TABLE "items"
+ADD CONSTRAINT "items_age_range_check"
+CHECK (
+"child_age_min_months" IS NULL
+OR "child_age_max_months" IS NULL
+OR "child_age_min_months" <= "child_age_max_months"
+);
+-- Ensure photo position is not negative
+ALTER TABLE "item_photos"
+ADD CONSTRAINT "item_photos_position_check"
+CHECK ("position" >= 0);
