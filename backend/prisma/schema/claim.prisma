@@ -2,7 +2,7 @@ enum ClaimStatus {
   pending
   approved
   declined
-  canceled
+  cancelled
   no_show
   picked_up
 
@@ -19,6 +19,9 @@ model Claim {
   pickedUpAt DateTime?   @map("picked_up_at") @db.Timestamptz(6)
   createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt  DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  item    Item @relation("ItemClaims", fields: [itemId], references: [id], onDelete: Restrict)
+  claimer User @relation("UserClaims", fields: [claimerId], references: [id], onDelete: Restrict)
 
   @@index([itemId, status])
   @@index([claimerId, status])

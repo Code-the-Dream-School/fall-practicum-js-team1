@@ -1,367 +1,176 @@
-import axios from 'axios';
+// Answers the api calls with the fake data from mockData.ts while we are in mock mode.
+import type { AxiosInstance, AxiosRequestConfig } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import {
-  mockData,
-  getUser,
-  getItems,
+  CLOUDINARY_UPLOAD_URL,
+  MOCK_PASSWORD,
+  addAddress,
+  addItem,
+  addUser,
+  findItem,
+  findUserByEmail,
   getAddresses,
+  getAuthData,
   getCategories,
-  getClaims,
+  getFakeUploadResult,
+  getItems,
+  getMyClaims,
+  getMyItems,
+  getMyStats,
+  getSignedInUser,
+  getUploadSignature,
+  signIn,
+  signOut,
 } from './mockData';
+import type { User } from './mockData';
 
-export const setupMock = (axiosInstance: typeof axios) => {
-  const mock = new AxiosMockAdapter(axiosInstance, { delayResponse: 300 })
+const MOCK_DELAY_MS = 300;
+const OK = 200;
+const CREATED = 201;
+const UNAUTHORIZED = 401;
+const NOT_FOUND = 404;
+const CONFLICT = 409;
 
-  const csrfToken: string = 'mocked-placehodlder'
-  const itemClaimsUri = '/items/[\\w-]+/claims'
-  const itemClaimsUriRegex = new RegExp(itemClaimsUri)
+const success = (data: unknown) => {
+  return { success: true, data };
+};
 
-  // user routes
+const failure = (message: string) => {
+  return { success: false, message };
+};
+
+// runs the handler for the signed in user, and answers 401 if nobody is signed in
+const forSignedInUser = (
+  handler: (user: User, config: AxiosRequestConfig) => [number, unknown],
+) => {
+  return (config: AxiosRequestConfig): [number, unknown] => {
+    const user = getSignedInUser();
+    if (!user) {
+      return [UNAUTHORIZED, failure('Not signed in')];
+    }
+    return handler(user, config);
+  };
+};
+
+export const setupMock = (axiosInstance: AxiosInstance) => {
+  // the delay is so we can see the loading states
+  const mock = new AxiosMockAdapter(axiosInstance, {
+    delayResponse: MOCK_DELAY_MS,
+  });
+
+  // sign in and out
+
+  mock.onPost('/users/register').reply((config) => {
+    const body = JSON.parse(config.data);
+
+    if (findUserByEmail(body.email)) {
+      return [CONFLICT, failure('That email is already registered')];
+    }
+
+    const user = addUser(body.name, body.email);
+    signIn(user);
+    return [CREATED, success(getAuthData(user))];
+  });
+
+  mock.onPost('/users/logon').reply((config) => {
+    const body = JSON.parse(config.data);
+    const user = findUserByEmail(body.email);
+
+    if (!user || body.password !== MOCK_PASSWORD) {
+      return [UNAUTHORIZED, failure('Incorrect email or password')];
+    }
+
+    signIn(user);
+    return [OK, success(getAuthData(user))];
+  });
+
+  mock.onPost('/users/logoff').reply(() => {
+    signOut();
+    return [OK, success({ message: 'Logged out successfully' })];
+  });
+
   mock.onGet('/users/me').reply(
-    200,
-    {
-      success: true,
-      data: {
-        user: getUser(),
-        csrfToken
-      }
-    }
-  )
-  mock.onPost('/users/register').reply(
-    201,
-    {
-      success: true,
-      data: {
-        user: getUser(),
-        csrfToken
-      }
-    }
-  )
-  mock.onPost('/users/logon').reply(
-    200,
-    {
-      success: true,
-      data: {
-        user: getUser(),
-        csrfToken
-      }
-    }
-  )
-  mock.onPost('/users/logoff').reply(
-    200,
-    {
-      success: true,
-      data: {
-        message: 'Logged out successfully',
-      }
-    }
-  )
-  mock.onGet('/users/me').reply(
-    200,
-    {
-      success: true,
-      data: {
-        user: getUsers(),
-        csrfToken
-      }
-    }
-  )
-
-  // category routes
-  mock.onGet('/categories').reply(
-    200,
-    {
-      success: true,
-      data: {
-        categories: getCategories(),
-      }
-    }
+    forSignedInUser((user) => {
+      return [OK, success(getAuthData(user))];
+    }),
   );
 
-  // address routes
-  mock.onGet('/addresses').reply(
-    200,
-    {
-      success: true,
-      data: {
-        addresses: getAddresses(),
-      }
-    }
-  )
-  mock.onPost('/addresses').reply(
-    201,
-    {
-      success: true,
-      data: {
-        address: getAddresses()[0],
-      }
-    }
-  )
+  // home page and item details
 
-  // item routes
+  mock.onGet('/categories').reply(() => {
+    return [OK, success(getCategories())];
+  });
+
   mock.onGet('/items').reply((config) => {
-    let {
-      q,
-      category,
-      condition,
-      ageMin,
-      ageMax,
-      city, // Do we need state too?
-      limit,
-      page,
-    } = config.params || {}
-    limit ||= 10
-    page ||= 1
+    return [OK, success(getItems(config.params))];
+  });
 
-    let items = getItems()
+  // post an item
 
-    if (q) {
-      q = q.toLowerCase()
-      items = items.filter((item) => item.description.toLowerCase() === q)
-    }
+  mock.onGet('/addresses').reply(
+    forSignedInUser((user) => {
+      return [OK, success(getAddresses(user))];
+    }),
+  );
 
-    if (category) {
-      category = category.toLowerCase()
-      items = items.filter((item) => item.category.key === category)
-    }
+  mock.onPost('/addresses').reply(
+    forSignedInUser((user, config) => {
+      const body = JSON.parse(config.data);
+      return [CREATED, success(addAddress(user, body))];
+    }),
+  );
 
-    if (condition) {
-      condition = condition.toLowerCase()
-      items = items.filter((item) => item.condition === condition)
-    }
-
-    if (ageMin) {
-      ageMin = Number(ageMin)
-      items = items.filter((item) => item.childAgeMinMonths >= ageMin)
-    }
-
-    if (ageMax) {
-      ageMax = Number(ageMax)
-      items = items.filter((item) => item.childAgeMaxMonths <= ageMax)
-    }
-
-    if (city) {
-      city = city.toLowerCase()
-      items = items.filter((item) => item.city.toLowerCase() === city)
-    }
-
-    page = Number(page)
-    limit = Number(limit)
-    const startIndex = (page - 1) * limit;
-    items = items.slice(startIndex, startIndex + limit)
-    const pages = Math.ceil(items.length / limit)
-
-    return [
-      200,
-      {
-        data: items,
-        pagination: {
-          page,
-          limit,
-          total: items.length,
-          pages,
-          hasNext: page < pages,
-          hasPrev: page > 1,
-        }
-      }
-    ]
-  })
-  mock.onGet(/\/items\/[\w-]+/).reply(
-    200,
-    {
-      success: true,
-      data: {
-        item: getItems()[0],
-      }
-    }
-  )
-  mock.onPost('/items').reply(
-    201,
-    {
-      success: true,
-      data: getItems()[0],
-    }
-  )
-
-  // upload routes
   mock.onPost('/uploads/signature').reply(
-    200,
-    {
-      success: true,
-      data: {
-        cloudName: "example-cloud",
-        apiKey: "example-api-key",
-        timestamp: 1234567890,
-        folder: "hand-me-down/items",
-        signature: "example-signature"
-      }
-    }
-  )
+    forSignedInUser(() => {
+      return [OK, success(getUploadSignature())];
+    }),
+  );
 
-  // claim routes
-  const patchClaimCallback = (config, status) => {
-    const parts = config.url.split('/')
-    const id = parts[5]
+  // the photo upload goes to cloudinary, not to our api
+  mock.onPost(CLOUDINARY_UPLOAD_URL).reply(() => {
+    return [OK, getFakeUploadResult()];
+  });
 
-    return [
-      200,
-      {
-        success: true,
-        data: {
-          status,
-          id,
-          csrfToken,
-        }
-      }
-    ]
-  }
+  mock.onPost('/items').reply(
+    forSignedInUser((user, config) => {
+      const body = JSON.parse(config.data);
+      return [CREATED, success(addItem(user, body))];
+    }),
+  );
 
-  mock.onPost(itemClaimsUriRegex).reply((config) => {
-    const parts = config.url.split('/')
-    const itemId = parts[6]
+  // profile
 
-    return [
-      201,
-      {
-        success: true,
-        data: {
-          claim: {
-            id: 1,
-            status: 'pending',
-            itemId,
-          }
-        }
-      }
-    ]
-  })
-
-  mock.onGet(itemClaimsUriRegex).reply(
-    200,
-    {
-      success: true,
-      data: {
-        claims: getClaims(),
-      }
-    }
-  )
-
-  mock.onPatch(/\/claims\/[\w-]+$/).reply((config) => {
-    patchClaimCallback(config, 'approved')
-  })
-
-  mock.onPatch(/\/claims\/[\w-]+\/cancel/).reply((config) => {
-    patchClaimCallback(config, 'cancelled')
-  })
-
-  mock.onPatch(/\/claims\/[\w-]+\/no-show/).reply((config) => {
-    patchClaimCallback(config, 'no_show')
-  })
-
-  mock.onPatch(/\/claims\/[\w-]+\/picked-up/).reply((config) => {
-    patchClaimCallback(config, 'picked_up')
-  })
-
-  // profile routes
   mock.onGet('/profile/items').reply(
-    200,
-    {
-      success: true,
-      data: {
-        items: getItems(true),
-      }
-    }
-  )
+    forSignedInUser((user) => {
+      return [OK, success(getMyItems(user))];
+    }),
+  );
 
   mock.onGet('/profile/claims').reply(
-    200,
-    {
-      success: true,
-      data: {
-        "id": "9b2f3c1e-6d4a-4f7b-8c2d-1a5e7f9b3c4d",
-        "status": "approved",
-        "createdAt": "2026-10-21T10:00:00.000Z",
-        "item": {
-          "id": "550e8400-e29b-41d4-a716-446655440000",
-          "title": "Baby Stroller",
-          "status": "reserved",
-          "coverPhoto": {
-            "url": "https://res.cloudinary.com/example/image/upload/hand-me-down/items/stroller.jpg",
-            "altText": "Grey baby stroller"
-          }
-        },
-        "pickup": {
-          "line1": "123 Main Street",
-          "line2": "Apt 2",
-          "city": "San Rafael",
-          "state": "CA",
-          "postalCode": "94901",
-          "instructions": "Ring the bell twice",
-          "availability": "Weekdays after 5pm"
-        }
-      }
-    }
-  )
+    forSignedInUser((user, config) => {
+      return [OK, success(getMyClaims(user, config.params?.status))];
+    }),
+  );
 
   mock.onGet('/profile/stats').reply(
-    200,
-    {
-      success: true,
-      "data": {
-        "donations": {
-          "posted": 5,
-          "waitingForYou": 2,
-          "approved": 1,
-          "pickedUp": 2
-        },
-        "claims": {
-          "requested": 3,
-          "waitingForOwner": 1,
-          "approved": 1,
-          "pickedUp": 1
-        }
-      }
-    }
-  )
+    forSignedInUser((user) => {
+      return [OK, success(getMyStats(user))];
+    }),
+  );
 
-  // message routes
-  const claimMessageUriRegex = new RegExp('/claims/[\\w+-]+/messages')
-  mock.onPost(claimMessageUriRegex).reply(
-    201,
-    {
-      success: true,
-      data: {
-        "id": "e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b",
-        "claimId": "9b2f3c1e-6d4a-4f7b-8c2d-1a5e7f9b3c4d",
-        "senderId": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
-        "body": "Hello, is the stroller still available for pickup?",
-        "readAt": null,
-        "createdAt": "2026-10-21T10:05:00.000Z"
-      }
-    }
-  )
+  // one item
 
-  mock.onGet(claimMessageUriRegex).reply(
-    200,
-    {
-      success: true,
-      data: [
-        {
-          "id": "e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b",
-          "claimId": "9b2f3c1e-6d4a-4f7b-8c2d-1a5e7f9b3c4d",
-          "senderId": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
-          "body": "Hello, is the stroller still available for pickup?",
-          "readAt": null,
-          "createdAt": "2026-10-21T10:05:00.000Z"
-        }
-      ]
-    }
-  )
+  mock.onGet().reply((config) => {
+    const url = config.url || '';
 
-  mock.onPatch(/\/claims\/[\w-]+\/messages\/read/).reply(
-    200,
-    {
-      success: true,
-      data: { "updatedCount": 2 },
+    if (!url.startsWith('/items/')) {
+      return [NOT_FOUND, failure('No mock for GET ' + url)];
     }
-  )
-}
+
+    const item = findItem(url.replace('/items/', ''));
+    if (!item) {
+      return [NOT_FOUND, failure('Item not found')];
+    }
+    return [OK, success(item)];
+  });
+};
