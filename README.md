@@ -170,6 +170,39 @@ Put the connection string in `backend/.env` as `DATABASE_URL`:
 **Windows**: `postgresql://mypguser:<pg-password>@localhost/hand_me_down`
 **Docker**: `postgresql://<username>:<pg-password>@localhost:<port>/hand_me_down`
 
+### Database Migration Setup
+After creating the PostgreSQL database and configuring `DATABASE_URL` in `backend/.env`, apply all database migrations.
+
+1.From the project root, run:
+```bash
+cd backend
+npm install
+```
+-Make sure your `backend/.env` file contains the correct PostgreSQL connection string for your local database.
+
+2.Run the database migrations:
+```bash
+npm run db:migrate
+```
+-This command applies all pending Prisma migrations to the database, creating the required tables, indexes, and database constraints.
+
+3.**Verify the database connection:**
+```bash
+npm run db:check
+```
+-If successful, the database connection test should return:
+```text
+Database connection successful: [ { '?column?': 1 } ]
+```
+
+4.**Check migration status:**
+```bash
+npx prisma migrate status
+```
+-The expected result is:
+```text
+Database schema is up to date!
+
 #### Linting
 To lint a directory or file, run this command:
 
