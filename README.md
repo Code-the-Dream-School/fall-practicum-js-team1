@@ -202,6 +202,7 @@ npx prisma migrate status
 -The expected result is:
 ```text
 Database schema is up to date!
+```
 
 #### Linting
 To lint a directory or file, run this command:
