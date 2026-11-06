@@ -70,7 +70,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   res.status(201).json({ success: true, data: { user, csrfToken } });
 };
 
-export const login = async (req: Request, res: Response): Promise<void> => {
+export const logon = async (req: Request, res: Response): Promise<void> => {
   // check the body
   const result = loginSchema.safeParse(req.body);
 
@@ -102,7 +102,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   res.status(200).json({ success: true, data: { user, csrfToken } });
 };
 
-export const logout = (res: Response): void => {
+export const logoff = (res: Response): void => {
   // remove the cookie
   res.clearCookie('jwt', cookieFlags);
 
