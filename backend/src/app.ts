@@ -2,9 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import healthRoutes from './routes/health.routes.js';
 import helloRoutes from './routes/hello.routes.js';
+import userRoutes from './routes/user.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -15,6 +17,7 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
+app.use(cookieParser());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -23,6 +26,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Routes
+app.use('/api/users', userRoutes);
 app.use('/api/hello', helloRoutes);
 app.use('/api/health', healthRoutes);
 
