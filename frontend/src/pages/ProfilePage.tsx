@@ -4,6 +4,7 @@ import { getMyItems } from '../api/client'
 
 export default function ProfilePage() {
   useEffect(() => {
+    // DO NOT MERGE THIS
     const getItems = async () => {
       try {
         const resp = await getMyItems()

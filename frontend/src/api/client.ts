@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { AxiosError } from 'axios'
 
 import { setupMock } from './mockService'
 import { type SuccessResponse, type ErrorResponse } from './responseTypes'
@@ -19,27 +18,27 @@ if (import.meta.env['VITE_USE_MOCKED_API_CALLS'] == 'true') {
   setupMock(axios)
 }
 
-function handleError(error: AxiosError): ErrorResponse {
+function handleError(error: unknown): ErrorResponse {
   let message;
-  if (error.response) {
-    console.log('response error')
-    // The request was made and the server responded with a status code
-    // that falls out of the range of 2xx
-    console.log(error.response.data);
-    console.log(error.response.status);
-    console.log(error.response.headers);
-    message = 'placeholder request error'
-  } else if (error.request) {
-    // The request was made but no response was received
-    // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-    // http.ClientRequest in node.js
-    console.log('request errr')
-    message = 'Could not reach the server. Please try again.'
+
+  if (axios.isAxiosError(error)) {
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      message = 'placeholder request error'
+    } else if (error.request) {
+      // The request was made but no response was received
+      // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+      // http.ClientRequest in node.js
+      message = 'Could not reach the server. Please try again.'
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      message = 'placeholder generic error'
+    }
   } else {
-    // Something happened in setting up the request that triggered an Error
-    console.log("other error", error.message);
-    message = 'placeholder generic error'
+    message = 'Something went wrong'
   }
+
 
   return {
     success: false,
@@ -61,13 +60,15 @@ export async function registerUser({ email, name, password }: { email: string, n
   }
 }
 
-export async function logonUser({ email, name, password }: { email: string, name: string, password: string }): Promise<SuccessResponse | ErrorResponse> {
+export async function logonUser({ email, password }: { email: string, password: string }): Promise<SuccessResponse | ErrorResponse> {
+  // copy from register
 }
 
 export async function logoffUser(): Promise<SuccessResponse | ErrorResponse> {
 }
 // end User routes
 
+// Item routes
 export async function getMyItems(): Promise<SuccessResponse | ErrorResponse> {
   const profileItemsUrl = '/profile/items'
   try {
@@ -80,3 +81,5 @@ export async function getMyItems(): Promise<SuccessResponse | ErrorResponse> {
     return handleError(error)
   }
 }
+
+// end Item routes

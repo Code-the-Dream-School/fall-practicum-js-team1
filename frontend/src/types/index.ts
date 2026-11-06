@@ -1,13 +1,12 @@
-import User from './user'
-import Address from './address'
-import Item, { ItemPhoto, ItemPickupDetail } from './item'
-import Claim from './claim'
+import type User from './user'
+import type Address from './address'
+import type Item, { type ItemPhoto } from './item'
+import type Claim from './claim'
 
-export {
+export type {
   User,
   Address,
   Item,
   ItemPhoto,
-  ItemPickupDetail,
   Claim,
 }
