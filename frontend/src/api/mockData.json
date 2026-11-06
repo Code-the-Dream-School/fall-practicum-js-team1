@@ -1,0 +1,987 @@
+{
+  "users": [
+    {
+      "id": "11111111-0000-4000-8000-000000000001",
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "role": "user",
+      "createdAt": "2026-06-15T09:30:00.000Z"
+    },
+    {
+      "id": "11111111-0000-4000-8000-000000000002",
+      "name": "Sam Lee",
+      "email": "sam@example.com",
+      "role": "user",
+      "createdAt": "2026-07-02T14:10:00.000Z"
+    },
+    {
+      "id": "11111111-0000-4000-8000-000000000003",
+      "name": "Priya Shah",
+      "email": "priya@example.com",
+      "role": "user",
+      "createdAt": "2026-07-19T11:45:00.000Z"
+    },
+    {
+      "id": "11111111-0000-4000-8000-000000000004",
+      "name": "Marcus Taylor",
+      "email": "marcus@example.com",
+      "role": "user",
+      "createdAt": "2026-08-05T16:20:00.000Z"
+    },
+    {
+      "id": "11111111-0000-4000-8000-000000000005",
+      "name": "Elena Ramos",
+      "email": "elena@example.com",
+      "role": "user",
+      "createdAt": "2026-09-01T08:05:00.000Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "22222222-0000-4000-8000-000000000001",
+      "key": "strollers",
+      "name": "Strollers",
+      "sortOrder": 1
+    },
+    {
+      "id": "22222222-0000-4000-8000-000000000002",
+      "key": "car-seats",
+      "name": "Car seats",
+      "sortOrder": 2
+    },
+    {
+      "id": "22222222-0000-4000-8000-000000000003",
+      "key": "cribs",
+      "name": "Cribs and bedding",
+      "sortOrder": 3
+    },
+    {
+      "id": "22222222-0000-4000-8000-000000000004",
+      "key": "feeding",
+      "name": "Feeding",
+      "sortOrder": 4
+    },
+    {
+      "id": "22222222-0000-4000-8000-000000000005",
+      "key": "toys",
+      "name": "Toys",
+      "sortOrder": 5
+    },
+    {
+      "id": "22222222-0000-4000-8000-000000000006",
+      "key": "clothing",
+      "name": "Clothing",
+      "sortOrder": 6
+    }
+  ],
+  "addresses": [
+    {
+      "id": "33333333-0000-4000-8000-000000000001",
+      "userId": "11111111-0000-4000-8000-000000000001",
+      "nickname": "Home",
+      "line1": "1234 Taraval Street",
+      "line2": null,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94116",
+      "country": "US",
+      "isDefault": true
+    },
+    {
+      "id": "33333333-0000-4000-8000-000000000002",
+      "userId": "11111111-0000-4000-8000-000000000001",
+      "nickname": "Work",
+      "line1": "500 Grand Avenue",
+      "line2": "Suite 12",
+      "city": "Oakland",
+      "state": "CA",
+      "postalCode": "94607",
+      "country": "US",
+      "isDefault": false
+    },
+    {
+      "id": "33333333-0000-4000-8000-000000000003",
+      "userId": "11111111-0000-4000-8000-000000000002",
+      "nickname": "Home",
+      "line1": "88 Shattuck Avenue",
+      "line2": null,
+      "city": "Berkeley",
+      "state": "CA",
+      "postalCode": "94704",
+      "country": "US",
+      "isDefault": true
+    },
+    {
+      "id": "33333333-0000-4000-8000-000000000004",
+      "userId": "11111111-0000-4000-8000-000000000003",
+      "nickname": "Home",
+      "line1": "301 Almaden Boulevard",
+      "line2": "Apt 4B",
+      "city": "San Jose",
+      "state": "CA",
+      "postalCode": "95112",
+      "country": "US",
+      "isDefault": true
+    },
+    {
+      "id": "33333333-0000-4000-8000-000000000005",
+      "userId": "11111111-0000-4000-8000-000000000004",
+      "nickname": "Home",
+      "line1": "72 K Street",
+      "line2": null,
+      "city": "Sacramento",
+      "state": "CA",
+      "postalCode": "95814",
+      "country": "US",
+      "isDefault": true
+    },
+    {
+      "id": "33333333-0000-4000-8000-000000000006",
+      "userId": "11111111-0000-4000-8000-000000000005",
+      "nickname": "Home",
+      "line1": "915 Fulton Street",
+      "line2": null,
+      "city": "Fresno",
+      "state": "CA",
+      "postalCode": "93721",
+      "country": "US",
+      "isDefault": true
+    }
+  ],
+  "items": [
+    {
+      "id": "44444444-0000-4000-8000-000000000001",
+      "ownerId": "11111111-0000-4000-8000-000000000001",
+      "category": "strollers",
+      "title": "Graco convertible stroller",
+      "description": "Lightly used and folds flat with one hand. Comes with the rain cover and a cup holder.\nSmoke-free home.",
+      "condition": "like_new",
+      "status": "reserved",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 36,
+      "addressId": "33333333-0000-4000-8000-000000000001",
+      "instructions": "Ring the bell twice and I will bring it down.",
+      "availability": "Weekdays after 5pm",
+      "createdAt": "2026-11-02T12:00:00.000Z",
+      "reservedAt": "2026-11-03T12:00:00.000Z",
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000001",
+          "url": "https://picsum.photos/seed/graco-convertible-stroller-1/800/600",
+          "altText": "Graco convertible stroller, front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000002",
+          "url": "https://picsum.photos/seed/graco-convertible-stroller-2/800/600",
+          "altText": "Graco convertible stroller, side view",
+          "position": 1
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000003",
+          "url": "https://picsum.photos/seed/graco-convertible-stroller-3/800/600",
+          "altText": "Graco convertible stroller, close-up",
+          "position": 2
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000004",
+          "url": "https://picsum.photos/seed/graco-convertible-stroller-4/800/600",
+          "altText": "Graco convertible stroller, folded",
+          "position": 3
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000002",
+      "ownerId": "11111111-0000-4000-8000-000000000001",
+      "category": "cribs",
+      "title": "Wooden crib with mattress",
+      "description": "Solid wood crib that converts to a toddler bed. The mattress is firm and clean.\nAll the hardware and the instructions are included.",
+      "condition": "good",
+      "status": "available",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 24,
+      "addressId": "33333333-0000-4000-8000-000000000002",
+      "instructions": "Use the side entrance next to the parking lot.",
+      "availability": "Saturdays 10am to 2pm",
+      "createdAt": "2026-10-30T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000005",
+          "url": "https://picsum.photos/seed/wooden-crib-with-mattress-1/800/600",
+          "altText": "Wooden crib with mattress, front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000006",
+          "url": "https://picsum.photos/seed/wooden-crib-with-mattress-2/800/600",
+          "altText": "Wooden crib with mattress, side view",
+          "position": 1
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000007",
+          "url": "https://picsum.photos/seed/wooden-crib-with-mattress-3/800/600",
+          "altText": "Wooden crib with mattress, close-up",
+          "position": 2
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000003",
+      "ownerId": "11111111-0000-4000-8000-000000000001",
+      "category": "toys",
+      "title": "Stacking blocks and toy set",
+      "description": "Colorful wooden blocks and a few stacking toys. Everything is washed.",
+      "condition": "used",
+      "status": "picked_up",
+      "childAgeMinMonths": 12,
+      "childAgeMaxMonths": 60,
+      "addressId": "33333333-0000-4000-8000-000000000001",
+      "instructions": "Meet at the front door.",
+      "availability": "Any evening",
+      "createdAt": "2026-10-15T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": "2026-10-18T12:00:00.000Z",
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000008",
+          "url": "https://picsum.photos/seed/stacking-blocks-and-toy-set-1/800/600",
+          "altText": "Stacking blocks and toy set, front view",
+          "position": 0
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000004",
+      "ownerId": "11111111-0000-4000-8000-000000000001",
+      "category": "clothing",
+      "title": "Baby clothes bundle (3 to 6 months)",
+      "description": "About 20 pieces: onesies, sleepers and two sweaters. Washed with fragrance-free soap.",
+      "condition": "good",
+      "status": "available",
+      "childAgeMinMonths": 3,
+      "childAgeMaxMonths": 6,
+      "addressId": "33333333-0000-4000-8000-000000000001",
+      "instructions": "I will leave it on the porch in a bag.",
+      "availability": "Weekends",
+      "createdAt": "2026-10-27T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000009",
+          "url": "https://picsum.photos/seed/baby-clothes-bundle-3-to-6-m-1/800/600",
+          "altText": "Baby clothes bundle (3 to 6 months), front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000010",
+          "url": "https://picsum.photos/seed/baby-clothes-bundle-3-to-6-m-2/800/600",
+          "altText": "Baby clothes bundle (3 to 6 months), side view",
+          "position": 1
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000005",
+      "ownerId": "11111111-0000-4000-8000-000000000001",
+      "category": "toys",
+      "title": "Bouncer seat",
+      "description": "Soft bouncer with a toy bar. The fabric cover can be machine washed.",
+      "condition": "used",
+      "status": "withdrawn",
+      "childAgeMinMonths": null,
+      "childAgeMaxMonths": 9,
+      "addressId": "33333333-0000-4000-8000-000000000001",
+      "instructions": "Meet at the front door.",
+      "availability": "Weekdays after 6pm",
+      "createdAt": "2026-10-23T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000011",
+          "url": "https://picsum.photos/seed/bouncer-seat-1/800/600",
+          "altText": "Bouncer seat, front view",
+          "position": 0
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000006",
+      "ownerId": "11111111-0000-4000-8000-000000000001",
+      "category": "feeding",
+      "title": "High chair",
+      "description": "Easy-clean high chair with a removable tray and three height settings.",
+      "condition": "like_new",
+      "status": "available",
+      "childAgeMinMonths": 6,
+      "childAgeMaxMonths": 36,
+      "addressId": "33333333-0000-4000-8000-000000000002",
+      "instructions": "Call when you arrive.",
+      "availability": "Weekday lunch hours",
+      "createdAt": "2026-11-03T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000012",
+          "url": "https://picsum.photos/seed/high-chair-1/800/600",
+          "altText": "High chair, front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000013",
+          "url": "https://picsum.photos/seed/high-chair-2/800/600",
+          "altText": "High chair, side view",
+          "position": 1
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000014",
+          "url": "https://picsum.photos/seed/high-chair-3/800/600",
+          "altText": "High chair, close-up",
+          "position": 2
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000007",
+      "ownerId": "11111111-0000-4000-8000-000000000003",
+      "category": "car-seats",
+      "title": "Infant car seat with base",
+      "description": "Rear-facing infant seat with its base. It is under six years old and has never been in an accident.",
+      "condition": "good",
+      "status": "available",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 12,
+      "addressId": "33333333-0000-4000-8000-000000000004",
+      "instructions": "Apartment lobby, ask for Priya.",
+      "availability": "Weekdays after 6pm",
+      "createdAt": "2026-11-01T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000015",
+          "url": "https://picsum.photos/seed/infant-car-seat-with-base-1/800/600",
+          "altText": "Infant car seat with base, front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000016",
+          "url": "https://picsum.photos/seed/infant-car-seat-with-base-2/800/600",
+          "altText": "Infant car seat with base, side view",
+          "position": 1
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000017",
+          "url": "https://picsum.photos/seed/infant-car-seat-with-base-3/800/600",
+          "altText": "Infant car seat with base, close-up",
+          "position": 2
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000008",
+      "ownerId": "11111111-0000-4000-8000-000000000003",
+      "category": "car-seats",
+      "title": "Convertible car seat",
+      "description": "Grows from rear-facing to a booster. All straps and covers are in good shape.",
+      "condition": "new",
+      "status": "reserved",
+      "childAgeMinMonths": 12,
+      "childAgeMaxMonths": 48,
+      "addressId": "33333333-0000-4000-8000-000000000004",
+      "instructions": "Apartment lobby, ask for Priya.",
+      "availability": "Weekends before noon",
+      "createdAt": "2026-10-31T12:00:00.000Z",
+      "reservedAt": "2026-11-01T12:00:00.000Z",
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000018",
+          "url": "https://picsum.photos/seed/convertible-car-seat-1/800/600",
+          "altText": "Convertible car seat, front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000019",
+          "url": "https://picsum.photos/seed/convertible-car-seat-2/800/600",
+          "altText": "Convertible car seat, side view",
+          "position": 1
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000009",
+      "ownerId": "11111111-0000-4000-8000-000000000002",
+      "category": "feeding",
+      "title": "Baby bottle set (6 bottles)",
+      "description": "Six anti-colic bottles with slow-flow nipples and a brush. Sterilized and ready to use.",
+      "condition": "good",
+      "status": "available",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 6,
+      "addressId": "33333333-0000-4000-8000-000000000003",
+      "instructions": "Pickup at the front gate.",
+      "availability": "Sundays",
+      "createdAt": "2026-10-29T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000020",
+          "url": "https://picsum.photos/seed/baby-bottle-set-6-bottles-1/800/600",
+          "altText": "Baby bottle set (6 bottles), front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000021",
+          "url": "https://picsum.photos/seed/baby-bottle-set-6-bottles-2/800/600",
+          "altText": "Baby bottle set (6 bottles), side view",
+          "position": 1
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000010",
+      "ownerId": "11111111-0000-4000-8000-000000000002",
+      "category": "toys",
+      "title": "Rattle and teether set",
+      "description": "Eight soft rattles and teethers. Cleaned and dried.",
+      "condition": "like_new",
+      "status": "available",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 12,
+      "addressId": "33333333-0000-4000-8000-000000000003",
+      "instructions": "Pickup at the front gate.",
+      "availability": "Weekday evenings",
+      "createdAt": "2026-10-28T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000022",
+          "url": "https://picsum.photos/seed/rattle-and-teether-set-1/800/600",
+          "altText": "Rattle and teether set, front view",
+          "position": 0
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000011",
+      "ownerId": "11111111-0000-4000-8000-000000000004",
+      "category": "strollers",
+      "title": "Jogging stroller",
+      "description": "Three-wheel jogging stroller with a hand brake and a big storage basket.",
+      "condition": "good",
+      "status": "available",
+      "childAgeMinMonths": 6,
+      "childAgeMaxMonths": 48,
+      "addressId": "33333333-0000-4000-8000-000000000005",
+      "instructions": "Garage door on the left.",
+      "availability": "Saturdays",
+      "createdAt": "2026-10-26T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000023",
+          "url": "https://picsum.photos/seed/jogging-stroller-1/800/600",
+          "altText": "Jogging stroller, front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000024",
+          "url": "https://picsum.photos/seed/jogging-stroller-2/800/600",
+          "altText": "Jogging stroller, side view",
+          "position": 1
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000025",
+          "url": "https://picsum.photos/seed/jogging-stroller-3/800/600",
+          "altText": "Jogging stroller, close-up",
+          "position": 2
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000012",
+      "ownerId": "11111111-0000-4000-8000-000000000004",
+      "category": "cribs",
+      "title": "Pack and play playard",
+      "description": "Folds into a carry bag. Includes the changing table attachment.",
+      "condition": "like_new",
+      "status": "available",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 24,
+      "addressId": "33333333-0000-4000-8000-000000000005",
+      "instructions": "Garage door on the left.",
+      "availability": "Weekday evenings",
+      "createdAt": "2026-10-25T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000026",
+          "url": "https://picsum.photos/seed/pack-and-play-playard-1/800/600",
+          "altText": "Pack and play playard, front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000027",
+          "url": "https://picsum.photos/seed/pack-and-play-playard-2/800/600",
+          "altText": "Pack and play playard, side view",
+          "position": 1
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000013",
+      "ownerId": "11111111-0000-4000-8000-000000000004",
+      "category": "toys",
+      "title": "Wooden rocking horse",
+      "description": "Sturdy rocking horse with a soft mane. Fun for toddlers.",
+      "condition": "used",
+      "status": "picked_up",
+      "childAgeMinMonths": 24,
+      "childAgeMaxMonths": 60,
+      "addressId": "33333333-0000-4000-8000-000000000005",
+      "instructions": "Garage door on the left.",
+      "availability": "Weekends",
+      "createdAt": "2026-10-10T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": "2026-10-13T12:00:00.000Z",
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000028",
+          "url": "https://picsum.photos/seed/wooden-rocking-horse-1/800/600",
+          "altText": "Wooden rocking horse, front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000029",
+          "url": "https://picsum.photos/seed/wooden-rocking-horse-2/800/600",
+          "altText": "Wooden rocking horse, side view",
+          "position": 1
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000014",
+      "ownerId": "11111111-0000-4000-8000-000000000005",
+      "category": "clothing",
+      "title": "Winter snowsuit (12 to 18 months)",
+      "description": "Warm, waterproof snowsuit with fold-over mittens.",
+      "condition": "good",
+      "status": "available",
+      "childAgeMinMonths": 12,
+      "childAgeMaxMonths": 18,
+      "addressId": "33333333-0000-4000-8000-000000000006",
+      "instructions": "Ring the bell.",
+      "availability": "Afternoons",
+      "createdAt": "2026-10-24T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000030",
+          "url": "https://picsum.photos/seed/winter-snowsuit-12-to-18-mon-1/800/600",
+          "altText": "Winter snowsuit (12 to 18 months), front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000031",
+          "url": "https://picsum.photos/seed/winter-snowsuit-12-to-18-mon-2/800/600",
+          "altText": "Winter snowsuit (12 to 18 months), side view",
+          "position": 1
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000015",
+      "ownerId": "11111111-0000-4000-8000-000000000005",
+      "category": "clothing",
+      "title": "Bluey onesie 6-pack",
+      "description": "Six matching onesies in great condition. No stains.",
+      "condition": "like_new",
+      "status": "available",
+      "childAgeMinMonths": 6,
+      "childAgeMaxMonths": 12,
+      "addressId": "33333333-0000-4000-8000-000000000006",
+      "instructions": "Ring the bell.",
+      "availability": "Afternoons",
+      "createdAt": "2026-10-22T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000032",
+          "url": "https://picsum.photos/seed/bluey-onesie-6-pack-1/800/600",
+          "altText": "Bluey onesie 6-pack, front view",
+          "position": 0
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000016",
+      "ownerId": "11111111-0000-4000-8000-000000000005",
+      "category": "car-seats",
+      "title": "Booster seat",
+      "description": "High-back booster for bigger kids. Cup holders on both sides.",
+      "condition": "new",
+      "status": "available",
+      "childAgeMinMonths": 36,
+      "childAgeMaxMonths": 60,
+      "addressId": "33333333-0000-4000-8000-000000000006",
+      "instructions": "Ring the bell.",
+      "availability": "Weekends",
+      "createdAt": "2026-10-21T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000033",
+          "url": "https://picsum.photos/seed/booster-seat-1/800/600",
+          "altText": "Booster seat, front view",
+          "position": 0
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000017",
+      "ownerId": "11111111-0000-4000-8000-000000000002",
+      "category": "cribs",
+      "title": "Convertible crib to toddler bed",
+      "description": "A crib that turns into a toddler bed and then a daybed. Hardware included.",
+      "condition": "good",
+      "status": "available",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 48,
+      "addressId": "33333333-0000-4000-8000-000000000003",
+      "instructions": "Pickup at the front gate.",
+      "availability": "Sundays",
+      "createdAt": "2026-10-20T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000034",
+          "url": "https://picsum.photos/seed/convertible-crib-to-toddler--1/800/600",
+          "altText": "Convertible crib to toddler bed, front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000035",
+          "url": "https://picsum.photos/seed/convertible-crib-to-toddler--2/800/600",
+          "altText": "Convertible crib to toddler bed, side view",
+          "position": 1
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000036",
+          "url": "https://picsum.photos/seed/convertible-crib-to-toddler--3/800/600",
+          "altText": "Convertible crib to toddler bed, close-up",
+          "position": 2
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000018",
+      "ownerId": "11111111-0000-4000-8000-000000000003",
+      "category": "feeding",
+      "title": "Breast pump with parts",
+      "description": "Electric breast pump with all the accessories and a carry bag. Sanitized.",
+      "condition": "like_new",
+      "status": "available",
+      "childAgeMinMonths": null,
+      "childAgeMaxMonths": null,
+      "addressId": "33333333-0000-4000-8000-000000000004",
+      "instructions": "Apartment lobby, ask for Priya.",
+      "availability": "Weekdays after 6pm",
+      "createdAt": "2026-10-19T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000037",
+          "url": "https://picsum.photos/seed/breast-pump-with-parts-1/800/600",
+          "altText": "Breast pump with parts, front view",
+          "position": 0
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000019",
+      "ownerId": "11111111-0000-4000-8000-000000000003",
+      "category": "toys",
+      "title": "Activity gym play mat",
+      "description": "A soft play mat with hanging toys and a mirror. Great for tummy time.",
+      "condition": "good",
+      "status": "available",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 9,
+      "addressId": "33333333-0000-4000-8000-000000000004",
+      "instructions": "Apartment lobby, ask for Priya.",
+      "availability": "Weekends",
+      "createdAt": "2026-10-18T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000038",
+          "url": "https://picsum.photos/seed/activity-gym-play-mat-1/800/600",
+          "altText": "Activity gym play mat, front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000039",
+          "url": "https://picsum.photos/seed/activity-gym-play-mat-2/800/600",
+          "altText": "Activity gym play mat, side view",
+          "position": 1
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000020",
+      "ownerId": "11111111-0000-4000-8000-000000000004",
+      "category": "cribs",
+      "title": "Toddler bed",
+      "description": "Low toddler bed with side rails. It fits a standard crib mattress.",
+      "condition": "like_new",
+      "status": "available",
+      "childAgeMinMonths": 18,
+      "childAgeMaxMonths": null,
+      "addressId": "33333333-0000-4000-8000-000000000005",
+      "instructions": "Garage door on the left.",
+      "availability": "Saturdays",
+      "createdAt": "2026-10-17T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000040",
+          "url": "https://picsum.photos/seed/toddler-bed-1/800/600",
+          "altText": "Toddler bed, front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000041",
+          "url": "https://picsum.photos/seed/toddler-bed-2/800/600",
+          "altText": "Toddler bed, side view",
+          "position": 1
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000021",
+      "ownerId": "11111111-0000-4000-8000-000000000002",
+      "category": "clothing",
+      "title": "Baby carrier",
+      "description": "Soft carrier with a good grip for newborns up to a year.",
+      "condition": "like_new",
+      "status": "reserved",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 12,
+      "addressId": "33333333-0000-4000-8000-000000000003",
+      "instructions": "Pickup at the front gate.",
+      "availability": "Weekday evenings",
+      "createdAt": "2026-10-16T12:00:00.000Z",
+      "reservedAt": "2026-10-17T12:00:00.000Z",
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000042",
+          "url": "https://picsum.photos/seed/baby-carrier-1/800/600",
+          "altText": "Baby carrier, front view",
+          "position": 0
+        },
+        {
+          "id": "66666666-0000-4000-8000-000000000043",
+          "url": "https://picsum.photos/seed/baby-carrier-2/800/600",
+          "altText": "Baby carrier, side view",
+          "position": 1
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000022",
+      "ownerId": "11111111-0000-4000-8000-000000000005",
+      "category": "strollers",
+      "title": "Stroller rain cover and organizer",
+      "description": "A universal rain cover plus a parent organizer with cup holders.",
+      "condition": "new",
+      "status": "available",
+      "childAgeMinMonths": null,
+      "childAgeMaxMonths": 36,
+      "addressId": "33333333-0000-4000-8000-000000000006",
+      "instructions": "Ring the bell.",
+      "availability": "Afternoons",
+      "createdAt": "2026-10-14T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000044",
+          "url": "https://picsum.photos/seed/stroller-rain-cover-and-orga-1/800/600",
+          "altText": "Stroller rain cover and organizer, front view",
+          "position": 0
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000023",
+      "ownerId": "11111111-0000-4000-8000-000000000003",
+      "category": "feeding",
+      "title": "Silicone feeding set",
+      "description": "Plates, bowls and spoons in silicone. Dishwasher safe.",
+      "condition": "new",
+      "status": "picked_up",
+      "childAgeMinMonths": 6,
+      "childAgeMaxMonths": 24,
+      "addressId": "33333333-0000-4000-8000-000000000004",
+      "instructions": "Apartment lobby, ask for Priya.",
+      "availability": "Weekends",
+      "createdAt": "2026-10-09T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": "2026-10-12T12:00:00.000Z",
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000045",
+          "url": "https://picsum.photos/seed/silicone-feeding-set-1/800/600",
+          "altText": "Silicone feeding set, front view",
+          "position": 0
+        }
+      ]
+    },
+    {
+      "id": "44444444-0000-4000-8000-000000000024",
+      "ownerId": "11111111-0000-4000-8000-000000000004",
+      "category": "cribs",
+      "title": "Old crib (no longer available)",
+      "description": "Posted by mistake and taken down by the owner.",
+      "condition": "used",
+      "status": "withdrawn",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 18,
+      "addressId": "33333333-0000-4000-8000-000000000005",
+      "instructions": "Garage door on the left.",
+      "availability": "Weekends",
+      "createdAt": "2026-10-13T12:00:00.000Z",
+      "reservedAt": null,
+      "pickedUpAt": null,
+      "photos": [
+        {
+          "id": "66666666-0000-4000-8000-000000000046",
+          "url": "https://picsum.photos/seed/old-crib-no-longer-available-1/800/600",
+          "altText": "Old crib (no longer available), front view",
+          "position": 0
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "55555555-0000-4000-8000-000000000001",
+      "itemId": "44444444-0000-4000-8000-000000000001",
+      "claimerId": "11111111-0000-4000-8000-000000000002",
+      "status": "approved",
+      "message": "Hi! My daughter just turned one and this stroller would be perfect.",
+      "createdAt": "2026-11-02T16:00:00.000Z",
+      "decidedAt": "2026-11-03T10:00:00.000Z",
+      "pickedUpAt": null
+    },
+    {
+      "id": "55555555-0000-4000-8000-000000000002",
+      "itemId": "44444444-0000-4000-8000-000000000001",
+      "claimerId": "11111111-0000-4000-8000-000000000003",
+      "status": "pending",
+      "message": "Is this still available? I can pick it up this weekend.",
+      "createdAt": "2026-11-03T06:00:00.000Z",
+      "decidedAt": null,
+      "pickedUpAt": null
+    },
+    {
+      "id": "55555555-0000-4000-8000-000000000003",
+      "itemId": "44444444-0000-4000-8000-000000000002",
+      "claimerId": "11111111-0000-4000-8000-000000000004",
+      "status": "pending",
+      "message": "We are expecting in December and this crib is just what we need.",
+      "createdAt": "2026-10-31T12:00:00.000Z",
+      "decidedAt": null,
+      "pickedUpAt": null
+    },
+    {
+      "id": "55555555-0000-4000-8000-000000000004",
+      "itemId": "44444444-0000-4000-8000-000000000002",
+      "claimerId": "11111111-0000-4000-8000-000000000005",
+      "status": "pending",
+      "message": "",
+      "createdAt": "2026-11-01T04:00:00.000Z",
+      "decidedAt": null,
+      "pickedUpAt": null
+    },
+    {
+      "id": "55555555-0000-4000-8000-000000000005",
+      "itemId": "44444444-0000-4000-8000-000000000003",
+      "claimerId": "11111111-0000-4000-8000-000000000005",
+      "status": "picked_up",
+      "message": "Thank you so much, my son loves blocks.",
+      "createdAt": "2026-10-16T12:00:00.000Z",
+      "decidedAt": "2026-10-17T12:00:00.000Z",
+      "pickedUpAt": "2026-10-18T12:00:00.000Z"
+    },
+    {
+      "id": "55555555-0000-4000-8000-000000000006",
+      "itemId": "44444444-0000-4000-8000-000000000008",
+      "claimerId": "11111111-0000-4000-8000-000000000001",
+      "status": "approved",
+      "message": "Hello! We just moved into a new car and need a bigger seat.",
+      "createdAt": "2026-11-01T12:00:00.000Z",
+      "decidedAt": "2026-11-02T07:00:00.000Z",
+      "pickedUpAt": null
+    },
+    {
+      "id": "55555555-0000-4000-8000-000000000007",
+      "itemId": "44444444-0000-4000-8000-000000000009",
+      "claimerId": "11111111-0000-4000-8000-000000000001",
+      "status": "pending",
+      "message": "These would help a lot while we start bottle feeding.",
+      "createdAt": "2026-10-30T12:00:00.000Z",
+      "decidedAt": null,
+      "pickedUpAt": null
+    },
+    {
+      "id": "55555555-0000-4000-8000-000000000008",
+      "itemId": "44444444-0000-4000-8000-000000000013",
+      "claimerId": "11111111-0000-4000-8000-000000000001",
+      "status": "picked_up",
+      "message": "My niece will love it.",
+      "createdAt": "2026-10-11T12:00:00.000Z",
+      "decidedAt": "2026-10-12T12:00:00.000Z",
+      "pickedUpAt": "2026-10-13T12:00:00.000Z"
+    },
+    {
+      "id": "55555555-0000-4000-8000-000000000009",
+      "itemId": "44444444-0000-4000-8000-000000000014",
+      "claimerId": "11111111-0000-4000-8000-000000000001",
+      "status": "cancelled",
+      "message": "Changed my plans, sorry!",
+      "createdAt": "2026-10-25T12:00:00.000Z",
+      "decidedAt": null,
+      "pickedUpAt": null
+    },
+    {
+      "id": "55555555-0000-4000-8000-000000000010",
+      "itemId": "44444444-0000-4000-8000-000000000021",
+      "claimerId": "11111111-0000-4000-8000-000000000004",
+      "status": "approved",
+      "message": "I would love to borrow it for my newborn nephew.",
+      "createdAt": "2026-10-17T12:00:00.000Z",
+      "decidedAt": "2026-10-18T12:00:00.000Z",
+      "pickedUpAt": null
+    }
+  ]
+}
