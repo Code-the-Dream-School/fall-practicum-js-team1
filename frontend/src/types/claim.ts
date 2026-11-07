@@ -1,16 +1,37 @@
-import type Item from './item'
-import type User from './user'
+import type { ItemCoverPhoto } from './item';
+import type User from './user';
 
-export default interface Claim {
-  id: string,
-  item: Item,
-  status: string,
+// One claim in GET /api/items/:id/claims
+export interface ItemClaim {
+  id: string;
+  itemId: string;
+  status: string;
+  message: string;
+  claimer: Pick<User, 'id' | 'name'>;
+  createdAt: string;
 }
 
-export interface ClaimIndex extends Claim {
-  claimer: User,
-  message: string,
-  decidedAt: Date,
-  pickedUpAt: Date,
-  createdAt: Date,
+// The pickup details a claimer only gets when the claim is approved
+export interface ClaimPickup {
+  line1: string;
+  line2: string | null;
+  city: string;
+  state: string;
+  postalCode: string;
+  instructions: string;
+  availability: string;
+}
+
+// One claim in GET /api/profile/claims
+export default interface Claim {
+  id: string;
+  status: string;
+  createdAt: string;
+  item: {
+    id: string;
+    title: string;
+    status: string;
+    coverPhoto: ItemCoverPhoto | null;
+  };
+  pickup: ClaimPickup | null; // null unless the claim is approved
 }

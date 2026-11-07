@@ -1,340 +1,212 @@
-import axios from 'axios'
-import { type AxiosResponse } from 'axios'
+// The only file that talks to the api.
+// Every function returns the data on success and THROWS an Error on any failure
+import axios from 'axios';
 
-import { setupMock } from './mockService'
-import { type GenericResponse } from './responseTypes'
-
-type PromisedResponse = Promise<GenericResponse>
-
-class ApiClientError extends Error {
-  readonly status: number;
-
-  constructor(message: string, status: number) {
-    super(message)
-    this.status = status
-  }
-}
+import { setupMock } from './mockService';
+import type {
+  Address,
+  AuthData,
+  Category,
+  Claim,
+  Item,
+  ItemFilters,
+  ItemList,
+  ItemShow,
+  NewAddress,
+  NewItem,
+  ProfileStats,
+  UploadSignature,
+} from '@/types';
 
 if (import.meta.env['VITE_API_BASE_URL'] === undefined) {
-  throw new Error('API url not defined')
+  throw new Error('API url not defined');
 }
-const BASE_URL: string = `${import.meta.env['VITE_API_BASE_URL']}/api`
+const BASE_URL: string = `${import.meta.env['VITE_API_BASE_URL']}/api`;
 
 // Global axios defaults
-axios.defaults.baseURL = BASE_URL
-axios.defaults.headers.post['Content-Type'] = 'application/json'
-axios.defaults.withCredentials = true
+axios.defaults.baseURL = BASE_URL;
+axios.defaults.headers.post['Content-Type'] = 'application/json';
+axios.defaults.withCredentials = true;
 
+// The switch: true = the mock answers the calls
 if (import.meta.env['VITE_USE_MOCKED_API_CALLS'] == 'true') {
-  console.warn('API client is in mock mode!')
-  setupMock(axios)
+  console.warn('API client is in mock mode!');
+  setupMock(axios);
 }
 
-function handleError({ response, error }: { response?: AxiosResponse, error?: unknown }): void {
-  let message;
-  let status: number | undefined;
+export class ApiRequestError extends Error {
+  readonly status: number | undefined;
 
-  if (axios.isAxiosError(error) && error.request) {
-    // Server error
-    message = 'Could not reach the server. Please try again.'
-    status = error.status
-  } else if (response) {
-    message = response?.data?.data?.message || 'Something went wrong'
-    status = response?.status
+  constructor(message: string, status?: number) {
+    super(message);
+    this.status = status;
   }
-
-  status ||= 500
-  throw new ApiClientError(message, status)
 }
 
-const checkResponseFailure = (response: AxiosResponse): boolean => response.data?.success !== 'true'
+// Turns any failure into an ApiRequestError with a message
+const toError = (error: unknown): ApiRequestError => {
+  if (axios.isAxiosError(error)) {
+    // the server answered with an error status
+    if (error.response) {
+      const { status, data } = error.response;
+      return new ApiRequestError(
+        data?.message ?? 'Request failed (' + status + ')',
+        status,
+      );
+    }
+    // the request was sent but nothing came back
+    return new ApiRequestError('Could not reach the server. Please try again.');
+  }
+  return new ApiRequestError('Something went wrong');
+};
+
+// The api wraps every answer as { success, data }. Pages only need what is inside.
+// This also keeps the csrf token that the auth endpoints send, and sends it
+// in the X-CSRF-TOKEN header on every request after that.
+const keepCsrfToken = (auth: AuthData): AuthData => {
+  axios.defaults.headers.common['X-CSRF-TOKEN'] = auth.csrfToken;
+  return auth;
+};
 
 // User routes
-export async function registerUser({ email, name, password }: { email: string, name: string, password: string }): PromisedResponse {
+
+export const registerUser = async (body: {
+  name: string;
+  email: string;
+  password: string;
+}): Promise<AuthData> => {
   try {
-    const response = await axios.post(
-      '/users/register',
-      { email, name, password }
-    )
-
-    if (checkResponseFailure(response)) {
-      handleError({ response })
-      return
-    }
-
-    return response.data
+    const resp = await axios.post('/users/register', body);
+    return keepCsrfToken(resp.data.data);
   } catch (error) {
-    handleError({ error })
+    throw toError(error);
   }
-}
+};
 
-export async function logonUser({ email, password }: { email: string, password: string }): PromisedResponse {
+export const logonUser = async (body: {
+  email: string;
+  password: string;
+}): Promise<AuthData> => {
   try {
-    const response = await axios.post(
-      '/users/logon',
-      { email, password }
-    )
-
-    if (checkResponseFailure(response)) {
-      handleError({ response })
-      return
-    }
-
-    return response.data
+    const resp = await axios.post('/users/logon', body);
+    return keepCsrfToken(resp.data.data);
   } catch (error) {
-    handleError({ error })
+    throw toError(error);
   }
-}
+};
 
-export async function logoffUser(): PromisedResponse {
+export const logoffUser = async (): Promise<void> => {
   try {
-    const response = await axios.post('/users/logoff')
-
-    if (checkResponseFailure(response)) {
-      handleError({ response })
-      return
-    }
-
-    return response.data
+    await axios.post('/users/logoff');
+    delete axios.defaults.headers.common['X-CSRF-TOKEN'];
   } catch (error) {
-    handleError({ error })
+    throw toError(error);
   }
-}
+};
 
-
-export async function getCurrentUser(): PromisedResponse {
+export const getCurrentUser = async (): Promise<AuthData> => {
   try {
-    const response = await axios.get(`/users/me`)
-
-    if (checkResponseFailure(response)) {
-      handleError({ response })
-      return
-    }
-
-    return response.data
+    const resp = await axios.get('/users/me');
+    return keepCsrfToken(resp.data.data);
   } catch (error) {
-    handleError({ error })
+    throw toError(error);
   }
-}
-// end User routes
+};
 
-// Category routes
-export async function getCategories(): PromisedResponse {
+// Categories and addresses
+
+export const getCategories = async (): Promise<Category[]> => {
   try {
-    const response = await axios.get('/categories')
-
-    if (checkResponseFailure(response)) {
-      handleError({ response })
-      return
-    }
-
-    return response.data
+    const resp = await axios.get('/categories');
+    return resp.data.data;
   } catch (error) {
-    return handleError({ error })
+    throw toError(error);
   }
-}
-// end Category routes
+};
 
-// Address routes
-export async function getAddresses(): PromisedResponse {
+export const getAddresses = async (): Promise<Address[]> => {
   try {
-    const response = await axios.get('/addresses')
-
-    if (checkResponseFailure(response)) {
-      handleError({ response })
-      return
-    }
-
-    return response.data
+    const resp = await axios.get('/addresses');
+    return resp.data.data;
   } catch (error) {
-    return handleError({ error })
+    throw toError(error);
   }
-}
+};
 
-type CreateAddressParams = {
-  nickname: string,
-  line1: string,
-  line2: string | null,
-  city: string,
-  state: string,
-  postalCode: string,
-  isDefault: boolean,
-}
-export async function createAddress({ nickname, line1, line2, city, state, postalCode, isDefault = false }: CreateAddressParams): PromisedResponse {
+export const createAddress = async (body: NewAddress): Promise<Address> => {
   try {
-    const response = await axios.post('/addresses', {
-      nickname,
-      line1,
-      line2,
-      city,
-      state,
-      postalCode,
-      isDefault,
-    })
-
-    if (checkResponseFailure(response)) {
-      handleError({ response })
-      return
-    }
-
-    return response.data
+    const resp = await axios.post('/addresses', body);
+    return resp.data.data;
   } catch (error) {
-    handleError({ error })
+    throw toError(error);
   }
-}
-// end Address routes
+};
 
-// Item routes
-type ItemFilterParams = {
-  q?: string,
-  category?: string,
-  condition?: string,
-  childAgeMinMonths?: number,
-  childAgeMaxMonths?: number,
-  city?: string,
-  page?: number,
-  limit?: number,
-}
-export async function getItems({
-  q,
-  category,
-  condition,
-  childAgeMinMonths,
-  childAgeMaxMonths,
-  city,
-  page = 1,
-  limit = 12
-}: ItemFilterParams): PromisedResponse {
+// Items
+
+export const getItems = async (
+  filters: ItemFilters = {},
+): Promise<ItemList> => {
   try {
-    const response = await axios.get(
-      '/categories',
-      {
-        params: {
-          q,
-          category,
-          condition,
-          childAgeMinMonths,
-          childAgeMaxMonths,
-          city,
-          page,
-          limit,
-        }
-      }
-    )
-
-    if (checkResponseFailure(response)) {
-      handleError({ response })
-      return
-    }
-
-    return response.data
+    const resp = await axios.get('/items', { params: filters });
+    return resp.data.data;
   } catch (error) {
-    return handleError({ error })
+    throw toError(error);
   }
-}
+};
 
-export async function getItemDetails(itemId: string): PromisedResponse {
+export const getItem = async (id: string): Promise<ItemShow> => {
   try {
-    const response = await axios.get(`/items/${itemId}`)
-
-    if (checkResponseFailure(response)) {
-      handleError({ response })
-      return
-    }
-
-    return response.data
+    const resp = await axios.get('/items/' + id);
+    return resp.data.data;
   } catch (error) {
-    return handleError({ error })
+    throw toError(error);
   }
-}
+};
 
-type CreateItemParams = {
-  title: string,
-  description: string,
-  category: string,
-  condition: string,
-  childAgeMinMonths?: number,
-  childAgeMaxMonths?: number,
-  addressId: string,
-  photos: {
-    url: string,
-    publicId: string,
-    altText?: string,
-  }[],
-  instructions?: string,
-  availability?: string,
-}
-export async function createItem({
-  title,
-  description,
-  category,
-  condition,
-  childAgeMinMonths,
-  childAgeMaxMonths,
-  photos,
-  addressId,
-  instructions,
-  availability,
-}: CreateItemParams): PromisedResponse {
+export const createItem = async (body: NewItem): Promise<ItemShow> => {
   try {
-    const response = await axios.post(
-      '/items',
-      {
-        title,
-        description,
-        category,
-        condition,
-        childAgeMinMonths,
-        childAgeMaxMonths,
-        photos,
-        addressId,
-        instructions,
-        availability,
-      }
-    )
-
-    if (checkResponseFailure(response)) {
-      handleError({ response })
-      return
-    }
-
-    return response.data
+    const resp = await axios.post('/items', body);
+    return resp.data.data;
   } catch (error) {
-    return handleError({ error })
+    throw toError(error);
   }
-}
-// end Item routes
+};
 
-// Profile routes
-export async function getMyItems(): PromisedResponse {
+export const getUploadSignature = async (): Promise<UploadSignature> => {
   try {
-    const response = await axios.get('/profile/items')
-
-    if (checkResponseFailure(response)) {
-      handleError({ response })
-      return
-    }
-
-    return response.data
+    const resp = await axios.post('/uploads/signature');
+    return resp.data.data;
   } catch (error) {
-    return handleError({ error })
+    throw toError(error);
   }
-}
-// end Profile routes
+};
 
-/*
-export async function placeholder(): PromisedResponse {
+// Profile
+
+export const getMyItems = async (): Promise<Item[]> => {
   try {
-    const response = await axios
-
-    if (checkResponseFailure(response)) {
-      handleError({ response })
-      return
-    }
-
-    return response.data
+    const resp = await axios.get('/profile/items');
+    return resp.data.data;
   } catch (error) {
-    return handleError({ error })
+    throw toError(error);
   }
-}
-*/
+};
+
+export const getMyClaims = async (status?: string): Promise<Claim[]> => {
+  try {
+    const resp = await axios.get('/profile/claims', { params: { status } });
+    return resp.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+};
+
+export const getMyStats = async (): Promise<ProfileStats> => {
+  try {
+    const resp = await axios.get('/profile/stats');
+    return resp.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+};

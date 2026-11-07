@@ -1,37 +1,54 @@
-import type Category from './category'
-import type User from './user'
+import type Category from './category';
+import type User from './user';
 
+// The small photo the list sends
 export interface ItemCoverPhoto {
-  id: number,
-  url: string,
-  altText: string,
+  url: string;
+  altText: string;
 }
 
-export interface ItemPhoto extends ItemCoverPhoto {
-  position: number,
+// A photo on the details page
+export interface ItemPhoto {
+  id: string;
+  url: string;
+  altText: string;
+  position: number;
 }
 
-// Used in /api/items index call
+// One item in GET /api/items and GET /api/profile/items
 export default interface Item {
-  id: string,
-  category: Category,
-  title: string,
-  condition: string,
-  status: string,
-  childAgeMinMonths: number,
-  childAgeMaxMonths: number,
-  city: string,
-  state: string,
-  country: string,
-  reservedAt: Date,
-  pickedUpAt: Date,
-  coverPhoto: ItemPhoto,
+  id: string;
+  category: Pick<Category, 'key' | 'name'>;
+  title: string;
+  condition: string;
+  status: string;
+  childAgeMinMonths: number | null;
+  childAgeMaxMonths: number | null;
+  city: string;
+  state: string;
+  coverPhoto: ItemCoverPhoto | null; // null when the item has no photo
 }
 
-export interface ItemShow extends Item {
-  owner: User,
-  description: string,
-  photos: ItemPhoto[],
-  postalCode: string,
-  createdAt: Date,
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+// The whole data of GET /api/items
+export interface ItemList {
+  items: Item[];
+  pagination: Pagination;
+}
+
+// GET /api/items/:id
+export interface ItemShow extends Omit<Item, 'coverPhoto'> {
+  owner: Pick<User, 'id' | 'name'>;
+  description: string;
+  photos: ItemPhoto[];
+  postalCode: string;
+  createdAt: string;
 }
