@@ -12,8 +12,8 @@ type ItemCardProps = {
     title: string;
     condition: ItemCondition;
     status: ItemStatus;
-    ageMinMonths: number | null;
-    ageMaxMonths: number | null;
+    childAgeMinMonths: number | null;
+    childAgeMaxMonths: number | null;
     city: string;
     coverPhoto: { url: string; altText: string } | null;
   };
@@ -50,7 +50,11 @@ export const ItemCard = ({ item }: ItemCardProps) => {
           </div>
 
           <p className="text-sm text-muted-foreground">
-            {formatAgeRange(item.ageMinMonths, item.ageMaxMonths)} · {item.city}
+            <span className="block sm:inline">
+              {formatAgeRange(item.childAgeMinMonths, item.childAgeMaxMonths)}
+            </span>
+            <span className="hidden sm:inline"> · </span>
+            <span className="block sm:inline">{item.city}</span>
           </p>
         </CardContent>
       </Card>
