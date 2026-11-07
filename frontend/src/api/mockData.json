@@ -1,0 +1,773 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Mocked Logged-in User",
+      "email": "fake_email@example.com",
+      "role": "user",
+      "avatarUrl": "",
+      "emailVerifiedAt": "2026-10-29T22:15:39.367Z",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "deactivatedAt": null
+    },
+    {
+      "id": 2,
+      "name": "Mocked owner",
+      "email": "owner@example.com",
+      "role": "user",
+      "avatarUrl": "",
+      "emailVerifiedAt": "2026-10-29T22:15:39.367Z",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "deactivatedAt": null
+    }
+  ],
+  "items": [
+    {
+      "id": 1,
+      "title": "new available Stroller",
+      "description": "A description for a new stroller",
+      "condition": "new",
+      "status": "available",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 24,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": null,
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "strollers",
+        "name": "Strollers"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "new reserved Stroller",
+      "description": "A description for a new stroller, reserved",
+      "condition": "new",
+      "status": "reserved",
+      "childAgeMinMonths": 1,
+      "childAgeMaxMonths": 23,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": "2026-10-29T22:15:39.367Z",
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "strollers",
+        "name": "Strollers"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "new picked up Stroller",
+      "description": "A description for a new stroller, picked up",
+      "condition": "new",
+      "status": "picked_up",
+      "childAgeMinMonths": 2,
+      "childAgeMaxMonths": 22,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": "2026-10-29T22:15:39.367Z",
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "strollers",
+        "name": "Strollers"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "new withdrawn Stroller",
+      "description": "A description for a new stroller, withdrawn",
+      "condition": "new",
+      "status": "withdrawn",
+      "childAgeMinMonths": 3,
+      "childAgeMaxMonths": 21,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": null,
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "strollers",
+        "name": "Strollers"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "new crib",
+      "description": "new crib",
+      "condition": "new",
+      "status": "available",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 18,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": null,
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "cribs",
+        "name": "Cribs"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "used crib",
+      "description": "used crib",
+      "condition": "used",
+      "status": "reserved",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 18,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": "2026-10-29T22:16:38.073Z",
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "cribs",
+        "name": "Cribs"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "used crib",
+      "description": "used crib",
+      "condition": "used",
+      "status": "picked_up",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 18,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": "2026-10-29T22:16:38.073Z",
+      "pickedupAt": "2026-10-29T22:16:38.073Z",
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "cribs",
+        "name": "Cribs"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "used crib",
+      "description": "used crib",
+      "condition": "used",
+      "status": "withdrawn",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 18,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": null,
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "cribs",
+        "name": "Cribs"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "baby bottle",
+      "description": "good used baby bottle",
+      "condition": "good",
+      "status": "available",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 6,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": null,
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "feeding",
+        "name": "Feeding"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "baby bottle",
+      "description": "good used baby bottle",
+      "condition": "good",
+      "status": "reserved",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 6,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": "2026-10-29T22:16:38.073Z",
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "feeding",
+        "name": "Feeding"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "baby bottle",
+      "description": "good used baby bottle",
+      "condition": "good",
+      "status": "picked_up",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 6,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": "2026-10-29T22:16:38.073Z",
+      "pickedupAt": "2026-10-29T22:16:38.073Z",
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "feeding",
+        "name": "Feeding"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "baby bottle",
+      "description": "good used baby bottle",
+      "condition": "good",
+      "status": "withdrdawn",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 6,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": "2026-10-29T22:16:38.073Z",
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "feeding",
+        "name": "Feeding"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "rattle",
+      "description": "rattle, like new",
+      "condition": "like_new",
+      "status": "available",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 12,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": null,
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "toys",
+        "name": "Toys"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "rattle",
+      "description": "reserved rattle, like new",
+      "condition": "like_new",
+      "status": "reserved",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 12,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": "2026-10-29T22:16:38.073Z",
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "toys",
+        "name": "Toys"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "picked up rattle",
+      "description": "picked up rattle, like new",
+      "condition": "like_new",
+      "status": "available",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 12,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": "2026-10-29T22:16:38.073Z",
+      "pickedupAt": "2026-10-29T22:16:38.073Z",
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "toys",
+        "name": "Toys"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "withdrawn rattle",
+      "description": "withdrawn rattle, like new",
+      "condition": "like_new",
+      "status": "withdrawn",
+      "childAgeMinMonths": 0,
+      "childAgeMaxMonths": 12,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": null,
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "toys",
+        "name": "Toys"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "bluey onesie",
+      "description": "blue onesie, available",
+      "condition": "like_new",
+      "status": "available",
+      "childAgeMinMonths": 6,
+      "childAgeMaxMonths": 12,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": null,
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "clothing",
+        "name": "Clothing"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "title": "bluey onesie",
+      "description": "blue onesie, reserved",
+      "condition": "like_new",
+      "status": "reserved",
+      "childAgeMinMonths": 6,
+      "childAgeMaxMonths": 12,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": "2026-10-29T22:16:38.073Z",
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "clothing",
+        "name": "Clothing"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "title": "bluey onesie",
+      "description": "blue onesie, picked up",
+      "condition": "like_new",
+      "status": "picked_up",
+      "childAgeMinMonths": 6,
+      "childAgeMaxMonths": 12,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": "2026-10-29T22:16:38.073Z",
+      "pickedupAt": "2026-10-29T22:16:38.073Z",
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "clothing",
+        "name": "Clothing"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "title": "bluey onesie",
+      "description": "blue onesie, withdrawn",
+      "condition": "like_new",
+      "status": "withdrawn",
+      "childAgeMinMonths": 6,
+      "childAgeMaxMonths": 12,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94111",
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z",
+      "reservedAt": null,
+      "pickedupAt": null,
+      "owner": {
+        "id": 2,
+        "name": "Mocked Owner"
+      },
+      "category": {
+        "key": "clothing",
+        "name": "Clothing"
+      },
+      "coverPhoto": {
+        "url": "",
+        "altText": "Some random alt text"
+      },
+      "photos": [
+        {
+          "url": "",
+          "altText": "photo alt text"
+        }
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "key": "strollers",
+      "name": "Strollers"
+    },
+    {
+      "id": 2,
+      "key": "cribs",
+      "name": "Cribs"
+    },
+    {
+      "id": 3,
+      "key": "feeding",
+      "name": "Feeding"
+    },
+    {
+      "id": 4,
+      "key": "toys",
+      "name": "Toys"
+    },
+    {
+      "id": 5,
+      "key": "clothing",
+      "name": "Clothing"
+    }
+  ],
+  "addresses": [
+    {
+      "id": 1,
+      "user": {
+        "id": 1
+      },
+      "nickanme": "Home",
+      "line1": "1234 Taraval Street",
+      "line2": null,
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94116",
+      "country": "US",
+      "latitude": 40,
+      "longitude": 40,
+      "isDefault": true,
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z"
+    },
+    {
+      "id": 2,
+      "user": {
+        "id": 2
+      },
+      "nickanme": "Home",
+      "line1": "1234 Santiago Street",
+      "line2": "#567",
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94116",
+      "country": "US",
+      "latitude": 40,
+      "longitude": 40,
+      "isDefault": true,
+      "createdAt": "2026-10-29T22:15:39.367Z",
+      "updatedAt": "2026-10-29T22:16:38.073Z"
+    }
+  ]
+}
