@@ -5,6 +5,9 @@ export interface SuccessResponse extends BaseResponse {
   data: unknown,
   csrfToken?: string,
 }
+
 export interface ErrorResponse extends BaseResponse {
   message: string,
 }
+
+export type GenericResponse = SuccessResponse | ErrorResponse | void
