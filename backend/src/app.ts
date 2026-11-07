@@ -14,7 +14,13 @@ const app = express();
 
 // Security & best‑practice middleware
 app.use(helmet());
-app.use(cors());
+// The browser only sends the login cookie to an origin we name, so cors needs the frontend's address.
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL ?? 'http://localhost:5173',
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(cookieParser());
@@ -31,7 +37,7 @@ app.use('/api/hello', helloRoutes);
 app.use('/api/health', healthRoutes);
 
 // Root route
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   res.send('Backend API is running');
 });
 

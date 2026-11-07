@@ -16,7 +16,7 @@ const cookieFlags: CookieOptions = {
   sameSite: 'strict',
 };
 
-const setJwtCookie = (res: Response, user: { id: string }) => {
+const setJwtCookie = (_req: Request, res: Response, user: { id: string }) => {
   const payload = {
     id: user.id,
     csrfToken: randomUUID(),
@@ -64,7 +64,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   }
 
   // sign the user in
-  const csrfToken = setJwtCookie(res, user);
+  const csrfToken = setJwtCookie(req, res, user);
 
   // the response shape from the API doc
   res.status(201).json({ success: true, data: { user, csrfToken } });
@@ -91,7 +91,7 @@ export const logon = async (req: Request, res: Response): Promise<void> => {
     throw new ApiError('Invalid email or password', 401);
   }
   // sign in, and send back the user without the hash
-  const csrfToken = setJwtCookie(res, found);
+  const csrfToken = setJwtCookie(req, res, found);
   const user = {
     id: found.id,
     name: found.name,
@@ -102,8 +102,7 @@ export const logon = async (req: Request, res: Response): Promise<void> => {
   res.status(200).json({ success: true, data: { user, csrfToken } });
 };
 
-export const logoff = (res: Response): void => {
-  // remove the cookie
+export const logoff = (_req: Request, res: Response): void => {
   res.clearCookie('jwt', cookieFlags);
 
   res.status(200).json({ success: true, message: 'Logged out' });
