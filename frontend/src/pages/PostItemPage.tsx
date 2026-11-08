@@ -1,8 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { useNavigate } from 'react-router';
 
-import mockData from '../api/mockData.json';
 import { useCategories } from '../hooks/useCategories';
+import {
+  createAddress,
+  createItem,
+  getAddresses,
+  uploadPhoto,
+} from '../services/itemApi';
+import type { Address, NewAddress, NewItem } from '../services/itemApi';
 import ItemPhotoPicker from '../components/ItemPhotoPicker';
 
 import { Button } from '../components/ui/button';
@@ -17,36 +24,6 @@ import {
   SelectValue,
 } from '../components/ui/select';
 
-type Address = {
-  id: string;
-  nickname: string;
-  city: string;
-  state: string;
-  isDefault: boolean;
-};
-
-type AddressResponse = {
-  id: string | number;
-  nickname?: string | null;
-  nickanme?: string | null;
-  city: string;
-  state: string;
-  isDefault?: boolean;
-};
-
-type FieldName =
-  | 'title'
-  | 'description'
-  | 'category'
-  | 'condition'
-  | 'ageTo'
-  | 'address'
-  | 'photos'
-  | 'instructions'
-  | 'availability';
-
-type FieldErrors = Partial<Record<FieldName, string>>;
-
 const useMocks =
   import.meta.env['VITE_USE_MOCKED_API_CALLS'] === 'true';
 
@@ -57,7 +34,7 @@ const conditions = [
   { value: 'used', label: 'Used' },
 ];
 
-const ageOptions = [
+const ages = [
   { value: 'any', label: 'Any' },
   { value: '0', label: 'Newborn' },
   { value: '3', label: '3 months' },
@@ -71,82 +48,67 @@ const ageOptions = [
   { value: '60', label: '5 years' },
 ];
 
-function normalizeAddress(address: AddressResponse): Address {
-  return {
-    id: String(address.id),
-    nickname:
-      address.nickname || address.nickanme || 'Saved address',
-    city: address.city,
-    state: address.state,
-    isDefault: Boolean(address.isDefault),
-  };
-}
+type Errors = Record<string, string>;
 
-function getMockAddresses(): Address[] {
-  const user = mockData.users[0];
+type AddressDraft = {
+  nickname: string;
+  line1: string;
+  line2: string;
+  city: string;
+  state: string;
+  postalCode: string;
+};
 
-  return mockData.addresses
-    .filter((address) => address.user.id === user?.id)
-    .map(normalizeAddress);
-}
+const emptyAddress: AddressDraft = {
+  nickname: '',
+  line1: '',
+  line2: '',
+  city: '',
+  state: '',
+  postalCode: '',
+};
 
-function readPhoto(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+const addressFields: {
+  key: keyof AddressDraft;
+  label: string;
+  required: boolean;
+}[] = [
+  { key: 'nickname', label: 'Nickname', required: false },
+  { key: 'line1', label: 'Street address', required: true },
+  { key: 'line2', label: 'Apartment or unit', required: false },
+  { key: 'city', label: 'City', required: true },
+  { key: 'state', label: 'State', required: true },
+  { key: 'postalCode', label: 'Postal code', required: true },
+];
 
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result);
-      } else {
-        reject(new Error(`Could not read ${file.name}.`));
-      }
-    };
-
-    reader.onerror = () => {
-      reject(new Error(`Could not read ${file.name}.`));
-    };
-
-    reader.readAsDataURL(file);
-  });
-}
-
-function FieldError({
+function ErrorText({
   id,
   message,
 }: {
   id: string;
   message: string | undefined;
 }) {
-  if (!message) return null;
-
-  return (
+  return message ? (
     <p id={id} role="alert" className="text-sm text-red-600">
       {message}
     </p>
-  );
+  ) : null;
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error
+    ? error.message
+    : 'Something went wrong. Please try again.';
 }
 
 export default function PostItemPage() {
+  const navigate = useNavigate();
   const {
     categories,
     loading: categoriesLoading,
     error: categoriesError,
   } = useCategories();
 
-  const [addresses, setAddresses] = useState<Address[]>(() =>
-    useMocks ? getMockAddresses() : []
-  );
-
-  const [addressId, setAddressId] = useState(() => {
-    if (!useMocks) return '';
-
-    return (
-      getMockAddresses().find((address) => address.isDefault)?.id ??
-      ''
-    );
-  });
-
-  const [addressesLoading, setAddressesLoading] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
@@ -156,9 +118,30 @@ export default function PostItemPage() {
   const [photos, setPhotos] = useState<File[]>([]);
   const [instructions, setInstructions] = useState('');
   const [availability, setAvailability] = useState('');
-  const [errors, setErrors] = useState<FieldErrors>({});
+
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [addressId, setAddressId] = useState('');
+  const [addressesLoading, setAddressesLoading] = useState(true);
+  const [addressLoadError, setAddressLoadError] = useState('');
+
+  const [showAddressEditor, setShowAddressEditor] = useState(false);
+  const [addressDraft, setAddressDraft] =
+    useState<AddressDraft>({ ...emptyAddress });
+  const [addressErrors, setAddressErrors] = useState<Errors>({});
+  const [addressSaveError, setAddressSaveError] = useState('');
+  const [savingAddress, setSavingAddress] = useState(false);
+
+  const [errors, setErrors] = useState<Errors>({});
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const messageRef = useRef<HTMLParagraphElement>(null);
+  const submitLock = useRef(false);
+  const addressSaveLock = useRef(false);
+  const uploadedPhotos = useRef(new WeakMap<File, string>());
+
+  const busy = isSubmitting || savingAddress;
 
   const ageError =
     ageFrom !== 'any' &&
@@ -167,217 +150,293 @@ export default function PostItemPage() {
       ? 'The end age must be the same as or older than the start age'
       : '';
 
-  async function loadAddresses() {
-    setMessage('');
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      try {
+        const result = await getAddresses();
+
+        if (active) {
+          setAddresses(result);
+          setAddressId(
+            result.find((address) => address.isDefault)?.id ?? '',
+          );
+        }
+      } catch (error) {
+        if (active) {
+          setAddressLoadError(errorMessage(error));
+        }
+      } finally {
+        if (active) {
+          setAddressesLoading(false);
+        }
+      }
+    }
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (message) {
+      messageRef.current?.focus();
+    }
+  }, [message]);
+
+  async function retryAddresses() {
     setAddressesLoading(true);
+    setAddressLoadError('');
 
     try {
-      let savedAddresses: Address[];
-
-      if (useMocks) {
-        savedAddresses = getMockAddresses();
-      } else {
-        const baseUrl = (
-          import.meta.env['VITE_API_BASE_URL'] ?? ''
-        ).replace(/\/$/, '');
-
-        const response = await fetch(`${baseUrl}/api/addresses`, {
-          credentials: 'include',
-        });
-
-        if (!response.ok) {
-          throw new Error('Could not load saved addresses.');
-        }
-
-        const result = await response.json();
-
-        if (!Array.isArray(result.data?.addresses)) {
-          throw new Error('Unexpected address response.');
-        }
-
-        savedAddresses = result.data.addresses.map(normalizeAddress);
-      }
-
-      setAddresses(savedAddresses);
-
-      if (!savedAddresses.some((address) => address.id === addressId)) {
-        setAddressId(
-          savedAddresses.find((address) => address.isDefault)?.id ?? ''
-        );
-      }
-
-      if (savedAddresses.length === 0) {
-        setMessage('You do not have any saved addresses yet.');
-      }
-    } catch {
-      setMessage('Could not load saved addresses. Please try again.');
+      const result = await getAddresses();
+      setAddresses(result);
+      setAddressId((current) =>
+        result.some((address) => address.id === current)
+          ? current
+          : result.find((address) => address.isDefault)?.id ?? '',
+      );
+    } catch (error) {
+      setAddressLoadError(errorMessage(error));
     } finally {
       setAddressesLoading(false);
+    }
+  }
+
+  function focusField(id: string) {
+    formRef.current
+      ?.querySelector<HTMLElement>(`#${id}`)
+      ?.focus();
+  }
+
+  async function saveAddress() {
+    if (addressSaveLock.current || submitLock.current) return;
+
+    const next: Errors = {};
+
+    for (const field of addressFields) {
+      if (field.required && !addressDraft[field.key].trim()) {
+        next[field.key] = `Enter your ${field.label.toLowerCase()}.`;
+      }
+    }
+
+    setAddressErrors(next);
+    setAddressSaveError('');
+
+    const firstError = Object.keys(next)[0];
+
+    if (firstError) {
+      focusField(`new-${firstError}`);
+      return;
+    }
+
+    addressSaveLock.current = true;
+    setSavingAddress(true);
+
+    try {
+      const body: NewAddress = {
+        nickname: addressDraft.nickname.trim(),
+        line1: addressDraft.line1.trim(),
+        line2: addressDraft.line2.trim(),
+        city: addressDraft.city.trim(),
+        state: addressDraft.state.trim(),
+        postalCode: addressDraft.postalCode.trim(),
+      };
+
+      const saved = await createAddress(body);
+
+      setAddresses((previous) => [
+        ...previous.filter((address) => address.id !== saved.id),
+        saved,
+      ]);
+      setAddressId(saved.id);
+      setAddressDraft({ ...emptyAddress });
+      setShowAddressEditor(false);
+      setAddressLoadError('');
+      setErrors((previous) => {
+        const nextErrors = { ...previous };
+        delete nextErrors['address'];
+        return nextErrors;
+      });
+    } catch (error) {
+      setAddressSaveError(errorMessage(error));
+    } finally {
+      addressSaveLock.current = false;
+      setSavingAddress(false);
     }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (isSubmitting) return;
-
-    const form = event.currentTarget;
-    const nextErrors: FieldErrors = {};
+    if (submitLock.current || addressSaveLock.current) return;
 
     setMessage('');
 
+    if (showAddressEditor) {
+      setMessage('Save or cancel the new address before posting.');
+      return;
+    }
+
+    const next: Errors = {};
+
     if (!title.trim()) {
-      nextErrors.title = 'Enter an item title.';
+      next['title'] = 'Enter an item title.';
     } else if (title.length > 80) {
-      nextErrors.title = 'Title must be 80 characters or fewer.';
+      next['title'] = 'Title must be 80 characters or fewer.';
     }
 
     if (!description.trim()) {
-      nextErrors.description = 'Enter a description.';
+      next['description'] = 'Enter a description.';
     } else if (description.length > 1000) {
-      nextErrors.description =
+      next['description'] =
         'Description must be 1000 characters or fewer.';
     }
 
-    const selectedCategory = categories.find(
-      (item) => item.key === category
-    );
-
-    if (!selectedCategory) {
-      nextErrors.category = 'Select a category.';
+    if (!categories.some((item) => item.key === category)) {
+      next['category'] = 'Select a category.';
     }
 
     if (!conditions.some((item) => item.value === condition)) {
-      nextErrors.condition = 'Select a condition.';
+      next['condition'] = 'Select a condition.';
     }
 
     if (ageError) {
-      nextErrors.ageTo = ageError;
+      next['ageTo'] = ageError;
     }
 
-    const pickupAddress = addresses.find(
-      (address) => address.id === addressId
-    );
-
-    if (!pickupAddress) {
-      nextErrors.address = 'Select a pickup address.';
+    if (!addresses.some((address) => address.id === addressId)) {
+      next['address'] = 'Select a pickup address.';
     }
 
     if (photos.length === 0) {
-      nextErrors.photos = 'Add at least 1 photo.';
+      next['photos'] = 'Add at least 1 photo.';
     } else if (photos.length > 6) {
-      nextErrors.photos = 'You can add up to 6 photos';
+      next['photos'] = 'You can add up to 6 photos';
     } else {
       const wrongType = photos.find(
         (file) =>
-          !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
+          !['image/jpeg', 'image/png', 'image/webp'].includes(file.type),
       );
-
       const oversized = photos.find(
-        (file) => file.size > 5 * 1024 * 1024
+        (file) => file.size > 5 * 1024 * 1024,
       );
 
       if (wrongType) {
-        nextErrors.photos =
+        next['photos'] =
           `${wrongType.name} is not a jpg, png or webp image`;
       } else if (oversized) {
-        nextErrors.photos = `${oversized.name} is larger than 5 MB`;
+        next['photos'] = `${oversized.name} is larger than 5 MB`;
       }
     }
 
     if (instructions.length > 300) {
-      nextErrors.instructions =
+      next['instructions'] =
         'Pickup instructions must be 300 characters or fewer.';
     }
 
     if (availability.length > 200) {
-      nextErrors.availability =
+      next['availability'] =
         'Availability must be 200 characters or fewer.';
     }
 
-    setErrors(nextErrors);
+    setErrors(next);
 
-    const firstError = Object.keys(nextErrors)[0];
+    const firstError = Object.keys(next)[0];
 
     if (firstError) {
-      form
-        .querySelector<HTMLElement>(`#${firstError}`)
-        ?.focus();
+      focusField(firstError);
       return;
     }
 
-    if (!pickupAddress || !selectedCategory) return;
-
+    submitLock.current = true;
     setIsSubmitting(true);
 
     try {
-      if (!useMocks) {
-        throw new Error(
-          'Live posting is not connected yet. Enable mock mode to test posting.'
-        );
+      const uploaded: NewItem['photos'] = [];
+
+      for (const [index, file] of photos.entries()) {
+        let url = uploadedPhotos.current.get(file);
+
+        if (!url) {
+          url = await uploadPhoto(file);
+          uploadedPhotos.current.set(file, url);
+        }
+
+        uploaded.push({
+          url,
+          altText: `${title.trim()} photo ${index + 1}`,
+        });
       }
 
-      const photoUrls = await Promise.all(photos.map(readPhoto));
-      const id = crypto.randomUUID();
-
-      const item = {
-        id,
+      const body: NewItem = {
         title: title.trim(),
         description: description.trim(),
-        category: selectedCategory,
+        category,
         condition,
-        childAgeMinMonths:
-          ageFrom === 'any' ? null : Number(ageFrom),
-        childAgeMaxMonths:
-          ageTo === 'any' ? null : Number(ageTo),
-        city: pickupAddress.city,
-        state: pickupAddress.state,
         addressId,
         instructions: instructions.trim(),
         availability: availability.trim(),
-        status: 'available',
-        owner: mockData.users[0],
-        photos: photoUrls.map((url, index) => ({
-          url,
-          altText: `${title.trim()} photo ${index + 1}`,
-        })),
-        coverPhoto: {
-          url: photoUrls[0],
-          altText: title.trim(),
-        },
-        createdAt: new Date().toISOString(),
+        photos: uploaded,
+        ...(ageFrom !== 'any'
+          ? { childAgeMinMonths: Number(ageFrom) }
+          : {}),
+        ...(ageTo !== 'any'
+          ? { childAgeMaxMonths: Number(ageTo) }
+          : {}),
       };
 
-      try {
-        sessionStorage.setItem(
-          `hand-me-down:mock-item:${id}`,
-          JSON.stringify(item)
-        );
+      const saved = await createItem(body);
 
-        sessionStorage.setItem(
-          'hand-me-down:post-success',
-          'Your item was posted'
-        );
-      } catch {
-        throw new Error(
-          'Browser storage could not save the test listing. Try fewer or smaller photos.'
-        );
-      }
-
-      window.location.assign(`/items/${encodeURIComponent(id)}`);
+      navigate(`/items/${encodeURIComponent(saved.id)}`, {
+        state: { message: 'Your item was posted' },
+      });
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? `${error.message} Your form has been kept.`
-          : 'Could not save your item. Your form has been kept.'
-      );
+      setMessage(`${errorMessage(error)} Your form has been kept.`);
     } finally {
+      submitLock.current = false;
       setIsSubmitting(false);
     }
   }
 
+  function renderAgeSelect(
+    id: string,
+    label: string,
+    value: string,
+    onChange: (value: string) => void,
+  ) {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={id}>{label}</Label>
+        <Select value={value} onValueChange={onChange} disabled={busy}>
+          <SelectTrigger
+            id={id}
+            className="w-full"
+            aria-invalid={id === 'ageTo' && Boolean(ageError)}
+            aria-describedby={id === 'ageTo' ? 'age-error' : undefined}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {ages.map((age) => (
+              <SelectItem key={age.value} value={age.value}>
+                {age.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {id === 'ageTo' && (
+          <ErrorText id="age-error" message={ageError} />
+        )}
+      </div>
+    );
+  }
+
   return (
-    <main className="mx-auto max-w-2xl space-y-6 p-6">
+    <main className="mx-auto w-full max-w-2xl space-y-6 p-4 sm:p-6">
       <h1 className="text-2xl font-semibold">Post an Item</h1>
 
       <p className="text-sm text-muted-foreground">
@@ -386,13 +445,17 @@ export default function PostItemPage() {
 
       {useMocks && (
         <p className="text-sm text-muted-foreground">
-          Test mode: listings are saved only in this browser tab.
+          Development preview: using shared sample data.
+          New listings and addresses reset when you refresh.
+          Uploaded photos use sample images.
         </p>
       )}
 
       {message && (
         <p
+          ref={messageRef}
           role="alert"
+          tabIndex={-1}
           className="rounded-md border border-red-300 p-3 text-sm text-red-600"
         >
           {message}
@@ -400,14 +463,13 @@ export default function PostItemPage() {
       )}
 
       <form
-        className="space-y-5"
+        ref={formRef}
         onSubmit={handleSubmit}
         noValidate
+        className="space-y-5"
+        aria-busy={busy}
       >
-        <fieldset
-          disabled={isSubmitting}
-          className="min-w-0 space-y-5"
-        >
+        <fieldset disabled={busy} className="min-w-0 space-y-5">
           <div className="space-y-2">
             <Label htmlFor="title">Item Title *</Label>
             <Input
@@ -416,15 +478,12 @@ export default function PostItemPage() {
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Enter item title"
-              maxLength={80}
               required
-              aria-invalid={Boolean(errors.title)}
+              maxLength={80}
+              aria-invalid={Boolean(errors['title'])}
               aria-describedby="title-error"
             />
-            <FieldError
-              id="title-error"
-              message={errors.title}
-            />
+            <ErrorText id="title-error" message={errors['title']} />
           </div>
 
           <div className="space-y-2">
@@ -435,14 +494,14 @@ export default function PostItemPage() {
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Describe your item"
-              maxLength={1000}
               required
-              aria-invalid={Boolean(errors.description)}
+              maxLength={1000}
+              aria-invalid={Boolean(errors['description'])}
               aria-describedby="description-error"
             />
-            <FieldError
+            <ErrorText
               id="description-error"
-              message={errors.description}
+              message={errors['description']}
             />
           </div>
 
@@ -451,21 +510,17 @@ export default function PostItemPage() {
             <Select
               value={category}
               onValueChange={setCategory}
-              disabled={
-                isSubmitting ||
-                categoriesLoading ||
-                Boolean(categoriesError)
-              }
+              disabled={busy || categoriesLoading || Boolean(categoriesError)}
               required
             >
               <SelectTrigger
                 id="category"
-                aria-invalid={Boolean(errors.category)}
-                aria-describedby="category-error"
+                className="w-full"
+                aria-invalid={Boolean(errors['category'])}
+                aria-describedby="category-error category-load"
               >
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
-
               <SelectContent>
                 {categories.map((item) => (
                   <SelectItem key={item.key} value={item.key}>
@@ -474,23 +529,13 @@ export default function PostItemPage() {
                 ))}
               </SelectContent>
             </Select>
-
             {categoriesLoading && (
-              <p role="status" className="text-sm">
+              <p id="category-load" role="status" className="text-sm">
                 Loading categories…
               </p>
             )}
-
-            {categoriesError && (
-              <p role="alert" className="text-sm text-red-600">
-                {categoriesError}
-              </p>
-            )}
-
-            <FieldError
-              id="category-error"
-              message={errors.category}
-            />
+            <ErrorText id="category-load" message={categoriesError} />
+            <ErrorText id="category-error" message={errors['category']} />
           </div>
 
           <div className="space-y-2">
@@ -498,17 +543,17 @@ export default function PostItemPage() {
             <Select
               value={condition}
               onValueChange={setCondition}
-              disabled={isSubmitting}
+              disabled={busy}
               required
             >
               <SelectTrigger
                 id="condition"
-                aria-invalid={Boolean(errors.condition)}
+                className="w-full"
+                aria-invalid={Boolean(errors['condition'])}
                 aria-describedby="condition-error"
               >
                 <SelectValue placeholder="Select condition" />
               </SelectTrigger>
-
               <SelectContent>
                 {conditions.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
@@ -517,162 +562,191 @@ export default function PostItemPage() {
                 ))}
               </SelectContent>
             </Select>
-
-            <FieldError
+            <ErrorText
               id="condition-error"
-              message={errors.condition}
+              message={errors['condition']}
             />
           </div>
 
-          <fieldset className="space-y-3">
+          <fieldset className="min-w-0 space-y-3">
             <legend className="text-sm font-medium">
               Age range (optional)
             </legend>
-
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="ageFrom">From</Label>
-                <Select
-                  value={ageFrom}
-                  onValueChange={setAgeFrom}
-                  disabled={isSubmitting}
-                >
-                  <SelectTrigger id="ageFrom">
-                    <SelectValue />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    {ageOptions.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="ageTo">To</Label>
-                <Select
-                  value={ageTo}
-                  onValueChange={setAgeTo}
-                  disabled={isSubmitting}
-                >
-                  <SelectTrigger
-                    id="ageTo"
-                    aria-invalid={Boolean(ageError)}
-                    aria-describedby="age-error"
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    {ageOptions.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <FieldError
-                  id="age-error"
-                  message={ageError}
-                />
-              </div>
+              {renderAgeSelect('ageFrom', 'From', ageFrom, setAgeFrom)}
+              {renderAgeSelect('ageTo', 'To', ageTo, setAgeTo)}
             </div>
           </fieldset>
 
           <div className="space-y-2">
             <Label htmlFor="address">Pickup Address *</Label>
 
-            <div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={loadAddresses}
-                disabled={addressesLoading || isSubmitting}
-              >
-                {addressesLoading
-                  ? 'Loading addresses…'
-                  : 'Load Saved Addresses'}
-              </Button>
-            </div>
+            {addressesLoading && (
+              <p role="status" className="text-sm">
+                Loading addresses…
+              </p>
+            )}
+
+            {addressLoadError && (
+              <div className="space-y-2">
+                <p role="alert" className="text-sm text-red-600">
+                  {addressLoadError}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={busy || addressesLoading}
+                  onClick={() => void retryAddresses()}
+                >
+                  Retry loading addresses
+                </Button>
+              </div>
+            )}
+
+            {!addressesLoading && !addressLoadError && addresses.length === 0 && (
+              <p className="text-sm">
+                You have no saved addresses. Add a pickup address below.
+              </p>
+            )}
 
             <Select
               value={addressId}
               onValueChange={setAddressId}
-              disabled={
-                isSubmitting ||
-                addressesLoading ||
-                addresses.length === 0
-              }
+              disabled={busy || addressesLoading || addresses.length === 0}
               required
             >
               <SelectTrigger
                 id="address"
-                aria-invalid={Boolean(errors.address)}
+                className="w-full"
+                aria-invalid={Boolean(errors['address'])}
                 aria-describedby="address-error address-privacy"
               >
                 <SelectValue placeholder="Choose your address" />
               </SelectTrigger>
-
               <SelectContent>
                 {addresses.map((address) => (
-                  <SelectItem
-                    key={address.id}
-                    value={address.id}
-                  >
-                    {address.nickname} — {address.city}
+                  <SelectItem key={address.id} value={address.id}>
+                    {address.nickname || 'Saved address'} — {address.city}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            <FieldError
-              id="address-error"
-              message={errors.address}
-            />
+            <ErrorText id="address-error" message={errors['address']} />
 
-            <p
-              id="address-privacy"
-              className="text-xs text-muted-foreground"
-            >
-              Only your city is shown publicly. Your address is shared
-              only with the person you approve.
+            <p id="address-privacy" className="text-xs text-muted-foreground">
+              Only your city is shown publicly. Your address is shared only
+              with the person you approve.
             </p>
+
+            {!showAddressEditor && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={busy || addressesLoading}
+                onClick={() => {
+                  setAddressErrors({});
+                  setAddressSaveError('');
+                  setShowAddressEditor(true);
+                }}
+              >
+                Add new address
+              </Button>
+            )}
           </div>
 
-          <div className="space-y-2">
+          {showAddressEditor && (
+            <fieldset className="min-w-0 space-y-4 rounded-md border p-4">
+              <legend className="px-1 text-sm font-medium">
+                New pickup address
+              </legend>
+
+              {addressFields.map((field) => (
+                <div key={field.key} className="space-y-2">
+                  <Label htmlFor={`new-${field.key}`}>
+                    {field.label}{field.required ? ' *' : ''}
+                  </Label>
+                  <Input
+                    id={`new-${field.key}`}
+                    value={addressDraft[field.key]}
+                    autoComplete={
+                      field.key === 'line1'
+                        ? 'address-line1'
+                        : field.key === 'line2'
+                          ? 'address-line2'
+                          : field.key === 'city'
+                            ? 'address-level2'
+                            : field.key === 'state'
+                              ? 'address-level1'
+                              : field.key === 'postalCode'
+                                ? 'postal-code'
+                                : 'off'
+                    }
+                    required={field.required}
+                    onChange={(event) =>
+                      setAddressDraft((previous) => ({
+                        ...previous,
+                        [field.key]: event.target.value,
+                      }))
+                    }
+                    aria-invalid={Boolean(addressErrors[field.key])}
+                    aria-describedby={`new-${field.key}-error`}
+                  />
+                  <ErrorText
+                    id={`new-${field.key}-error`}
+                    message={addressErrors[field.key]}
+                  />
+                </div>
+              ))}
+
+              <ErrorText id="address-save-error" message={addressSaveError} />
+
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  type="button"
+                  onClick={() => void saveAddress()}
+                  disabled={busy}
+                >
+                  {savingAddress ? 'Saving…' : 'Save address'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => setShowAddressEditor(false)}
+                >
+                  Cancel address
+                </Button>
+              </div>
+            </fieldset>
+          )}
+
+          <div
+            className="space-y-2"
+            role="group"
+            aria-label="Item photos"
+            aria-describedby="required-photos-error"
+            aria-invalid={Boolean(errors['photos'])}
+          >
             <ItemPhotoPicker
               photos={photos}
               onChange={(selected) => {
                 setPhotos(selected);
-
                 setErrors((previous) => {
                   const next = { ...previous };
-                  delete next.photos;
+                  delete next['photos'];
                   return next;
                 });
               }}
             />
-
-            <FieldError
+            <ErrorText
               id="required-photos-error"
-              message={errors.photos}
+              message={errors['photos']}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="instructions">
-              Pickup Instructions
-            </Label>
+            <Label htmlFor="instructions">Pickup Instructions</Label>
             <Textarea
               id="instructions"
               name="instructions"
@@ -680,19 +754,17 @@ export default function PostItemPage() {
               onChange={(event) => setInstructions(event.target.value)}
               maxLength={300}
               placeholder="Optional pickup instructions"
-              aria-invalid={Boolean(errors.instructions)}
+              aria-invalid={Boolean(errors['instructions'])}
               aria-describedby="instructions-error"
             />
-            <FieldError
+            <ErrorText
               id="instructions-error"
-              message={errors.instructions}
+              message={errors['instructions']}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="availability">
-              Pickup Availability
-            </Label>
+            <Label htmlFor="availability">Pickup Availability</Label>
             <Input
               id="availability"
               name="availability"
@@ -700,23 +772,33 @@ export default function PostItemPage() {
               onChange={(event) => setAvailability(event.target.value)}
               maxLength={200}
               placeholder="Example: Weekdays after 5pm"
-              aria-invalid={Boolean(errors.availability)}
+              aria-invalid={Boolean(errors['availability'])}
               aria-describedby="availability-error"
             />
-            <FieldError
+            <ErrorText
               id="availability-error"
-              message={errors.availability}
+              message={errors['availability']}
             />
           </div>
         </fieldset>
 
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          aria-busy={isSubmitting}
-        >
-          {isSubmitting ? 'Posting…' : 'Post Item'}
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button
+            type="submit"
+            disabled={busy || addressesLoading || categoriesLoading}
+            aria-busy={isSubmitting}
+          >
+            {isSubmitting ? 'Posting…' : 'Post Item'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy}
+            onClick={() => navigate('/')}
+          >
+            Cancel
+          </Button>
+        </div>
       </form>
     </main>
   );

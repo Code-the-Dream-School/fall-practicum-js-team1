@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react';
-import mockData from '../api/mockData.json';
+import { getCategories } from '../services/itemApi';
+import type { Category } from '../services/itemApi';
 
-export type Category = {
-  id: number;
-  key: string;
-  name: string;
-};
-
-const useMocks =
-  import.meta.env['VITE_USE_MOCKED_API_CALLS'] === 'true';
+export type { Category } from '../services/itemApi';
 
 export function useCategories() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -16,56 +10,35 @@ export function useCategories() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const controller = new AbortController();
+    let active = true;
 
-    async function loadCategories() {
+    async function load() {
       try {
-        if (useMocks) {
-          setCategories(mockData.categories);
-          return;
+        const result = await getCategories();
+
+        if (active) {
+          setCategories(result);
         }
-
-        const baseUrl = (
-          import.meta.env['VITE_API_BASE_URL'] ?? ''
-        ).replace(/\/$/, '');
-
-        const response = await fetch(
-          `${baseUrl}/api/categories`,
-          {
-            credentials: 'include',
-            signal: controller.signal,
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error('Could not load categories.');
-        }
-
-        const result = await response.json();
-
-        if (!Array.isArray(result.data?.categories)) {
-          throw new Error('Unexpected category response.');
-        }
-
-        if (!controller.signal.aborted) {
-          setCategories(result.data.categories);
-        }
-      } catch {
-        if (!controller.signal.aborted) {
+      } catch (error) {
+        if (active) {
           setError(
-            'Could not load categories. Please try again.'
+            error instanceof Error
+              ? error.message
+              : 'Could not load categories. Please try again.',
           );
         }
       } finally {
-        if (!controller.signal.aborted) {
+        if (active) {
           setLoading(false);
         }
       }
     }
 
-    void loadCategories();
+    void load();
 
-    return () => controller.abort();
+    return () => {
+      active = false;
+    };
   }, []);
 
   return { categories, loading, error };
