@@ -35,3 +35,9 @@ export default interface Claim {
   };
   pickup: ClaimPickup | null; // null unless the claim is approved
 }
+
+// Responses for patched claims
+export interface PatchedClaim {
+  id: string;
+  status: string;
+}

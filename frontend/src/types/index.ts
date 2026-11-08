@@ -10,7 +10,10 @@ import type {
   Pagination,
 } from './item';
 import type Claim from './claim';
+import type { PatchedClaim } from './claim';
 import type { ItemClaim, ClaimPickup } from './claim';
+import type Message from './message';
+import type { ReadMessage } from './message';
 import type {
   ItemFilters,
   NewItem,
@@ -33,10 +36,13 @@ export type {
   Claim,
   ItemClaim,
   ClaimPickup,
+  PatchedClaim,
   ItemFilters,
   NewItem,
   NewAddress,
   AuthData,
   ProfileStats,
   UploadSignature,
+  Message,
+  ReadMessage,
 };

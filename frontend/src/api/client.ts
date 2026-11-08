@@ -14,8 +14,11 @@ import type {
   ItemShow,
   NewAddress,
   NewItem,
+  PatchedClaim,
   ProfileStats,
   UploadSignature,
+  Message,
+  ReadMessage,
 } from '@/types';
 
 if (import.meta.env['VITE_API_BASE_URL'] === undefined) {
@@ -114,7 +117,6 @@ export const getCurrentUser = async (): Promise<AuthData> => {
 };
 
 // Categories and addresses
-
 export const getCategories = async (): Promise<Category[]> => {
   try {
     const resp = await axios.get('/categories');
@@ -141,9 +143,9 @@ export const createAddress = async (body: NewAddress): Promise<Address> => {
     throw toError(error);
   }
 };
+// end Categories and addresses
 
 // Items
-
 export const getItems = async (
   filters: ItemFilters = {},
 ): Promise<ItemList> => {
@@ -172,18 +174,125 @@ export const createItem = async (body: NewItem): Promise<ItemShow> => {
     throw toError(error);
   }
 };
+// end Items
 
+// Upload routes
 export const getUploadSignature = async (): Promise<UploadSignature> => {
   try {
-    const resp = await axios.post('/uploads/signature');
+    const response = await axios.post('/uploads/signature');
+
+    return response.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+};
+// end Upload routes
+
+// Claim routes
+type CreateClaimParams = {
+  itemId: string;
+  message?: string;
+};
+export async function createClaim({
+  itemId,
+  message,
+}: CreateClaimParams): Promise<Claim> {
+  interface ClaimPayload {
+    [key: string]: string;
+  }
+
+  const payload: ClaimPayload = {};
+  if (message !== undefined && message !== '') payload['message'] = message;
+
+  try {
+    const response = await axios.post(`/items/${itemId}/claims`, payload);
+
+    return response.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+}
+
+type ItemClaimParams = {
+  itemId: string;
+  status?: string;
+};
+export async function getItemClaims({
+  itemId,
+  status,
+}: ItemClaimParams): Promise<Claim[]> {
+  interface GetItemClaimsPayload {
+    params: {
+      [key: string]: string;
+    };
+  }
+
+  let payload: Partial<GetItemClaimsPayload> = {};
+  if (status) payload = { params: { status } };
+
+  try {
+    const response = await axios.get(`/items/${itemId}/claims`, payload);
+
+    return response.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+}
+
+type UpdateClaimParams = {
+  claimId: string;
+  status: string;
+};
+export const updateClaim = async ({
+  claimId,
+  status,
+}: UpdateClaimParams): Promise<PatchedClaim> => {
+  try {
+    const resp = await axios.patch(`/claims/${claimId}`, { status });
     return resp.data.data;
   } catch (error) {
     throw toError(error);
   }
 };
 
-// Profile
+type PatchClaimParams = {
+  claimId: string;
+};
+export const cancelClaim = async ({
+  claimId,
+}: PatchClaimParams): Promise<PatchedClaim> => {
+  try {
+    const resp = await axios.patch(`/claims/${claimId}/cancel`);
+    return resp.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+};
 
+export const updateClaimNoShow = async ({
+  claimId,
+}: PatchClaimParams): Promise<PatchedClaim> => {
+  try {
+    const resp = await axios.patch(`/claims/${claimId}/no-show`);
+    return resp.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+};
+
+export const updateClaimPickedUp = async ({
+  claimId,
+}: PatchClaimParams): Promise<PatchedClaim> => {
+  try {
+    const resp = await axios.patch(`/claims/${claimId}/picked-up`);
+    return resp.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+};
+// end Claim
+
+// Profile
 export const getMyItems = async (): Promise<Item[]> => {
   try {
     const resp = await axios.get('/profile/items');
@@ -210,3 +319,46 @@ export const getMyStats = async (): Promise<ProfileStats> => {
     throw toError(error);
   }
 };
+// end Profile
+
+// Messages
+export const sendMessage = async ({
+  claimId,
+  body,
+}: {
+  claimId: string;
+  body: string;
+}): Promise<Message> => {
+  try {
+    const resp = await axios.post(`/claims/${claimId}/messages`, { body });
+    return resp.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+};
+
+type GetMessageParams = {
+  claimId: string;
+};
+export const getMessages = async ({
+  claimId,
+}: GetMessageParams): Promise<Message[]> => {
+  try {
+    const resp = await axios.get(`/claims/${claimId}/messages`);
+    return resp.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+};
+
+export const readMessage = async ({
+  claimId,
+}: GetMessageParams): Promise<ReadMessage> => {
+  try {
+    const resp = await axios.patch(`/claims/${claimId}/messages`);
+    return resp.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+};
+// end Messages
