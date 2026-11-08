@@ -280,11 +280,14 @@ export const updateClaimNoShow = async ({
   }
 };
 
+type PickedUpParams = {
+  itemId: string;
+};
 export const updateClaimPickedUp = async ({
-  claimId,
-}: PatchClaimParams): Promise<PatchedClaim> => {
+  itemId,
+}: PickedUpParams): Promise<PatchedClaim> => {
   try {
-    const resp = await axios.patch(`/claims/${claimId}/picked-up`);
+    const resp = await axios.patch(`/items/${itemId}/picked-up`);
     return resp.data.data;
   } catch (error) {
     throw toError(error);
