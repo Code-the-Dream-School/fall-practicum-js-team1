@@ -3,8 +3,8 @@ export default interface Message {
   claimId: string;
   senderId: string;
   body: string;
-  readAt: Date;
-  createdAt: Date;
+  readAt: string | null;
+  createdAt: string;
 }
 
 export interface ReadMessage {

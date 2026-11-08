@@ -10,7 +10,7 @@ import type {
   Pagination,
 } from './item';
 import type Claim from './claim';
-import type { PatchedClaim } from './claim';
+import type { CreatedClaim, PatchedClaim } from './claim';
 import type { ItemClaim, ClaimPickup } from './claim';
 import type Message from './message';
 import type { ReadMessage } from './message';
@@ -36,6 +36,7 @@ export type {
   Claim,
   ItemClaim,
   ClaimPickup,
+  CreatedClaim,
   PatchedClaim,
   ItemFilters,
   NewItem,

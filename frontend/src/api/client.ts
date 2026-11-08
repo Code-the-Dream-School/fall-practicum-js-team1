@@ -8,7 +8,9 @@ import type {
   AuthData,
   Category,
   Claim,
+  CreatedClaim,
   Item,
+  ItemClaim,
   ItemFilters,
   ItemList,
   ItemShow,
@@ -196,7 +198,7 @@ type CreateClaimParams = {
 export async function createClaim({
   itemId,
   message,
-}: CreateClaimParams): Promise<Claim> {
+}: CreateClaimParams): Promise<CreatedClaim> {
   interface ClaimPayload {
     [key: string]: string;
   }
@@ -220,7 +222,7 @@ type ItemClaimParams = {
 export async function getItemClaims({
   itemId,
   status,
-}: ItemClaimParams): Promise<Claim[]> {
+}: ItemClaimParams): Promise<ItemClaim[]> {
   interface GetItemClaimsPayload {
     params: {
       [key: string]: string;
@@ -358,7 +360,7 @@ export const readMessage = async ({
   claimId,
 }: GetMessageParams): Promise<ReadMessage> => {
   try {
-    const resp = await axios.patch(`/claims/${claimId}/messages`);
+    const resp = await axios.patch(`/claims/${claimId}/messages/read`);
     return resp.data.data;
   } catch (error) {
     throw toError(error);

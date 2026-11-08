@@ -41,3 +41,10 @@ export interface PatchedClaim {
   id: string;
   status: string;
 }
+
+// The response of POST /api/items/:id/claims
+export interface CreatedClaim {
+  id: string;
+  itemId: string;
+  status: string;
+}
