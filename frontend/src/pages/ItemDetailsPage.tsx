@@ -21,9 +21,7 @@ export default function ItemDetailsPage() {
         </p>
       )}
 
-      <h1 className="text-2xl font-semibold">
-        Item Details page
-      </h1>
+      <h1 className="text-2xl font-semibold">Item Details page</h1>
     </main>
   );
 }

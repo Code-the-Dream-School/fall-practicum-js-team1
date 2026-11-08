@@ -52,17 +52,13 @@ type UploadSignature = {
   signature: string;
 };
 
-const useMocks =
-  import.meta.env['VITE_USE_MOCKED_API_CALLS'] === 'true';
+const useMocks = import.meta.env['VITE_USE_MOCKED_API_CALLS'] === 'true';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-async function request<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`/api${path}`, {
     ...options,
     credentials: 'include',
@@ -83,11 +79,7 @@ async function request<T>(
     throw new Error(message);
   }
 
-  if (
-    !isRecord(result) ||
-    result['success'] !== true ||
-    !('data' in result)
-  ) {
+  if (!isRecord(result) || result['success'] !== true || !('data' in result)) {
     throw new Error('The server returned an unexpected response.');
   }
 
@@ -131,9 +123,7 @@ export async function getAddresses(): Promise<Address[]> {
   return result;
 }
 
-export async function createAddress(
-  address: NewAddress,
-): Promise<Address> {
+export async function createAddress(address: NewAddress): Promise<Address> {
   const result = await post<Address>('/addresses', address);
 
   if (!result || typeof result.id !== 'string') {
@@ -143,9 +133,7 @@ export async function createAddress(
   return result;
 }
 
-export async function createItem(
-  item: NewItem,
-): Promise<{ id: string }> {
+export async function createItem(item: NewItem): Promise<{ id: string }> {
   const result = await post<{ id: string }>('/items', item);
 
   if (!result || typeof result.id !== 'string' || !result.id) {
@@ -156,10 +144,7 @@ export async function createItem(
 }
 
 export async function uploadPhoto(file: File): Promise<string> {
-  const signature = await post<UploadSignature>(
-    '/uploads/signature',
-    {},
-  );
+  const signature = await post<UploadSignature>('/uploads/signature', {});
 
   if (
     !signature ||

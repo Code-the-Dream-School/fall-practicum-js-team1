@@ -24,8 +24,7 @@ import {
   SelectValue,
 } from '../components/ui/select';
 
-const useMocks =
-  import.meta.env['VITE_USE_MOCKED_API_CALLS'] === 'true';
+const useMocks = import.meta.env['VITE_USE_MOCKED_API_CALLS'] === 'true';
 
 const conditions = [
   { value: 'new', label: 'New' },
@@ -125,8 +124,9 @@ export default function PostItemPage() {
   const [addressLoadError, setAddressLoadError] = useState('');
 
   const [showAddressEditor, setShowAddressEditor] = useState(false);
-  const [addressDraft, setAddressDraft] =
-    useState<AddressDraft>({ ...emptyAddress });
+  const [addressDraft, setAddressDraft] = useState<AddressDraft>({
+    ...emptyAddress,
+  });
   const [addressErrors, setAddressErrors] = useState<Errors>({});
   const [addressSaveError, setAddressSaveError] = useState('');
   const [savingAddress, setSavingAddress] = useState(false);
@@ -144,9 +144,7 @@ export default function PostItemPage() {
   const busy = isSubmitting || savingAddress;
 
   const ageError =
-    ageFrom !== 'any' &&
-    ageTo !== 'any' &&
-    Number(ageTo) < Number(ageFrom)
+    ageFrom !== 'any' && ageTo !== 'any' && Number(ageTo) < Number(ageFrom)
       ? 'The end age must be the same as or older than the start age'
       : '';
 
@@ -159,9 +157,7 @@ export default function PostItemPage() {
 
         if (active) {
           setAddresses(result);
-          setAddressId(
-            result.find((address) => address.isDefault)?.id ?? '',
-          );
+          setAddressId(result.find((address) => address.isDefault)?.id ?? '');
         }
       } catch (error) {
         if (active) {
@@ -197,7 +193,7 @@ export default function PostItemPage() {
       setAddressId((current) =>
         result.some((address) => address.id === current)
           ? current
-          : result.find((address) => address.isDefault)?.id ?? '',
+          : (result.find((address) => address.isDefault)?.id ?? ''),
       );
     } catch (error) {
       setAddressLoadError(errorMessage(error));
@@ -207,9 +203,7 @@ export default function PostItemPage() {
   }
 
   function focusField(id: string) {
-    formRef.current
-      ?.querySelector<HTMLElement>(`#${id}`)
-      ?.focus();
+    formRef.current?.querySelector<HTMLElement>(`#${id}`)?.focus();
   }
 
   async function saveAddress() {
@@ -292,8 +286,7 @@ export default function PostItemPage() {
     if (!description.trim()) {
       next['description'] = 'Enter a description.';
     } else if (description.length > 1000) {
-      next['description'] =
-        'Description must be 1000 characters or fewer.';
+      next['description'] = 'Description must be 1000 characters or fewer.';
     }
 
     if (!categories.some((item) => item.key === category)) {
@@ -321,13 +314,10 @@ export default function PostItemPage() {
         (file) =>
           !['image/jpeg', 'image/png', 'image/webp'].includes(file.type),
       );
-      const oversized = photos.find(
-        (file) => file.size > 5 * 1024 * 1024,
-      );
+      const oversized = photos.find((file) => file.size > 5 * 1024 * 1024);
 
       if (wrongType) {
-        next['photos'] =
-          `${wrongType.name} is not a jpg, png or webp image`;
+        next['photos'] = `${wrongType.name} is not a jpg, png or webp image`;
       } else if (oversized) {
         next['photos'] = `${oversized.name} is larger than 5 MB`;
       }
@@ -339,8 +329,7 @@ export default function PostItemPage() {
     }
 
     if (availability.length > 200) {
-      next['availability'] =
-        'Availability must be 200 characters or fewer.';
+      next['availability'] = 'Availability must be 200 characters or fewer.';
     }
 
     setErrors(next);
@@ -381,12 +370,8 @@ export default function PostItemPage() {
         instructions: instructions.trim(),
         availability: availability.trim(),
         photos: uploaded,
-        ...(ageFrom !== 'any'
-          ? { childAgeMinMonths: Number(ageFrom) }
-          : {}),
-        ...(ageTo !== 'any'
-          ? { childAgeMaxMonths: Number(ageTo) }
-          : {}),
+        ...(ageFrom !== 'any' ? { childAgeMinMonths: Number(ageFrom) } : {}),
+        ...(ageTo !== 'any' ? { childAgeMaxMonths: Number(ageTo) } : {}),
       };
 
       const saved = await createItem(body);
@@ -428,9 +413,7 @@ export default function PostItemPage() {
             ))}
           </SelectContent>
         </Select>
-        {id === 'ageTo' && (
-          <ErrorText id="age-error" message={ageError} />
-        )}
+        {id === 'ageTo' && <ErrorText id="age-error" message={ageError} />}
       </div>
     );
   }
@@ -445,9 +428,8 @@ export default function PostItemPage() {
 
       {useMocks && (
         <p className="text-sm text-muted-foreground">
-          Development preview: using shared sample data.
-          New listings and addresses reset when you refresh.
-          Uploaded photos use sample images.
+          Development preview: using shared sample data. New listings and
+          addresses reset when you refresh. Uploaded photos use sample images.
         </p>
       )}
 
@@ -499,10 +481,7 @@ export default function PostItemPage() {
               aria-invalid={Boolean(errors['description'])}
               aria-describedby="description-error"
             />
-            <ErrorText
-              id="description-error"
-              message={errors['description']}
-            />
+            <ErrorText id="description-error" message={errors['description']} />
           </div>
 
           <div className="space-y-2">
@@ -562,10 +541,7 @@ export default function PostItemPage() {
                 ))}
               </SelectContent>
             </Select>
-            <ErrorText
-              id="condition-error"
-              message={errors['condition']}
-            />
+            <ErrorText id="condition-error" message={errors['condition']} />
           </div>
 
           <fieldset className="min-w-0 space-y-3">
@@ -603,11 +579,13 @@ export default function PostItemPage() {
               </div>
             )}
 
-            {!addressesLoading && !addressLoadError && addresses.length === 0 && (
-              <p className="text-sm">
-                You have no saved addresses. Add a pickup address below.
-              </p>
-            )}
+            {!addressesLoading &&
+              !addressLoadError &&
+              addresses.length === 0 && (
+                <p className="text-sm">
+                  You have no saved addresses. Add a pickup address below.
+                </p>
+              )}
 
             <Select
               value={addressId}
@@ -635,8 +613,8 @@ export default function PostItemPage() {
             <ErrorText id="address-error" message={errors['address']} />
 
             <p id="address-privacy" className="text-xs text-muted-foreground">
-              Only your city is shown publicly. Your address is shared only
-              with the person you approve.
+              Only your city is shown publicly. Your address is shared only with
+              the person you approve.
             </p>
 
             {!showAddressEditor && (
@@ -664,7 +642,8 @@ export default function PostItemPage() {
               {addressFields.map((field) => (
                 <div key={field.key} className="space-y-2">
                   <Label htmlFor={`new-${field.key}`}>
-                    {field.label}{field.required ? ' *' : ''}
+                    {field.label}
+                    {field.required ? ' *' : ''}
                   </Label>
                   <Input
                     id={`new-${field.key}`}
@@ -739,10 +718,7 @@ export default function PostItemPage() {
                 });
               }}
             />
-            <ErrorText
-              id="required-photos-error"
-              message={errors['photos']}
-            />
+            <ErrorText id="required-photos-error" message={errors['photos']} />
           </div>
 
           <div className="space-y-2">

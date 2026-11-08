@@ -8,11 +8,7 @@ type Props = {
   onChange: (photos: File[]) => void;
 };
 
-const allowedTypes = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-];
+const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
 const maxSize = 5 * 1024 * 1024;
 
@@ -51,17 +47,12 @@ function PhotoPreview({ file }: { file: File }) {
   );
 }
 
-export default function ItemPhotoPicker({
-  photos,
-  onChange,
-}: Props) {
+export default function ItemPhotoPicker({ photos, onChange }: Props) {
   const [error, setError] = useState('');
 
   return (
     <div className="space-y-3">
-      <Label htmlFor="photos">
-        Item Photos * (1–6)
-      </Label>
+      <Label htmlFor="photos">Item Photos * (1–6)</Label>
 
       <Input
         id="photos"
@@ -71,13 +62,9 @@ export default function ItemPhotoPicker({
         multiple
         aria-required="true"
         aria-invalid={Boolean(error)}
-        aria-describedby={
-          error ? 'photos-help photos-error' : 'photos-help'
-        }
+        aria-describedby={error ? 'photos-help photos-error' : 'photos-help'}
         onChange={(event) => {
-          const selected = Array.from(
-            event.target.files ?? []
-          );
+          const selected = Array.from(event.target.files ?? []);
 
           // Allow choosing the same file again after removing it.
           event.target.value = '';
@@ -93,16 +80,12 @@ export default function ItemPhotoPicker({
 
           for (const file of selected) {
             if (!allowedTypes.includes(file.type)) {
-              setError(
-                `${file.name} is not a jpg, png or webp image`
-              );
+              setError(`${file.name} is not a jpg, png or webp image`);
               return;
             }
 
             if (file.size > maxSize) {
-              setError(
-                `${file.name} is larger than 5 MB`
-              );
+              setError(`${file.name} is larger than 5 MB`);
               return;
             }
           }
@@ -112,20 +95,13 @@ export default function ItemPhotoPicker({
         }}
       />
 
-      <p
-        id="photos-help"
-        className="text-xs text-muted-foreground"
-      >
-        Choose 1–6 JPG, PNG or WebP images, up to 5 MB each.
-        The first photo is your cover.
+      <p id="photos-help" className="text-xs text-muted-foreground">
+        Choose 1–6 JPG, PNG or WebP images, up to 5 MB each. The first photo is
+        your cover.
       </p>
 
       {error && (
-        <p
-          id="photos-error"
-          role="alert"
-          className="text-sm text-red-600"
-        >
+        <p id="photos-error" role="alert" className="text-sm text-red-600">
           {error}
         </p>
       )}
@@ -144,9 +120,7 @@ export default function ItemPhotoPicker({
               </span>
             )}
 
-            <p className="break-all text-xs">
-              {file.name}
-            </p>
+            <p className="break-all text-xs">{file.name}</p>
 
             <Button
               type="button"
@@ -154,9 +128,7 @@ export default function ItemPhotoPicker({
               aria-label={`Remove ${file.name}`}
               onClick={() => {
                 onChange(
-                  photos.filter(
-                    (_, photoIndex) => photoIndex !== index
-                  )
+                  photos.filter((_, photoIndex) => photoIndex !== index),
                 );
                 setError('');
               }}
