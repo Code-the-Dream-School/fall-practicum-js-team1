@@ -295,6 +295,31 @@ export const updateClaimPickedUp = async ({
     throw toError(error);
   }
 };
+
+type ItemIdParams = {
+  itemId: string;
+};
+export const withdrawItem = async ({
+  itemId,
+}: ItemIdParams): Promise<PatchedClaim> => {
+  try {
+    const resp = await axios.patch(`/items/${itemId}/withdraw`);
+    return resp.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+};
+
+export const restoreItem = async ({
+  itemId,
+}: ItemIdParams): Promise<PatchedClaim> => {
+  try {
+    const resp = await axios.patch(`/items/${itemId}/restore`);
+    return resp.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+};
 // end Claim
 
 // Profile

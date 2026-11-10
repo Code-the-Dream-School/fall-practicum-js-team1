@@ -54,12 +54,12 @@ export const FilterBar = ({
           defaultValue={city}
           placeholder="City"
           className="bg-background pl-9"
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              handleCity(event.currentTarget.value);
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleCity(e.currentTarget.value);
             }
           }}
-          onBlur={(event) => handleCity(event.currentTarget.value)}
+          onBlur={(e) => handleCity(e.currentTarget.value)}
         />
       </div>
     </div>
