@@ -1,5 +1,4 @@
 import type { CookieOptions, Request, Response } from 'express';
-import type { AuthenticatedRequest } from '../middleware/jwtMiddleware.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'node:crypto';
@@ -109,7 +108,7 @@ export const logoff = (_req: Request, res: Response): void => {
 };
 
 export const me = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
 ): Promise<void> => {
   const userId = req.user?.id;
