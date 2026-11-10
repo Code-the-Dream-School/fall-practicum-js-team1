@@ -1,9 +1,168 @@
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 import type { AuthenticatedRequest } from '../middleware/jwtMiddleware.js';
 import { prisma } from '../config/db.prisma.js';
 import { ApiError } from '../utils/apiError.js';
-import { createItemSchema } from '../validator/item.validator.js';
+import {
+  createItemSchema,
+  getItemSchema,
+} from '../validator/item.validator.js';
+import {
+  getItemWithCoverPhoto,
+  ItemWithPhotos,
+  ItemWithCoverPhoto,
+} from '../utils/coverPhoto.js';
 
+type ItemFilterParams = {
+  NOT: [
+    {
+      status: 'withdrawn';
+    },
+  ];
+  OR?: [
+    {
+      title: {
+        contains: string;
+        mode: 'insensitive';
+      };
+    },
+    {
+      description: {
+        contains: string;
+        mode: 'insensitive';
+      };
+    },
+  ];
+  category?: {
+    key: string;
+  };
+  condition?: 'new' | 'like_new' | 'good' | 'used';
+  childAgeMinMonths?: {
+    gte: number;
+  };
+  childAgeMaxMonths?: {
+    lte: number;
+  };
+  city?: {
+    equals: string;
+    mode: 'insensitive';
+  };
+};
+
+export const getItems = async (req: Request, res: Response): Promise<void> => {
+  const result = getItemSchema.safeParse(req.query);
+
+  if (!result.success) {
+    throw new ApiError(
+      result.error.issues[0]?.message ?? 'Invalid search terms',
+      400,
+    );
+  }
+
+  const { q, category, condition, ageMin, ageMax, city, page, limit } =
+    result.data;
+
+  const whereClause: ItemFilterParams = {
+    NOT: [{ status: 'withdrawn' }],
+  };
+
+  if (q) {
+    whereClause['OR'] = [
+      {
+        title: {
+          contains: q,
+          mode: 'insensitive',
+        },
+      },
+      {
+        description: {
+          contains: q,
+          mode: 'insensitive',
+        },
+      },
+    ];
+  }
+
+  if (category) {
+    whereClause['category'] = { key: category };
+  }
+
+  if (condition) {
+    whereClause['condition'] = condition;
+  }
+
+  if (ageMin) {
+    whereClause['childAgeMinMonths'] = { gte: ageMin };
+  }
+
+  if (ageMax) {
+    whereClause['childAgeMaxMonths'] = { lte: ageMax };
+  }
+
+  if (city) {
+    whereClause['city'] = {
+      equals: city,
+      mode: 'insensitive',
+    };
+  }
+
+  const itemsRaw = await prisma.item.findMany({
+    where: whereClause,
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      condition: true,
+      childAgeMinMonths: true,
+      childAgeMaxMonths: true,
+      city: true,
+      state: true,
+      status: true,
+      category: {
+        select: {
+          key: true,
+          name: true,
+        },
+      },
+      photos: {
+        select: {
+          url: true,
+          altText: true,
+          position: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    take: limit,
+    skip: (page - 1) * limit,
+  });
+
+  const items: ItemWithCoverPhoto[] = itemsRaw.map((item: ItemWithPhotos) => {
+    return getItemWithCoverPhoto(item);
+  });
+
+  const totalItems = await prisma.item.count({
+    where: whereClause,
+  });
+  const pageCount = Math.ceil(totalItems / limit);
+  const pagination = {
+    page,
+    limit,
+    total: totalItems,
+    pages: pageCount,
+    hasPrev: page > 1,
+    hasNext: page < pageCount,
+  };
+
+  res.status(200).json({
+    success: true,
+    data: {
+      items,
+      pagination,
+    },
+  });
+};
 export const createItem = async (
   req: AuthenticatedRequest,
   res: Response,

@@ -4,14 +4,17 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
+
+// Routes
 import healthRoutes from './routes/health.routes.js';
-import helloRoutes from './routes/hello.routes.js';
 import userRoutes from './routes/user.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import categoryRoutes from './routes/category.routes.js';
 import addressRoutes from './routes/address.routes.js';
 import itemRoutes from './routes/item.routes.js';
 import messageRoutes from './routes/message.routes.js';
+
+// Middleware
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -39,7 +42,6 @@ app.use(limiter);
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/claims', messageRoutes);
-app.use('/api/hello', helloRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/items', itemRoutes);
