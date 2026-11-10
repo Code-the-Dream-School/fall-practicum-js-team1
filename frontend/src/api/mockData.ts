@@ -241,8 +241,6 @@ const itemMatches = (item: Item, filters: ItemFilters): boolean => {
   const wantedMin = filters.ageMin ?? 0;
   const wantedMax = filters.ageMax ?? Infinity;
   return !(itemMin > wantedMax || itemMax < wantedMin);
-
-
 };
 
 export const getItems = (filters: ItemFilters = {}) => {
