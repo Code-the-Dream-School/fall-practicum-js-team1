@@ -4,7 +4,9 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import {
   CLOUDINARY_UPLOAD_URL,
   MOCK_PASSWORD,
+  MockApiError,
   addAddress,
+  addClaimMessage,
   addItem,
   addUser,
   cancelClaim,
@@ -14,6 +16,7 @@ import {
   getAddresses,
   getAuthData,
   getCategories,
+  getClaimMessages,
   getFakeUploadResult,
   getItemClaims,
   getItems,
@@ -22,6 +25,7 @@ import {
   getMyStats,
   getSignedInUser,
   getUploadSignature,
+  markClaimMessagesRead,
   markNoShow,
   markPickedUp,
   restoreItem,
@@ -66,6 +70,21 @@ const answerAction = (run: () => unknown): [number, unknown] => {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Request failed';
     return [CONFLICT, failure(message)];
+  }
+};
+
+// runs a message action, and answers with the status of the error (400, 403, 404 or 409)
+const answerMessage = (
+  run: () => unknown,
+  okStatus = OK,
+): [number, unknown] => {
+  try {
+    return [okStatus, success(run())];
+  } catch (error) {
+    if (error instanceof MockApiError) {
+      return [error.status, failure(error.message)];
+    }
+    throw error;
   }
 };
 
@@ -228,6 +247,31 @@ export const setupMock = (axiosInstance: AxiosInstance) => {
   );
 
   // messages
+
+  mock.onGet(/\/claims\/[^/]+\/messages$/).reply(
+    forSignedInUser((user, config) => {
+      const claimId = (config.url || '').split('/')[2] ?? '';
+      return answerMessage(() => getClaimMessages(user, claimId));
+    }),
+  );
+
+  mock.onPost(/\/claims\/[^/]+\/messages$/).reply(
+    forSignedInUser((user, config) => {
+      const claimId = (config.url || '').split('/')[2] ?? '';
+      const body = JSON.parse(config.data);
+      return answerMessage(
+        () => addClaimMessage(user, claimId, body.body),
+        CREATED,
+      );
+    }),
+  );
+
+  mock.onPatch(/\/claims\/[^/]+\/messages\/read$/).reply(
+    forSignedInUser((user, config) => {
+      const claimId = (config.url || '').split('/')[2] ?? '';
+      return answerMessage(() => markClaimMessagesRead(user, claimId));
+    }),
+  );
 
   // one item
 

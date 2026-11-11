@@ -798,6 +798,8 @@ The claims the signed-in user has made, newest first.
 
 `pickup` is `null` unless the claim is `approved`. This is the only place a claimer receives the street address, and it stops being shared once the item is picked up.
 
+Each item has its `owner` (id and name), so the claimer can see who they are talking to without another request.
+
 ```json
 {
   "success": true,
@@ -810,6 +812,10 @@ The claims the signed-in user has made, newest first.
         "id": "550e8400-e29b-41d4-a716-446655440000",
         "title": "Baby Stroller",
         "status": "reserved",
+        "owner": {
+          "id": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
+          "name": "Jane Smith"
+        },
         "coverPhoto": {
           "url": "https://res.cloudinary.com/example/image/upload/hand-me-down/items/stroller.jpg",
           "altText": "Grey baby stroller"

@@ -3,6 +3,7 @@
 // The signed in user is saved in sessionStorage, so you stay signed in after a refresh.
 // To sign in, use any email in mockData.json and MOCK_PASSWORD.
 import mockData from './mockData.json' with { type: 'json' };
+import type { Message as MessageResponse } from '../types';
 
 export const MOCK_PASSWORD = 'Password123';
 const CSRF_TOKEN = 'mock-csrf-token';
@@ -107,6 +108,7 @@ const users: User[] = [...mockData.users];
 const addresses: Address[] = [...mockData.addresses];
 const items: Item[] = [...mockData.items];
 const claims: Claim[] = [...mockData.claims];
+const messages: MessageResponse[] = [...mockData.messages];
 
 // Users
 
@@ -194,14 +196,19 @@ const makeShortItem = (item: Item) => {
   };
 };
 
+// who owns the item, as { id, name }
+const getOwnerOfItem = (item: Item) => {
+  const owner = users.find((user) => user.id === item.ownerId);
+  return { id: item.ownerId, name: owner ? owner.name : '' };
+};
+
 // the item for the details page (still no street address or pickup instructions)
 const makeFullItem = (item: Item) => {
   const address = getAddressOfItem(item);
-  const owner = users.find((user) => user.id === item.ownerId);
   return {
     ...makeShortItem(item),
     description: item.description,
-    owner: { id: item.ownerId, name: owner ? owner.name : '' },
+    owner: getOwnerOfItem(item),
     postalCode: address.postalCode,
     photos: item.photos,
     createdAt: item.createdAt,
@@ -417,6 +424,7 @@ export const getMyClaims = (user: User, status?: string) => {
           id: item.id,
           title: item.title,
           status: item.status,
+          owner: getOwnerOfItem(item),
           coverPhoto: getCoverPhoto(item),
         },
         pickup,
@@ -598,4 +606,85 @@ export const withdrawItem = (itemId: string) => {
   item.status = 'withdrawn';
   item.reservedAt = null;
   return { id: item.id, status: item.status };
+};
+
+// Messages
+
+const MESSAGE_MAX_LENGTH = 2000;
+
+// an error that carries the status the real api would answer with
+export class MockApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
+// finds the claim, and checks that the user is the claimer or the owner of the item
+const findClaimForUser = (user: User, claimId: string): Claim => {
+  const claim = claims.find((c) => c.id === claimId);
+  if (!claim) {
+    throw new MockApiError('Claim not found', 404);
+  }
+  const item = items.find((i) => i.id === claim.itemId);
+  if (claim.claimerId !== user.id && item?.ownerId !== user.id) {
+    throw new MockApiError('You are not part of this claim', 403);
+  }
+  return claim;
+};
+
+// the messages of one claim, oldest first (GET /api/claims/:id/messages)
+export const getClaimMessages = (user: User, claimId: string) => {
+  findClaimForUser(user, claimId);
+  return messages
+    .filter((message) => message.claimId === claimId)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+};
+
+// sends a message, only while the claim is pending or approved (POST /api/claims/:id/messages)
+export const addClaimMessage = (
+  user: User,
+  claimId: string,
+  rawBody: unknown,
+) => {
+  const claim = findClaimForUser(user, claimId);
+  const body = typeof rawBody === 'string' ? rawBody.trim() : '';
+  if (body.length < 1 || body.length > MESSAGE_MAX_LENGTH) {
+    throw new MockApiError(
+      'A message must be 1 to ' + MESSAGE_MAX_LENGTH + ' characters',
+      400,
+    );
+  }
+  if (claim.status !== 'pending' && claim.status !== 'approved') {
+    throw new MockApiError('This conversation is closed', 409);
+  }
+  const message: MessageResponse = {
+    id: crypto.randomUUID(),
+    claimId,
+    senderId: user.id,
+    body,
+    readAt: null,
+    createdAt: new Date().toISOString(),
+  };
+  messages.push(message);
+  return message;
+};
+
+// marks what the other person sent as read (PATCH /api/claims/:id/messages/read)
+export const markClaimMessagesRead = (user: User, claimId: string) => {
+  findClaimForUser(user, claimId);
+  let updatedCount = 0;
+  for (const message of messages) {
+    if (
+      message.claimId === claimId &&
+      message.senderId !== user.id &&
+      message.readAt === null
+    ) {
+      message.readAt = new Date().toISOString();
+      updatedCount += 1;
+    }
+  }
+  return { updatedCount };
 };
