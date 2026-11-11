@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
@@ -15,11 +14,7 @@ import { useAuthStore } from '@/store/authStore';
 
 type ItemCondition = 'new' | 'like_new' | 'good' | 'used';
 
-type ItemStatus =
-  | 'available'
-  | 'reserved'
-  | 'picked_up'
-  | 'withdrawn';
+type ItemStatus = 'available' | 'reserved' | 'picked_up' | 'withdrawn';
 
 type ItemPhoto = {
   id: string;
@@ -53,9 +48,7 @@ type ItemDetails = {
 export default function ItemDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
-  const [selectedPhotoId, setSelectedPhotoId] = useState<
-    string | null
-  >(null);
+  const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
 
   const {
     data: item,
@@ -68,10 +61,7 @@ export default function ItemDetailsPage() {
     queryFn: async () => (await getItem(id!)) as ItemDetails,
     enabled: Boolean(id),
     retry: (failureCount, queryError) => {
-      if (
-        queryError instanceof ApiRequestError &&
-        queryError.status === 404
-      ) {
+      if (queryError instanceof ApiRequestError && queryError.status === 404) {
         return false;
       }
 
@@ -79,20 +69,13 @@ export default function ItemDetailsPage() {
     },
   });
 
-  const currentUserId = useAuthStore(
-    (state) => state.user?.id ?? null
-  );
+  const currentUserId = useAuthStore((state) => state.user?.id ?? null);
 
   if (!id) {
     return (
       <main className="mx-auto max-w-6xl px-6 py-12 text-center">
-        <h1 className="text-3xl font-bold">
-          Item not found
-        </h1>
-        <Link
-          to="/"
-          className="mt-6 inline-block text-primary underline"
-        >
+        <h1 className="text-3xl font-bold">Item not found</h1>
+        <Link to="/" className="mt-6 inline-block text-primary underline">
           Go to Home page
         </Link>
       </main>
@@ -104,24 +87,16 @@ export default function ItemDetailsPage() {
   }
 
   if (isError) {
-    if (
-      error instanceof ApiRequestError &&
-      error.status === 404
-    ) {
+    if (error instanceof ApiRequestError && error.status === 404) {
       return (
         <main className="mx-auto max-w-6xl px-6 py-12 text-center">
-          <h1 className="text-3xl font-bold">
-            Item not found
-          </h1>
+          <h1 className="text-3xl font-bold">Item not found</h1>
 
           <p className="mt-3 text-muted-foreground">
             The item you are looking for could not be found.
           </p>
 
-          <Link
-            to="/"
-            className="mt-6 inline-block text-primary underline"
-          >
+          <Link to="/" className="mt-6 inline-block text-primary underline">
             Go to Home page
           </Link>
         </main>
@@ -144,58 +119,41 @@ export default function ItemDetailsPage() {
     return null;
   }
 
-  const photos = [...item.photos].sort(
-    (a, b) => a.position - b.position
-  );
+  const photos = [...item.photos].sort((a, b) => a.position - b.position);
 
   const selectedPhoto =
-    photos.find((photo) => photo.id === selectedPhotoId) ??
-    photos[0];
+    photos.find((photo) => photo.id === selectedPhotoId) ?? photos[0];
 
   const firstName = item.owner.name.trim().split(/\s+/)[0];
 
-  const isOwner =
-    currentUserId != null &&
-    currentUserId === item.owner.id;
+  const isOwner = currentUserId != null && currentUserId === item.owner.id;
 
-  const postedDate = new Date(
-    item.createdAt
-  ).toLocaleDateString('en-US', {
+  const postedDate = new Date(item.createdAt).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
     timeZone: 'UTC',
   });
 
-  const categoryUrl = `/?category=${encodeURIComponent(
-    item.category.key
-  )}`;
+  const categoryUrl = `/?category=${encodeURIComponent(item.category.key)}`;
 
   return (
     <main className="mx-auto max-w-6xl space-y-12 px-6 py-8">
       {/* Breadcrumb */}
-      <nav
-        aria-label="Breadcrumb"
-        className="text-sm text-muted-foreground"
-      >
+      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <Link to="/" className="hover:underline">
           Browse
         </Link>
 
         <span className="mx-3">/</span>
 
-        <Link
-          to={categoryUrl}
-          className="hover:underline"
-        >
+        <Link to={categoryUrl} className="hover:underline">
           {item.category.name}
         </Link>
 
         <span className="mx-3">/</span>
 
-        <span aria-current="page">
-          {item.title}
-        </span>
+        <span aria-current="page">{item.title}</span>
       </nav>
 
       {/* Main item details */}
@@ -211,10 +169,7 @@ export default function ItemDetailsPage() {
               />
             ) : (
               <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                <ImageOff
-                  className="h-20 w-20"
-                  aria-hidden="true"
-                />
+                <ImageOff className="h-20 w-20" aria-hidden="true" />
                 <p>No photo available</p>
               </div>
             )}
@@ -224,22 +179,17 @@ export default function ItemDetailsPage() {
           {photos.length > 1 && (
             <div className="mt-3 grid grid-cols-4 gap-3">
               {photos.map((photo, index) => {
-                const isSelected =
-                  photo.id === selectedPhoto?.id;
+                const isSelected = photo.id === selectedPhoto?.id;
 
                 return (
                   <button
                     key={photo.id}
                     type="button"
-                    onClick={() =>
-                      setSelectedPhotoId(photo.id)
-                    }
+                    onClick={() => setSelectedPhotoId(photo.id)}
                     aria-label={`View photo ${index + 1}`}
                     aria-pressed={isSelected}
                     className={`aspect-square overflow-hidden rounded-md border-2 ${
-                      isSelected
-                        ? 'border-primary'
-                        : 'border-transparent'
+                      isSelected ? 'border-primary' : 'border-transparent'
                     }`}
                   >
                     <img
@@ -258,10 +208,7 @@ export default function ItemDetailsPage() {
         <section className="space-y-6">
           <div className="flex flex-wrap items-center gap-2">
             <ConditionChip condition={item.condition} />
-            <StatusChip
-              kind="item"
-              status={item.status}
-            />
+            <StatusChip kind="item" status={item.status} />
           </div>
 
           <div>
@@ -270,23 +217,18 @@ export default function ItemDetailsPage() {
             </h1>
 
             <p className="mt-3 text-muted-foreground">
-              Posted {postedDate} · {item.city},{' '}
-              {item.state}
+              Posted {postedDate} · {item.city}, {item.state}
             </p>
           </div>
 
           {/* Owner: first name only */}
           <div className="border-y py-5">
-            <p className="font-medium">
-              Shared by {firstName}
-            </p>
+            <p className="font-medium">Shared by {firstName}</p>
           </div>
 
           {/* Item attributes */}
           <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-4">
-            <dt className="font-semibold">
-              Category
-            </dt>
+            <dt className="font-semibold">Category</dt>
             <dd>
               <Link
                 to={categoryUrl}
@@ -296,19 +238,12 @@ export default function ItemDetailsPage() {
               </Link>
             </dd>
 
-            <dt className="font-semibold">
-              Age range
-            </dt>
+            <dt className="font-semibold">Age range</dt>
             <dd>
-              {formatAgeRange(
-                item.childAgeMinMonths,
-                item.childAgeMaxMonths
-              )}
+              {formatAgeRange(item.childAgeMinMonths, item.childAgeMaxMonths)}
             </dd>
 
-            <dt className="font-semibold">
-              Condition
-            </dt>
+            <dt className="font-semibold">Condition</dt>
 
             <dd className="capitalize">
               {item.condition.replaceAll('_', ' ')}
@@ -321,19 +256,11 @@ export default function ItemDetailsPage() {
               This is your item
             </p>
           ) : item.status === 'available' ? (
-            <Button
-              type="button"
-              size="lg"
-              className="w-full"
-            >
+            <Button type="button" size="lg" className="w-full">
               Request this item
             </Button>
           ) : item.status === 'reserved' ? (
-            <Button
-              type="button"
-              size="lg"
-              className="w-full"
-            >
+            <Button type="button" size="lg" className="w-full">
               Join the waiting list
             </Button>
           ) : (
@@ -346,32 +273,19 @@ export default function ItemDetailsPage() {
 
       {/* Description */}
       <section className="grid gap-6 border-t pt-10 md:grid-cols-2">
-        <h2 className="text-3xl font-semibold">
-          About this item
-        </h2>
+        <h2 className="text-3xl font-semibold">About this item</h2>
 
-        <p className="whitespace-pre-line leading-7">
-          {item.description}
-        </p>
+        <p className="whitespace-pre-line leading-7">{item.description}</p>
       </section>
 
       {/* Claim instructions */}
       <section className="rounded-lg bg-muted p-6 md:p-8">
-        <h2 className="text-2xl font-semibold">
-          How a claim works
-        </h2>
+        <h2 className="text-2xl font-semibold">How a claim works</h2>
 
         <ol className="mt-4 list-inside list-decimal space-y-3">
-          <li>
-            Request the item or join its waiting list.
-          </li>
-          <li>
-            The owner reviews requests and approves a claim.
-          </li>
-          <li>
-            Once approved, coordinate pickup privately
-            with the owner.
-          </li>
+          <li>Request the item or join its waiting list.</li>
+          <li>The owner reviews requests and approves a claim.</li>
+          <li>Once approved, coordinate pickup privately with the owner.</li>
         </ol>
 
         <p className="mt-4 text-sm text-muted-foreground">
