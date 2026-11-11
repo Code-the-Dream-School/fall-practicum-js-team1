@@ -321,7 +321,7 @@ Newest first. Withdrawn items are never returned. Reserved and picked up items a
         "title": "Baby Stroller",
         "condition": "good",
         "childAgeMinMonths": 0,
-        "childMaxAgeMonths": 24,
+        "childAgeMaxMonths": 24,
         "city": "San Rafael",
         "state": "CA",
         "status": "available",
@@ -378,7 +378,7 @@ Photos are ordered by `position`.
     },
     "condition": "good",
     "childAgeMinMonths": 0,
-    "childMaxAgeMonths": 24,
+    "childAgeMaxMonths": 24,
     "city": "San Rafael",
     "state": "CA",
     "postalCode": "94901",
@@ -416,8 +416,8 @@ The owner is always the signed-in user, never a value from the request body. The
 | description       | string | Required, up to 1000 characters                                                                                          |
 | category          | string | Required, the key of an existing category, for example `strollers`                                                       |
 | condition         | string | Required, one of `new`, `like_new`, `good`, `used`                                                                       |
-| childAgeMinMonths | number | Optional, whole number from 0 to 120, not greater than `childMaxAgeMonths`                                               |
-| childMaxAgeMonths | number | Optional, whole number from 0 to 120                                                                                     |
+| childAgeMinMonths | number | Optional, whole number from 0 to 120, not greater than `childAgeMaxMonths`                                               |
+| childAgeMaxMonths | number | Optional, whole number from 0 to 120                                                                                     |
 | addressId         | string | Required, ID of one of the user's own addresses                                                                          |
 | photos            | array  | Required, 1 to 6 objects of `url`, `publicId` and optional `altText`. Each `url` must start with our Cloudinary base URL |
 | instructions      | string | Optional, up to 300 characters                                                                                           |
@@ -432,7 +432,7 @@ The owner is always the signed-in user, never a value from the request body. The
   "category": "strollers",
   "condition": "good",
   "childAgeMinMonths": 0,
-  "childMaxAgeMonths": 24,
+  "childAgeMaxMonths": 24,
   "addressId": "a3bb189e-8bf9-4888-9912-ace4e6543002",
   "photos": [
     {
@@ -768,7 +768,7 @@ The signed-in user's own items, newest first, in the same short shape as the ite
       "title": "Baby Stroller",
       "condition": "good",
       "childAgeMinMonths": 0,
-      "childMaxAgeMonths": 24,
+      "childAgeMaxMonths": 24,
       "city": "San Rafael",
       "state": "CA",
       "status": "withdrawn",
