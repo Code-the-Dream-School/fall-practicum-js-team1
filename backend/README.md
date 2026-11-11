@@ -314,3 +314,49 @@ Prisma Studio will open in your browser and let you view and manage database rec
 ## 📄 License
 
 Educational use only.
+## Cloudinary Photo Uploads
+
+In the Cloudinary Console, select your product environment and open
+Settings > API Keys. Copy the cloud name, API key, and API secret into
+your local backend `.env`:
+
+```dotenv
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+Never commit `.env` or expose the API secret to the frontend.
+Restart the backend after changing these values.
+
+### Request an upload signature
+
+Send `POST /api/uploads/signature` with your login cookie and
+`X-CSRF-TOKEN` header.
+
+The response contains `cloudName`, `apiKey`, `timestamp`, `folder`,
+`allowedFormats`, and `signature` inside `data`.
+
+This endpoint allows 30 requests per authenticated user per 15 minutes.
+Missing upload configuration returns 503.
+
+### Upload the image
+
+Send a multipart POST directly to:
+
+https://api.cloudinary.com/v1_1/<cloudName>/image/upload
+
+Include these fields using the values returned by the signature endpoint:
+
+- `file`: the image file
+- `api_key`: `apiKey`
+- `timestamp`: `timestamp`
+- `folder`: `folder`
+- `allowed_formats`: `allowedFormats`
+- `signature`: `signature`
+
+The server fixes the folder to `hand-me-down/items` and allows JPG, PNG,
+and WebP images. Send all signed values unchanged.
+
+Use Cloudinary's returned `secure_url` and `public_id` when creating the
+item. Image files go directly to Cloudinary.

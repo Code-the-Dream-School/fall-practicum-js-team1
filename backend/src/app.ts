@@ -7,14 +7,15 @@ import rateLimit from 'express-rate-limit';
 import healthRoutes from './routes/health.routes.js';
 import helloRoutes from './routes/hello.routes.js';
 import userRoutes from './routes/user.routes.js';
+import uploadRoutes from './routes/upload.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 
-// Security & best‑practice middleware
+// Security & best-practice middleware
 app.use(helmet());
-// The browser only sends the login cookie to an origin we name, so cors needs the frontend's address.
+// The browser only sends the login cookie to an origin we name.
 app.use(
   cors({
     origin: process.env.CLIENT_URL ?? 'http://localhost:5173',
@@ -35,6 +36,7 @@ app.use(limiter);
 app.use('/api/users', userRoutes);
 app.use('/api/hello', helloRoutes);
 app.use('/api/health', healthRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 // Root route
 app.get('/', (_req, res) => {
