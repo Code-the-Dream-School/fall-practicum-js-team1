@@ -12,6 +12,8 @@ type DonationsSectionProps = {
   stats: { label: string; value: number; icon: LucideIcon }[];
   items: ComponentProps<typeof ItemCard>['item'][];
   requests: Record<string, ItemRequest[]>;
+  requestsLoading: boolean;
+  requestsError: boolean;
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
@@ -23,6 +25,8 @@ export const DonationsSection = ({
   stats,
   items,
   requests,
+  requestsLoading,
+  requestsError,
   isLoading,
   isError,
   onRetry,
@@ -60,6 +64,8 @@ export const DonationsSection = ({
               key={item.id}
               item={item}
               requests={requests[item.id] ?? []}
+              requestsLoading={requestsLoading}
+              requestsFailed={requestsError}
               actions={actions}
             />
           ))}

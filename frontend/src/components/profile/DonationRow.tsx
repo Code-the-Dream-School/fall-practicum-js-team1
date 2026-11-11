@@ -14,6 +14,9 @@ import { formatAgeRange } from '@/lib/formatAgeRange';
 type DonationRowProps = {
   item: ComponentProps<typeof ItemCard>['item'];
   requests: ItemRequest[];
+  // while the requests load or when loading them failed, an empty list must not say 'No requests yet'
+  requestsLoading: boolean;
+  requestsFailed: boolean;
   actions: DonationActions;
 };
 
@@ -39,7 +42,13 @@ const getSummary = (requests: ItemRequest[]) => {
   return pendingCount > 0 ? `${total}, ${pendingCount} waiting for you` : total;
 };
 
-export const DonationRow = ({ item, requests, actions }: DonationRowProps) => {
+export const DonationRow = ({
+  item,
+  requests,
+  requestsLoading,
+  requestsFailed,
+  actions,
+}: DonationRowProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const approved = requests.find((request) => request.status === 'approved');
@@ -119,6 +128,14 @@ export const DonationRow = ({ item, requests, actions }: DonationRowProps) => {
   const getDetails = () => {
     if (item.status === 'withdrawn') {
       return null;
+    }
+
+    if (requestsFailed) {
+      return <p>Could not load the requests for this item.</p>;
+    }
+
+    if (requestsLoading) {
+      return <p>Loading requests…</p>;
     }
 
     // a picked up item can still open its requests

@@ -67,7 +67,12 @@ export default function ProfilePage() {
 
   // who requested each of my items, the ids are in the key so a new item fetches again
   const itemIds = items.map((item) => item.id);
-  const { data: requests = {} } = useQuery({
+  const {
+    data: requests = {},
+    isLoading: requestsLoading,
+    isError: requestsError,
+    refetch: refetchRequests,
+  } = useQuery({
     queryKey: ['profile', 'requests', itemIds],
     queryFn: async () => {
       const lists = await Promise.all(
@@ -205,11 +210,14 @@ export default function ProfilePage() {
             requests={
               requests as ComponentProps<typeof DonationsSection>['requests']
             }
+            requestsLoading={requestsLoading}
+            requestsError={requestsError}
             isLoading={itemsLoading || statsLoading}
             isError={itemsError || statsError}
             onRetry={() => {
               refetchItems();
               refetchStats();
+              refetchRequests();
             }}
             onPostItem={() => navigate('/items/new')}
             actions={donationActions}

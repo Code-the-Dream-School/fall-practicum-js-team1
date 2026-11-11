@@ -44,7 +44,7 @@ const pickValid = (options: { value: string }[], value: string) => {
 export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const { data: categories } = useQuery({
+  const { data: categories, isError: categoriesError } = useQuery({
     queryKey: ['categories'],
     queryFn: getCategories,
   });
@@ -168,6 +168,12 @@ export default function HomePage() {
             </p>
           )}
         </div>
+
+        {categoriesError && (
+          <p role="alert" className="text-sm text-destructive">
+            Could not load the categories, so the category filter is empty.
+          </p>
+        )}
 
         <FilterBar
           filters={dropdowns}
