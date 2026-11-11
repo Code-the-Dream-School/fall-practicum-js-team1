@@ -165,10 +165,10 @@ docker run --name ctd-psql-fall1-practicum -e POSTGRES_USER=<username> -e POSTGR
 ##### .env Configuration
 Put the connection string in `backend/.env` as `DATABASE_URL`:
 
-**Mac**: `postgresql://<username>@localhost/hand_me_down?host=/tmp`
-**Linux**: `postgresql://<username>@localhost/hand_me_down?host=/var/run/postgresql`
-**Windows**: `postgresql://mypguser:<pg-password>@localhost/hand_me_down`
-**Docker**: `postgresql://<username>:<pg-password>@localhost:<port>/hand_me_down`
+- **Mac**: `postgresql://<username>@localhost/hand_me_down?host=/tmp`
+- **Linux**: `postgresql://<username>@localhost/hand_me_down?host=/var/run/postgresql`
+- **Windows**: `postgresql://mypguser:<pg-password>@localhost/hand_me_down`
+- **Docker**: `postgresql://<username>:<pg-password>@localhost:<port>/hand_me_down`
 
 ### Database Migration Setup
 After creating the PostgreSQL database and configuring `DATABASE_URL` in `backend/.env`, apply all database migrations.
@@ -202,6 +202,7 @@ npx prisma migrate status
 -The expected result is:
 ```text
 Database schema is up to date!
+```
 
 #### Linting
 To lint a directory or file, run this command:
