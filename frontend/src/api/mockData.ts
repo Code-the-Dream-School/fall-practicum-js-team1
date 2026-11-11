@@ -240,11 +240,7 @@ const itemMatches = (item: Item, filters: ItemFilters): boolean => {
   const itemMax = item.childAgeMaxMonths ?? Infinity;
   const wantedMin = filters.ageMin ?? 0;
   const wantedMax = filters.ageMax ?? Infinity;
-  if (itemMin > wantedMax || itemMax < wantedMin) {
-    return false;
-  }
-
-  return true;
+  return !(itemMin > wantedMax || itemMax < wantedMin);
 };
 
 export const getItems = (filters: ItemFilters = {}) => {
@@ -454,4 +450,152 @@ export const getMyStats = (user: User) => {
       pickedUp: countClaims(myClaims, 'picked_up'),
     },
   };
+};
+
+// the owner sees who requested the item (GET /api/items/:id/claims)
+export const getItemClaims = (itemId: string) => {
+  return claims
+    .filter((claim) => claim.itemId === itemId)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .map((claim) => {
+      const claimer = users.find((user) => user.id === claim.claimerId);
+      return {
+        id: claim.id,
+        itemId: claim.itemId,
+        status: claim.status,
+        message: claim.message,
+        claimer: { id: claim.claimerId, name: claimer ? claimer.name : '' },
+        createdAt: claim.createdAt,
+      };
+    });
+};
+
+// the owner approves or declines a pending claim (PATCH /api/claims/:id)
+export const decideClaim = (
+  claimId: string,
+  status: 'approved' | 'declined',
+) => {
+  const claim = claims.find((c) => c.id === claimId);
+  if (!claim || claim.status !== 'pending') {
+    throw new Error('Only a pending request can be answered');
+  }
+
+  const item = items.find((i) => i.id === claim.itemId);
+  if (!item) {
+    throw new Error('No item for claim ' + claim.id);
+  }
+
+  if (status === 'approved') {
+    const hasApproved = claims.some(
+      (c) => c.itemId === item.id && c.status === 'approved',
+    );
+    if (hasApproved) {
+      throw new Error('This item already has an approved request');
+    }
+    // an approved claim makes the item reserved
+    item.status = 'reserved';
+    item.reservedAt = new Date().toISOString();
+  }
+
+  claim.status = status;
+  claim.decidedAt = new Date().toISOString();
+  return { id: claim.id, status: claim.status };
+};
+
+// the claimer changes their mind (PATCH /api/claims/:id/cancel)
+export const cancelClaim = (claimId: string) => {
+  const claim = claims.find((c) => c.id === claimId);
+  if (!claim || (claim.status !== 'pending' && claim.status !== 'approved')) {
+    throw new Error('Only a pending or approved request can be cancelled');
+  }
+
+  // cancelling an approved claim puts the item back
+  if (claim.status === 'approved') {
+    const item = items.find((i) => i.id === claim.itemId);
+    if (item) {
+      item.status = 'available';
+      item.reservedAt = null;
+    }
+  }
+
+  claim.status = 'cancelled';
+  return { id: claim.id, status: claim.status };
+};
+
+// the owner marks the approved request as picked up (PATCH /api/items/:id/picked-up)
+export const markPickedUp = (itemId: string) => {
+  const item = items.find((i) => i.id === itemId);
+  if (!item || item.status !== 'reserved') {
+    throw new Error('Only a reserved item can be marked as picked up');
+  }
+
+  const now = new Date().toISOString();
+  claims
+    .filter((claim) => claim.itemId === itemId)
+    .forEach((claim) => {
+      if (claim.status === 'approved') {
+        claim.status = 'picked_up';
+        claim.pickedUpAt = now;
+      } else if (claim.status === 'pending') {
+        // everyone still waiting is told no
+        claim.status = 'declined';
+        claim.decidedAt = now;
+      }
+    });
+
+  item.status = 'picked_up';
+  item.pickedUpAt = now;
+  return { id: item.id, status: item.status };
+};
+
+// the approved person did not show up (PATCH /api/claims/:id/no-show)
+export const markNoShow = (claimId: string) => {
+  const claim = claims.find((c) => c.id === claimId);
+  if (!claim || claim.status !== 'approved') {
+    throw new Error('Only an approved request can be marked as a no-show');
+  }
+
+  const item = items.find((i) => i.id === claim.itemId);
+  if (item) {
+    item.status = 'available';
+    item.reservedAt = null;
+  }
+
+  claim.status = 'no_show';
+  return { id: claim.id, status: claim.status };
+};
+
+// brings a withdrawn item back
+export const restoreItem = (itemId: string) => {
+  const item = items.find((i) => i.id === itemId);
+  if (!item || item.status !== 'withdrawn') {
+    throw new Error('Only a withdrawn item can be restored');
+  }
+
+  item.status = 'available';
+  return { id: item.id, status: item.status };
+};
+
+// the owner takes the item down (PATCH /api/items/:id/withdraw)
+export const withdrawItem = (itemId: string) => {
+  const item = items.find((i) => i.id === itemId);
+  if (!item || (item.status !== 'available' && item.status !== 'reserved')) {
+    throw new Error('Only an available or reserved item can be withdrawn');
+  }
+
+  const now = new Date().toISOString();
+  claims
+    .filter((claim) => claim.itemId === itemId)
+    .forEach((claim) => {
+      if (claim.status === 'pending') {
+        claim.status = 'declined';
+        claim.decidedAt = now;
+      } else if (claim.status === 'approved') {
+        claim.status = 'cancelled';
+      }
+    });
+
+  item.status = 'withdrawn';
+  item.reservedAt = null;
+  return { id: item.id, status: item.status };
 };

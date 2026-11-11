@@ -17,9 +17,9 @@ export const HomeHero = ({
   onSearch,
   onPopularClick,
 }: HomeHeroProps) => {
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const text = new FormData(event.currentTarget).get('q');
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const text = new FormData(e.currentTarget).get('q');
     onSearch(String(text).trim());
   };
 
