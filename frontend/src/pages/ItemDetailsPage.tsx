@@ -4,12 +4,14 @@ import { Link, useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ImageOff } from 'lucide-react';
 
+import { ApiRequestError, getItem } from '@/api/client';
 import ItemDetailsSkeleton from '@/components/ItemDetailsSkeleton';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { ConditionChip } from '@/components/ui/ConditionChip';
 import { StatusChip } from '@/components/ui/StatusChip';
 import { Button } from '@/components/ui/button';
 import { formatAgeRange } from '@/lib/formatAgeRange';
+import { useAuthStore } from '@/store/authStore';
 
 type ItemCondition = 'new' | 'like_new' | 'good' | 'used';
 
@@ -48,82 +50,6 @@ type ItemDetails = {
   createdAt: string;
 };
 
-type ItemApiResponse = {
-  success: boolean;
-  data?: ItemDetails;
-  message?: string;
-};
-
-type CurrentUserResponse = {
-  success: boolean;
-  data?: {
-    user: {
-      id: string;
-    };
-  };
-};
-
-class ApiError extends Error {
-  status: number;
-
-  constructor(message: string, status: number) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-  }
-}
-
-async function fetchItemDetails(
-  id: string
-): Promise<ItemDetails> {
-  const response = await fetch(
-    `/api/items/${encodeURIComponent(id)}`
-  );
-
-  if (!response.ok) {
-    if (response.status === 404) {
-      throw new ApiError('Item not found', 404);
-    }
-
-    throw new ApiError(
-      'Unable to load item details. Please try again.',
-      response.status
-    );
-  }
-
-  const result: ItemApiResponse = await response.json();
-
-  if (!result.success || !result.data) {
-    throw new Error(
-      result.message || 'Unable to load item details.'
-    );
-  }
-
-  return result.data;
-}
-
-// The endpoint is optional for guests.
-// A failed authentication check does not block item details.
-async function fetchCurrentUserId(): Promise<string | null> {
-  const response = await fetch('/api/users/me', {
-    credentials: 'include',
-  });
-
-  if (response.status === 401 || response.status === 403) {
-    return null;
-  }
-
-  if (!response.ok) {
-    return null;
-  }
-
-  const result: CurrentUserResponse = await response.json();
-
-  return result.success
-    ? result.data?.user.id ?? null
-    : null;
-}
-
 export default function ItemDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
@@ -137,13 +63,13 @@ export default function ItemDetailsPage() {
     isError,
     error,
     refetch,
-  } = useQuery({
+  } = useQuery<ItemDetails>({
     queryKey: ['item', id],
-    queryFn: () => fetchItemDetails(id!),
+    queryFn: async () => (await getItem(id!)) as ItemDetails,
     enabled: Boolean(id),
     retry: (failureCount, queryError) => {
       if (
-        queryError instanceof ApiError &&
+        queryError instanceof ApiRequestError &&
         queryError.status === 404
       ) {
         return false;
@@ -153,12 +79,9 @@ export default function ItemDetailsPage() {
     },
   });
 
-  const { data: currentUserId } = useQuery({
-    queryKey: ['current-user-id'],
-    queryFn: fetchCurrentUserId,
-    retry: false,
-    staleTime: 60_000,
-  });
+  const currentUserId = useAuthStore(
+    (state) => state.user?.id ?? null
+  );
 
   if (!id) {
     return (
@@ -182,7 +105,7 @@ export default function ItemDetailsPage() {
 
   if (isError) {
     if (
-      error instanceof ApiError &&
+      error instanceof ApiRequestError &&
       error.status === 404
     ) {
       return (
@@ -386,6 +309,7 @@ export default function ItemDetailsPage() {
             <dt className="font-semibold">
               Condition
             </dt>
+
             <dd className="capitalize">
               {item.condition.replaceAll('_', ' ')}
             </dd>
