@@ -5,6 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
+    csrfToken: string;
   };
 }
 
@@ -44,7 +45,7 @@ export const jwtMiddleware = async (
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET) as UserPayload;
 
-    req.user = { id: decoded.id };
+    req.user = { id: decoded.id, csrfToken: decoded.csrfToken };
 
     if (['POST', 'PATCH', 'PUT', 'DELETE', 'CONNECT'].includes(req.method)) {
       if (req.get('X-CSRF-TOKEN') != decoded.csrfToken) {

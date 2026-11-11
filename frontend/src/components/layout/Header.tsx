@@ -70,7 +70,7 @@ export default function Header() {
     try {
       // Notify backend to end the session.
       // A 401 response is treated as success by logoutUser.
-      await logoutUser(csrfToken);
+      await logoutUser();
 
       finishLogout();
     } catch (error) {
