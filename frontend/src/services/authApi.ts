@@ -1,128 +1,78 @@
+// The login code calls these functions. They go through the api client, so the
+// mock switch (VITE_USE_MOCKED_API_CALLS) reaches login too.
+import {
+  ApiRequestError,
+  getCurrentUser as getCurrentUserFromApi,
+  logoffUser,
+  logonUser,
+  registerUser as registerUserInApi,
+} from '@/api/client';
+import type { AuthData } from '@/types';
 import type { RegisterFormValues } from '@/schemas/registerSchema';
 import type { LoginFormValues } from '@/schemas/loginSchema';
-import type { AuthUser } from '@/store/authStore';
+
+const CONFLICT = 409;
+const UNAUTHORIZED = 401;
 
 // Authentication result
-export type AuthResponse = {
-  user: AuthUser;
-  csrfToken: string;
+export type AuthResponse = AuthData;
+
+const hasStatus = (error: unknown, status: number): boolean => {
+  return error instanceof ApiRequestError && error.status === status;
 };
 
 // Registration
-export async function registerUser(
+export const registerUser = async (
   data: RegisterFormValues,
-): Promise<AuthResponse> {
-  const response = await fetch('/api/users/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-    body: JSON.stringify({
+): Promise<AuthResponse> => {
+  try {
+    return await registerUserInApi({
       name: data.name,
       email: data.email,
       password: data.password,
-    }),
-  });
-
-  if (response.status === 409) {
-    throw new Error('That email is already registered');
+    });
+  } catch (error) {
+    if (hasStatus(error, CONFLICT)) {
+      throw new Error('That email is already registered');
+    }
+    throw error;
   }
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response));
-  }
-
-  return parseAuthResponse(await response.json());
-}
+};
 
 // Login
-export async function loginUser(data: LoginFormValues): Promise<AuthResponse> {
-  const response = await fetch('/api/users/logon', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-    body: JSON.stringify(data),
-  });
-
-  if (response.status === 401) {
-    throw new Error('Incorrect email or password');
-  }
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response));
-  }
-
-  return parseAuthResponse(await response.json());
-}
-
-// Logout
-export async function logoutUser(csrfToken: string): Promise<void> {
-  const response = await fetch('/api/users/logoff', {
-    method: 'POST',
-    headers: {
-      'X-CSRF-TOKEN': csrfToken,
-    },
-    credentials: 'include',
-  });
-
-  // A 401 means the session has already expired.
-  // Treat it as a successful logout.
-  if (!response.ok && response.status !== 401) {
-    throw new Error(await getErrorMessage(response));
-  }
-}
-
-// Check current session
-export async function getCurrentUser(): Promise<AuthResponse | null> {
-  const response = await fetch('/api/users/me', {
-    method: 'GET',
-    credentials: 'include',
-  });
-
-  if (response.status === 401) {
-    return null;
-  }
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response));
-  }
-
-  return parseAuthResponse(await response.json());
-}
-
-// Extract an API error message
-async function getErrorMessage(response: Response): Promise<string> {
+export const loginUser = async (
+  data: LoginFormValues,
+): Promise<AuthResponse> => {
   try {
-    const result = await response.json();
-
-    return (
-      result.message ||
-      result.error ||
-      'Something went wrong. Please try again.'
-    );
-  } catch {
-    return 'Something went wrong. Please try again.';
+    return await logonUser(data);
+  } catch (error) {
+    if (hasStatus(error, UNAUTHORIZED)) {
+      throw new Error('Incorrect email or password');
+    }
+    throw error;
   }
-}
+};
 
-// Validate the authentication response
-function parseAuthResponse(result: unknown): AuthResponse {
-  const data =
-    typeof result === 'object' && result !== null && 'data' in result
-      ? result.data
-      : null;
-
-  if (
-    typeof data !== 'object' ||
-    data === null ||
-    !('user' in data) ||
-    !('csrfToken' in data)
-  ) {
-    throw new Error('Invalid authentication response');
+// Logout, The client already sends the csrf token it kept at login, so none is passed in.
+export const logoutUser = async (): Promise<void> => {
+  try {
+    await logoffUser();
+  } catch (error) {
+    // A 401 means the session has already expired. Treat it as a successful logout.
+    if (!hasStatus(error, UNAUTHORIZED)) {
+      throw error;
+    }
   }
+};
 
-  return data as AuthResponse;
-}
+// Check current session, the user, or null when nobody is signed in
+export const getCurrentUser = async (): Promise<AuthResponse | null> => {
+  try {
+    return await getCurrentUserFromApi();
+  } catch (error) {
+    if (hasStatus(error, UNAUTHORIZED)) {
+      return null;
+    }
+    throw error;
+  }
+};

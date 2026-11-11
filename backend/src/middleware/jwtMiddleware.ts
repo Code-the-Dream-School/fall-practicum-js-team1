@@ -1,4 +1,3 @@
-
 import jwt, { type JwtPayload } from 'jsonwebtoken';
 import type { RequestHandler } from 'express';
 import { prisma } from '../config/db.prisma.js';

@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react';
 import { useSearchParams } from 'react-router';
-import { getCategories, getItems } from '@/api/mockData';
+import { useQuery } from '@tanstack/react-query';
+import { getCategories, getItems } from '@/api/client';
 import { ActiveFilters } from '@/components/home/ActiveFilters';
 import { FilterBar } from '@/components/home/FilterBar';
 import { HomeHero } from '@/components/home/HomeHero';
@@ -12,11 +13,6 @@ const POPULAR_COUNT = 3;
 const ONE_YEAR = 12;
 const THREE_YEARS = 36;
 const FIVE_YEARS = 60;
-
-const categoryOptions = getCategories().map((category) => ({
-  value: category.key,
-  label: category.name,
-}));
 
 const conditionOptions = [
   { value: 'new', label: 'New' },
@@ -47,13 +43,23 @@ const pickValid = (options: { value: string }[], value: string) => {
 
 export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const { data: categories, isError: categoriesError } = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+  });
+  const categoryOptions = (categories ?? []).map((category) => ({
+    value: category.key,
+    label: category.name,
+  }));
+
   const searchText = searchParams.get('q') || '';
   const city = searchParams.get('city') || '';
   const page = Math.max(Number(searchParams.get('page')) || 1, 1);
-  const category = pickValid(
-    categoryOptions,
-    searchParams.get('category') || '',
-  );
+  const categoryParam = searchParams.get('category') || '';
+  const category = categories
+    ? pickValid(categoryOptions, categoryParam)
+    : categoryParam;
   const condition = pickValid(
     conditionOptions,
     searchParams.get('condition') || '',
@@ -61,7 +67,7 @@ export default function HomePage() {
   const age = pickValid(ageOptions, searchParams.get('age') || '');
   const ageOption = ageOptions.find((option) => option.value === age);
 
-  const { items, pagination } = getItems({
+  const filters = {
     q: searchText,
     category,
     condition,
@@ -70,11 +76,24 @@ export default function HomePage() {
     ageMax: ageOption?.ageMax,
     page: 1,
     limit: page * PAGE_SIZE,
+  };
+
+  // the filters are in the key, so changing a filter fetches again
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ['items', filters],
+    queryFn: () => getItems(filters),
+    placeholderData: (previous) => previous,
   });
 
-  const isLoading = false;
-  const isError = false;
-  const refetch = () => {};
+  const items = data?.items ?? [];
+  const pagination = data?.pagination ?? {
+    page: 1,
+    limit: PAGE_SIZE,
+    total: 0,
+    pages: 0,
+    hasNext: false,
+    hasPrev: false,
+  };
 
   const setParam = (key: string, value: string) => {
     const next = new URLSearchParams(searchParams);
@@ -149,6 +168,12 @@ export default function HomePage() {
             </p>
           )}
         </div>
+
+        {categoriesError && (
+          <p role="alert" className="text-sm text-destructive">
+            Could not load the categories, so the category filter is empty.
+          </p>
+        )}
 
         <FilterBar
           filters={dropdowns}
