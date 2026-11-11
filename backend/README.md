@@ -314,6 +314,7 @@ Prisma Studio will open in your browser and let you view and manage database rec
 ## 📄 License
 
 Educational use only.
+
 ## Cloudinary Photo Uploads
 
 In the Cloudinary Console, select your product environment and open
