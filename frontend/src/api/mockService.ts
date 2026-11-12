@@ -7,20 +7,27 @@ import {
   addAddress,
   addItem,
   addUser,
+  cancelClaim,
+  decideClaim,
   findItem,
   findUserByEmail,
   getAddresses,
   getAuthData,
   getCategories,
   getFakeUploadResult,
+  getItemClaims,
   getItems,
   getMyClaims,
   getMyItems,
   getMyStats,
   getSignedInUser,
   getUploadSignature,
+  markNoShow,
+  markPickedUp,
+  restoreItem,
   signIn,
   signOut,
+  withdrawItem,
 } from './mockData';
 import type { User } from './mockData';
 
@@ -50,6 +57,16 @@ const forSignedInUser = (
     }
     return handler(user, config);
   };
+};
+
+// runs a claim action, and answers 409 with the message when the rules do not allow it
+const answerAction = (run: () => unknown): [number, unknown] => {
+  try {
+    return [OK, success(run())];
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Request failed';
+    return [CONFLICT, failure(message)];
+  }
 };
 
 export const setupMock = (axiosInstance: AxiosInstance) => {
@@ -157,6 +174,60 @@ export const setupMock = (axiosInstance: AxiosInstance) => {
       return [OK, success(getMyStats(user))];
     }),
   );
+
+  // claims
+
+  mock.onGet(/\/items\/[^/]+\/claims$/).reply(
+    forSignedInUser((_user, config) => {
+      const itemId = (config.url || '').split('/')[2] ?? '';
+      return [OK, success(getItemClaims(itemId))];
+    }),
+  );
+
+  mock.onPatch(/\/claims\/[^/]+\/cancel$/).reply(
+    forSignedInUser((_user, config) => {
+      const claimId = (config.url || '').split('/')[2] ?? '';
+      return answerAction(() => cancelClaim(claimId));
+    }),
+  );
+
+  mock.onPatch(/\/claims\/[^/]+\/no-show$/).reply(
+    forSignedInUser((_user, config) => {
+      const claimId = (config.url || '').split('/')[2] ?? '';
+      return answerAction(() => markNoShow(claimId));
+    }),
+  );
+
+  mock.onPatch(/\/claims\/[^/]+$/).reply(
+    forSignedInUser((_user, config) => {
+      const claimId = (config.url || '').split('/')[2] ?? '';
+      const body = JSON.parse(config.data);
+      return answerAction(() => decideClaim(claimId, body.status));
+    }),
+  );
+
+  mock.onPatch(/\/items\/[^/]+\/picked-up$/).reply(
+    forSignedInUser((_user, config) => {
+      const itemId = (config.url || '').split('/')[2] ?? '';
+      return answerAction(() => markPickedUp(itemId));
+    }),
+  );
+
+  mock.onPatch(/\/items\/[^/]+\/withdraw$/).reply(
+    forSignedInUser((_user, config) => {
+      const itemId = (config.url || '').split('/')[2] ?? '';
+      return answerAction(() => withdrawItem(itemId));
+    }),
+  );
+
+  mock.onPatch(/\/items\/[^/]+\/restore$/).reply(
+    forSignedInUser((_user, config) => {
+      const itemId = (config.url || '').split('/')[2] ?? '';
+      return answerAction(() => restoreItem(itemId));
+    }),
+  );
+
+  // messages
 
   // one item
 

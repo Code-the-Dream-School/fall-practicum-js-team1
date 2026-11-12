@@ -10,6 +10,8 @@ import userRoutes from './routes/user.routes.js';
 import itemRoutes from './routes/item.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import categoryRoutes from '../src/routes/category.routes.js';
+import addressRoutes from '../src/routes/address.routes.js';
 
 const app = express();
 
@@ -37,6 +39,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/hello', helloRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/items', itemRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/addresses', addressRoutes);
 
 // Root route
 app.get('/', (_req, res) => {

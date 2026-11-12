@@ -130,5 +130,7 @@ export const me = async (
     throw new ApiError('Not authenticated', 401);
   }
 
-  res.status(200).json({ success: true, data: { user } });
+  res
+    .status(200)
+    .json({ success: true, data: { user, csrfToken: req.user?.csrfToken } });
 };
