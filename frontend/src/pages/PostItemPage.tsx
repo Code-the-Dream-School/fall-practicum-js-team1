@@ -8,8 +8,8 @@ import {
   createItem,
   getAddresses,
   uploadPhoto,
-} from '../services/itemApi';
-import type { Address, NewAddress, NewItem } from '../services/itemApi';
+} from '@/api/client';
+import type { Address, NewAddress, NewItem } from '@/types';
 import ItemPhotoPicker from '../components/ItemPhotoPicker';
 
 import { Button } from '../components/ui/button';
@@ -139,7 +139,9 @@ export default function PostItemPage() {
   const messageRef = useRef<HTMLParagraphElement>(null);
   const submitLock = useRef(false);
   const addressSaveLock = useRef(false);
-  const uploadedPhotos = useRef(new WeakMap<File, string>());
+  const uploadedPhotos = useRef(
+    new WeakMap<File, { url: string; publicId: string }>(),
+  );
 
   const busy = isSubmitting || savingAddress;
 
@@ -238,6 +240,7 @@ export default function PostItemPage() {
         city: addressDraft.city.trim(),
         state: addressDraft.state.trim(),
         postalCode: addressDraft.postalCode.trim(),
+        country: 'US',
       };
 
       const saved = await createAddress(body);
@@ -348,15 +351,15 @@ export default function PostItemPage() {
       const uploaded: NewItem['photos'] = [];
 
       for (const [index, file] of photos.entries()) {
-        let url = uploadedPhotos.current.get(file);
+        let photo = uploadedPhotos.current.get(file);
 
-        if (!url) {
-          url = await uploadPhoto(file);
-          uploadedPhotos.current.set(file, url);
+        if (!photo) {
+          photo = await uploadPhoto(file);
+          uploadedPhotos.current.set(file, photo);
         }
 
         uploaded.push({
-          url,
+          ...photo,
           altText: `${title.trim()} photo ${index + 1}`,
         });
       }
