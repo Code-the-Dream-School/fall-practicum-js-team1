@@ -9,6 +9,8 @@ import helloRoutes from './routes/hello.routes.js';
 import userRoutes from './routes/user.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import categoryRoutes from '../src/routes/category.routes.js';
+import addressRoutes from '../src/routes/address.routes.js';
 
 const app = express();
 
@@ -35,6 +37,8 @@ app.use(limiter);
 app.use('/api/users', userRoutes);
 app.use('/api/hello', helloRoutes);
 app.use('/api/health', healthRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/addresses', addressRoutes);
 
 // Root route
 app.get('/', (_req, res) => {
