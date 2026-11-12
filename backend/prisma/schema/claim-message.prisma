@@ -1,0 +1,15 @@
+model ClaimMessage {
+  id        String    @id @default(uuid()) @db.Uuid
+  claimId   String    @map("claim_id") @db.Uuid
+  senderId  String    @map("sender_id") @db.Uuid
+  body      String
+  readAt    DateTime? @map("read_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  claim  Claim @relation("ClaimMessages", fields: [claimId], references: [id], onDelete: Restrict)
+  sender User  @relation("ClaimMessageSender", fields: [senderId], references: [id], onDelete: Restrict)
+
+  @@index([claimId, createdAt])
+  @@map("claim_messages")
+}
