@@ -10,7 +10,7 @@ describe('createItemSchema - Cloudinary photos', () => {
   const validItem = {
     title: 'Baby stroller',
     description: 'A gently used stroller',
-    categoryKey: 'baby',
+    category: 'baby',
     condition: 'good',
     addressId: '550e8400-e29b-41d4-a716-446655440000',
     photos: [
