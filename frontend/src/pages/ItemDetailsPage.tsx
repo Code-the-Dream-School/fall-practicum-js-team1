@@ -68,6 +68,14 @@ export default function ItemDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const state: unknown = location.state;
+
+  const justPosted =
+    typeof state === 'object' &&
+    state !== null &&
+    'message' in state &&
+    state.message === 'Your item was posted';
+
   const queryClient = useQueryClient();
 
   const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
@@ -81,7 +89,6 @@ export default function ItemDetailsPage() {
   const currentUserId = useAuthStore((state) => state.user?.id ?? null);
   const isCheckingSession = useAuthStore((state) => state.isCheckingSession);
 
-  // Load item details
   const {
     data: item,
     isPending,
@@ -101,7 +108,6 @@ export default function ItemDetailsPage() {
     },
   });
 
-  // Load existing claims for the signed-in user
   const {
     data: myClaims = [],
     isPending: isClaimsPending,
@@ -123,7 +129,6 @@ export default function ItemDetailsPage() {
   const currentClaim =
     submittedClaim?.itemId === id ? submittedClaim : existingClaim;
 
-  // Submit a new claim
   const claimMutation = useMutation({
     mutationFn: () =>
       createClaim({
@@ -161,7 +166,6 @@ export default function ItemDetailsPage() {
     },
   });
 
-  // Handle Request button click
   const handleRequestClick = () => {
     if (isCheckingSession) {
       return;
@@ -272,7 +276,15 @@ export default function ItemDetailsPage() {
 
   return (
     <main className="mx-auto max-w-6xl space-y-12 px-6 py-8">
-      {/* Breadcrumb */}
+      {justPosted && (
+        <p
+          role="status"
+          className="rounded-md border border-green-300 p-3 text-green-700"
+        >
+          Your item was posted
+        </p>
+      )}
+
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <Link to="/" className="hover:underline">
           Browse
@@ -289,9 +301,7 @@ export default function ItemDetailsPage() {
         <span aria-current="page">{item.title}</span>
       </nav>
 
-      {/* Main item details */}
       <div className="grid gap-8 md:grid-cols-2">
-        {/* Photo gallery */}
         <section aria-label="Item photos">
           <div className="flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-muted">
             {selectedPhoto ? (
@@ -308,7 +318,6 @@ export default function ItemDetailsPage() {
             )}
           </div>
 
-          {/* Thumbnails */}
           {photos.length > 1 && (
             <div className="mt-3 grid grid-cols-4 gap-3">
               {photos.map((photo, index) => {
@@ -337,7 +346,6 @@ export default function ItemDetailsPage() {
           )}
         </section>
 
-        {/* Item information */}
         <section className="space-y-6">
           <div className="flex flex-wrap items-center gap-2">
             <ConditionChip condition={item.condition} />
@@ -354,12 +362,10 @@ export default function ItemDetailsPage() {
             </p>
           </div>
 
-          {/* Owner */}
           <div className="border-y py-5">
             <p className="font-medium">Shared by {firstName}</p>
           </div>
 
-          {/* Item attributes */}
           <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-4">
             <dt className="font-semibold">Category</dt>
             <dd>
@@ -382,7 +388,6 @@ export default function ItemDetailsPage() {
             </dd>
           </dl>
 
-          {/* JIRA-45: Claim action */}
           {isOwner ? (
             <p className="rounded-md bg-muted px-4 py-3 text-center font-medium">
               This is your item
@@ -428,14 +433,12 @@ export default function ItemDetailsPage() {
         </section>
       </div>
 
-      {/* Description */}
       <section className="grid gap-6 border-t pt-10 md:grid-cols-2">
         <h2 className="text-3xl font-semibold">About this item</h2>
 
         <p className="whitespace-pre-line leading-7">{item.description}</p>
       </section>
 
-      {/* Claim instructions */}
       <section className="rounded-lg bg-muted p-6 md:p-8">
         <h2 className="text-2xl font-semibold">How a claim works</h2>
 
@@ -450,7 +453,6 @@ export default function ItemDetailsPage() {
         </p>
       </section>
 
-      {/* JIRA-45: Request dialog */}
       <Dialog
         open={isDialogOpen}
         onOpenChange={(open) => {
