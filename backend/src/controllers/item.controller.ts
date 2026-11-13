@@ -45,7 +45,7 @@ export const createItem = async (
     });
 
     if (!category) {
-      throw new ApiError('Category not found', 400);
+      throw new ApiError('Category not found', 404);
     }
     //Make sure this address belongs to the signed in user
     const address = await tx.address.findFirst({
