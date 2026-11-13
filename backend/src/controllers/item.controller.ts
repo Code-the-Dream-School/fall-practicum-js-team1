@@ -26,7 +26,7 @@ export const createItem = async (
   const {
     title,
     description,
-    categoryKey,
+    category: categoryKey,
     condition,
     childAgeMinMonths,
     childAgeMaxMonths,
