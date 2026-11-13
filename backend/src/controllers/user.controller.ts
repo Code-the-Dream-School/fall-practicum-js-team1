@@ -1,5 +1,4 @@
 import type { CookieOptions, Request, Response } from 'express';
-import type { AuthenticatedRequest } from '../middleware/jwtMiddleware.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'node:crypto';
@@ -10,6 +9,7 @@ import { loginSchema, registerSchema } from '../validator/user.validator.js';
 
 const SALT_ROUNDS = 10;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 const cookieFlags: CookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
@@ -21,21 +21,27 @@ const setJwtCookie = (_req: Request, res: Response, user: { id: string }) => {
     id: user.id,
     csrfToken: randomUUID(),
   };
+
   const secret = process.env.JWT_SECRET;
 
   if (!secret) {
     throw new Error('JWT_SECRET is not set');
   }
 
-  const token = jwt.sign(payload, secret, { expiresIn: ONE_DAY_MS / 1000 });
+  const token = jwt.sign(payload, secret, {
+    expiresIn: ONE_DAY_MS / 1000,
+  });
 
-  res.cookie('jwt', token, { ...cookieFlags, maxAge: ONE_DAY_MS });
+  res.cookie('jwt', token, {
+    ...cookieFlags,
+    maxAge: ONE_DAY_MS,
+  });
 
   return payload.csrfToken;
 };
 
 export const register = async (req: Request, res: Response): Promise<void> => {
-  // check the body
+  // Validate the request body
   const result = registerSchema.safeParse(req.body);
 
   if (!result.success) {
@@ -43,15 +49,26 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   }
 
   const { name, email, password } = result.data;
-  // hash the password
+
+  // Hash the password
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  // save the user, and turn "email already taken" into a 409
+  // Save the user and handle duplicate email errors
   let user;
+
   try {
     user = await prisma.user.create({
-      data: { name, email, passwordHash },
-      select: { id: true, name: true, email: true, role: true },
+      data: {
+        name,
+        email,
+        passwordHash,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
     });
   } catch (error) {
     if (
@@ -60,18 +77,24 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     ) {
       throw new ApiError('That email is already registered', 409);
     }
+
     throw error;
   }
 
-  // sign the user in
+  // Sign in the newly registered user
   const csrfToken = setJwtCookie(req, res, user);
 
-  // the response shape from the API doc
-  res.status(201).json({ success: true, data: { user, csrfToken } });
+  res.status(201).json({
+    success: true,
+    data: {
+      user,
+      csrfToken,
+    },
+  });
 };
 
 export const logon = async (req: Request, res: Response): Promise<void> => {
-  // check the body
+  // Validate the request body
   const result = loginSchema.safeParse(req.body);
 
   if (!result.success) {
@@ -79,19 +102,25 @@ export const logon = async (req: Request, res: Response): Promise<void> => {
   }
 
   const { email, password } = result.data;
-  // find the user
+
+  // Find the user
   const found = await prisma.user.findUnique({
     where: { email },
   });
-  // compare, and use one message for both failures
+
+  // Verify the password
   const passwordMatches = found
     ? await bcrypt.compare(password, found.passwordHash)
     : false;
+
   if (!found || !passwordMatches) {
     throw new ApiError('Invalid email or password', 401);
   }
-  // sign in, and send back the user without the hash
+
+  // Sign in and generate a CSRF token
   const csrfToken = setJwtCookie(req, res, found);
+
+  // Return user information without the password hash
   const user = {
     id: found.id,
     name: found.name,
@@ -99,29 +128,40 @@ export const logon = async (req: Request, res: Response): Promise<void> => {
     role: found.role,
   };
 
-  res.status(200).json({ success: true, data: { user, csrfToken } });
+  res.status(200).json({
+    success: true,
+    data: {
+      user,
+      csrfToken,
+    },
+  });
 };
 
 export const logoff = (_req: Request, res: Response): void => {
   res.clearCookie('jwt', cookieFlags);
 
-  res.status(200).json({ success: true, message: 'Logged out' });
+  res.status(200).json({
+    success: true,
+    message: 'Logged out',
+  });
 };
 
-export const me = async (
-  req: AuthenticatedRequest,
-  res: Response,
-): Promise<void> => {
+export const me = async (req: Request, res: Response): Promise<void> => {
   const userId = req.user?.id;
 
   if (!userId) {
     throw new ApiError('Not authenticated', 401);
   }
 
-  // load that user from the database
+  // Load the authenticated user from the database
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true, email: true, role: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+    },
   });
 
   if (!user) {
@@ -130,7 +170,13 @@ export const me = async (
     throw new ApiError('Not authenticated', 401);
   }
 
-  res
-    .status(200)
-    .json({ success: true, data: { user, csrfToken: req.user?.csrfToken } });
+  // Return both user information and the CSRF token
+  // so the frontend can restore the session after refresh.
+  res.status(200).json({
+    success: true,
+    data: {
+      user,
+      csrfToken: req.authCsrfToken,
+    },
+  });
 };
