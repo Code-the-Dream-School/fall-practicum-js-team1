@@ -31,6 +31,7 @@ export default interface Claim {
     id: string;
     title: string;
     status: string;
+    owner: Pick<User, 'id' | 'name'>;
     coverPhoto: ItemCoverPhoto | null;
   };
   pickup: ClaimPickup | null; // null unless the claim is approved
