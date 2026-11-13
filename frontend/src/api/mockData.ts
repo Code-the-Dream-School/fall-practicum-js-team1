@@ -452,6 +452,53 @@ export const getMyStats = (user: User) => {
   };
 };
 
+// Create a claim for an available or reserved item
+export const createClaim = (user: User, itemId: string, message = '') => {
+  const item = items.find((i) => i.id === itemId);
+
+  if (!item || (item.status !== 'available' && item.status !== 'reserved')) {
+    throw new Error('This item is no longer available');
+  }
+
+  if (item.ownerId === user.id) {
+    throw new Error('You cannot request your own item');
+  }
+
+  const alreadyRequested = claims.some(
+    (claim) =>
+      claim.itemId === itemId &&
+      claim.claimerId === user.id &&
+      (claim.status === 'pending' || claim.status === 'approved'),
+  );
+
+  if (alreadyRequested) {
+    throw new Error('You already requested this item');
+  }
+
+  if (message.length > 500) {
+    throw new Error('Message cannot exceed 500 characters');
+  }
+
+  const claim: Claim = {
+    id: crypto.randomUUID(),
+    itemId,
+    claimerId: user.id,
+    status: 'pending',
+    message,
+    createdAt: new Date().toISOString(),
+    decidedAt: null,
+    pickedUpAt: null,
+  };
+
+  claims.push(claim);
+
+  return {
+    id: claim.id,
+    itemId: claim.itemId,
+    status: claim.status,
+  };
+};
+
 // the owner sees who requested the item (GET /api/items/:id/claims)
 export const getItemClaims = (itemId: string) => {
   return claims
