@@ -22,7 +22,7 @@ export const createItemSchema = z
   .object({
     title: z.string().trim().min(1).max(80),
     description: z.string().trim().min(1).max(1000),
-    categoryKey: z.string().trim().min(1),
+    category: z.string().trim().min(1),
     condition: z.enum(['new', 'like_new', 'good', 'used']),
     childAgeMinMonths: z.number().int().min(0).max(120).optional(),
     childAgeMaxMonths: z.number().int().min(0).max(120).optional(),
