@@ -18,10 +18,9 @@ const prisma = new PrismaClient({ adapter });
 const ADMIN_EMAIL = 'admin@example.com';
 const USER1_EMAIL = 'fake_user1@example.com';
 const USER2_EMAIL = 'fake_user2@example.com';
-const SEED_PASSWORD = 'Password123'
-const SALT_ROUNDS = 10
+const SEED_PASSWORD = 'Password123';
+const SALT_ROUNDS = 10;
 const passwordHash = await bcrypt.hash(SEED_PASSWORD, SALT_ROUNDS);
-
 
 // Address constants
 const ADDRESS_ID_TEMPLATE = '11111111-0000-4000-8000-00000000000x';
@@ -196,11 +195,9 @@ async function main() {
 
   let ownerCounter = 0;
   const claimCounter = new ClaimStatus();
-  for (const [itemIndex, itemDatum] of itemData.entries()) {
+  for (const [_itemIndex, itemDatum] of itemData.entries()) {
     const ownerCanonical = usersWithAddresses[ownerCounter % 3];
-    const { photos, category, owner, availability, instructions, ...rest } =
-      itemDatum;
-
+    const { photos, category, availability, instructions, ...rest } = itemDatum;
     const address = ownerCanonical.addresses[0];
 
     // overwrite and shape attributes
