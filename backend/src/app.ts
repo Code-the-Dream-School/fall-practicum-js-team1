@@ -8,6 +8,7 @@ import healthRoutes from './routes/health.routes.js';
 import helloRoutes from './routes/hello.routes.js';
 import userRoutes from './routes/user.routes.js';
 import itemRoutes from './routes/item.routes.js';
+import messageRoutes from './routes/message.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import categoryRoutes from '../src/routes/category.routes.js';
@@ -36,6 +37,7 @@ app.use(limiter);
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/claims', messageRoutes);
 app.use('/api/hello', helloRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/items', itemRoutes);
