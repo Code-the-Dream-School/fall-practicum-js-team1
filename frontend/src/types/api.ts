@@ -64,5 +64,6 @@ export type UploadSignature = {
   apiKey: string;
   timestamp: number;
   folder: string;
+  allowedFormats: string;
   signature: string;
 };
