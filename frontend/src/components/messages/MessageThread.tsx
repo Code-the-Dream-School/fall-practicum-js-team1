@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useRestoreScroll } from '@/components/messages/useRestoreScroll';
 import { useVisualViewport } from '@/components/messages/useVisualViewport';
 import { useAuthStore } from '@/store/authStore';
+import { POLL_INTERVAL_MS } from '@/components/messages/pollInterval';
 
 type MessageThreadProps = {
   claimId: string;
@@ -38,6 +39,8 @@ export const MessageThread = ({
   } = useQuery({
     queryKey,
     queryFn: () => getMessages({ claimId }),
+    refetchInterval: POLL_INTERVAL_MS,
+    refetchIntervalInBackground: false,
   });
 
   // the messages of the other person are marked as read when the thread is open
