@@ -10,6 +10,8 @@ import userRoutes from './routes/user.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import categoryRoutes from './routes/category.routes.js';
 import addressRoutes from './routes/address.routes.js';
+import itemRoutes from './routes/item.routes.js';
+import messageRoutes from './routes/message.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -36,9 +38,11 @@ app.use(limiter);
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/claims', messageRoutes);
 app.use('/api/hello', helloRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/api/items', itemRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/addresses', addressRoutes);
 
