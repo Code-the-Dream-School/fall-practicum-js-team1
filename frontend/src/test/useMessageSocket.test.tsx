@@ -17,6 +17,9 @@ const io = vi.fn(() => fakeSocket);
 
 vi.mock('socket.io-client', () => ({ io }));
 
+// the hooks skip the socket in mock mode, so the tests must not depend on the local .env
+vi.stubEnv('VITE_USE_MOCKED_API_CALLS', 'false');
+
 const { useMessageSocket, useMessageListSocket } =
   await import('@/components/messages/useMessageSocket');
 
