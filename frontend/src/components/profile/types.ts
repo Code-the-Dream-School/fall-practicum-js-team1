@@ -24,6 +24,7 @@ export type ProfileClaim = {
   item: {
     id: string;
     title: string;
+    owner: { id: string; name: string };
     coverPhoto: { url: string; altText: string } | null;
   };
   pickup: Pickup | null;
