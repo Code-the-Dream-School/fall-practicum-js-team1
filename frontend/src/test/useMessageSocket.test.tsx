@@ -17,8 +17,9 @@ const io = vi.fn(() => fakeSocket);
 
 vi.mock('socket.io-client', () => ({ io }));
 
-// the hooks skip the socket in mock mode, so the tests must not depend on the local .env
+// the tests must not depend on the local .env or on the CI environment
 vi.stubEnv('VITE_USE_MOCKED_API_CALLS', 'false');
+vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:3000');
 
 const { useMessageSocket, useMessageListSocket } =
   await import('@/components/messages/useMessageSocket');
@@ -48,7 +49,7 @@ describe('useMessageSocket', () => {
     setup();
 
     expect(io).toHaveBeenCalledTimes(1);
-    expect(io).toHaveBeenCalledWith(expect.anything(), {
+    expect(io).toHaveBeenCalledWith('http://localhost:3000', {
       withCredentials: true,
     });
   });
