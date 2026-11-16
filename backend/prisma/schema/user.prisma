@@ -20,6 +20,7 @@ model User {
   addresses  Address[] @relation("UserAddresses")
   ownedItems Item[]    @relation("ItemOwner")
   claims     Claim[]   @relation("UserClaims")
+  sentClaimMessages ClaimMessage[] @relation("ClaimMessageSender")
 
   @@map("users")
 }

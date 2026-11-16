@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useLocation, useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ImageOff } from 'lucide-react';
 
@@ -46,8 +46,17 @@ type ItemDetails = {
 
 export default function ItemDetailsPage() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
 
   const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
+
+  const state: unknown = location.state;
+
+  const justPosted =
+    typeof state === 'object' &&
+    state !== null &&
+    'message' in state &&
+    state.message === 'Your item was posted';
 
   const {
     data: item,
@@ -138,6 +147,15 @@ export default function ItemDetailsPage() {
 
   return (
     <main className="mx-auto max-w-6xl space-y-12 px-6 py-8">
+      {justPosted && (
+        <p
+          role="status"
+          className="rounded-md border border-green-300 p-3 text-green-700"
+        >
+          Your item was posted
+        </p>
+      )}
+
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <Link to="/" className="hover:underline">
           Browse

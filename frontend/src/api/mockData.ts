@@ -359,8 +359,9 @@ export const getUploadSignature = () => {
   return {
     cloudName: 'mock-cloud',
     apiKey: 'mock-api-key',
-    timestamp: Date.now(),
+    timestamp: Math.floor(Date.now() / 1000),
     folder: 'hand-me-down/items',
+    allowedFormats: 'jpg,png,webp',
     signature: 'mock-signature',
   };
 };
