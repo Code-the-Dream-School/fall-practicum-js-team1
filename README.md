@@ -204,7 +204,19 @@ npx prisma migrate status
 Database schema is up to date!
 ```
 
-#### Linting
+#### Database seeding
+To seed the database with test data for users (with addresses), categories,
+items, and claims, run the following in the terminal:
+
+```bash
+npm run db:seed
+```
+
+If the script runs successfully, it reports the test users added as well as the
+count of all of the other records created. **The script is idempotent so
+running it multiple times will not add the same data again.**
+
+### Linting
 To lint a directory or file, run this command:
 
 ```bash
