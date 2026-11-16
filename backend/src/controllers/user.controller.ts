@@ -41,7 +41,6 @@ const setJwtCookie = (_req: Request, res: Response, user: { id: string }) => {
 };
 
 export const register = async (req: Request, res: Response): Promise<void> => {
-  // Validate the request body
   const result = registerSchema.safeParse(req.body);
 
   if (!result.success) {
@@ -50,10 +49,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
   const { name, email, password } = result.data;
 
-  // Hash the password
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  // Save the user and handle duplicate email errors
   let user;
 
   try {
@@ -81,7 +78,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     throw error;
   }
 
-  // Sign in the newly registered user
   const csrfToken = setJwtCookie(req, res, user);
 
   res.status(201).json({
@@ -94,7 +90,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const logon = async (req: Request, res: Response): Promise<void> => {
-  // Validate the request body
   const result = loginSchema.safeParse(req.body);
 
   if (!result.success) {
@@ -103,12 +98,10 @@ export const logon = async (req: Request, res: Response): Promise<void> => {
 
   const { email, password } = result.data;
 
-  // Find the user
   const found = await prisma.user.findUnique({
     where: { email },
   });
 
-  // Verify the password
   const passwordMatches = found
     ? await bcrypt.compare(password, found.passwordHash)
     : false;
@@ -117,10 +110,8 @@ export const logon = async (req: Request, res: Response): Promise<void> => {
     throw new ApiError('Invalid email or password', 401);
   }
 
-  // Sign in and generate a CSRF token
   const csrfToken = setJwtCookie(req, res, found);
 
-  // Return user information without the password hash
   const user = {
     id: found.id,
     name: found.name,
@@ -153,7 +144,6 @@ export const me = async (req: Request, res: Response): Promise<void> => {
     throw new ApiError('Not authenticated', 401);
   }
 
-  // Load the authenticated user from the database
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -170,8 +160,6 @@ export const me = async (req: Request, res: Response): Promise<void> => {
     throw new ApiError('Not authenticated', 401);
   }
 
-  // Return both user information and the CSRF token
-  // so the frontend can restore the session after refresh.
   res.status(200).json({
     success: true,
     data: {

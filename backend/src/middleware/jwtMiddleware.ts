@@ -74,7 +74,6 @@ async function loadAuthenticatedUser(req: Parameters<RequestHandler>[0]) {
   req.authCsrfToken = payload.csrfToken;
 }
 
-// 1. Require a signed-in, active user.
 export const requireAuth: RequestHandler = async (req, _res, next) => {
   try {
     await loadAuthenticatedUser(req);
@@ -84,7 +83,6 @@ export const requireAuth: RequestHandler = async (req, _res, next) => {
   }
 };
 
-// 2. Protect requests that change data.
 export const requireCsrf: RequestHandler = (req, _res, next) => {
   const protectedMethods = ['POST', 'PATCH', 'PUT', 'DELETE'];
 
@@ -105,7 +103,6 @@ export const requireCsrf: RequestHandler = (req, _res, next) => {
   next();
 };
 
-// 3. Restrict access to administrators.
 export const requireAdmin: RequestHandler = (req, _res, next) => {
   if (!req.user) {
     return next(new ApiError(SIGN_IN_MESSAGE, 401));
@@ -118,7 +115,6 @@ export const requireAdmin: RequestHandler = (req, _res, next) => {
   next();
 };
 
-// 4. Identify a user on public routes without blocking access.
 export const optionalAuth: RequestHandler = async (req, _res, next) => {
   try {
     await loadAuthenticatedUser(req);
@@ -130,5 +126,4 @@ export const optionalAuth: RequestHandler = async (req, _res, next) => {
   next();
 };
 
-// Backward compatibility with existing routes.
 export const jwtMiddleware = requireAuth;
