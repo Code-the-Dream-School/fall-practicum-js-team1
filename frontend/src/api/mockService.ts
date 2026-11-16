@@ -28,6 +28,7 @@ import {
   signIn,
   signOut,
   withdrawItem,
+  createClaim,
 } from './mockData';
 import type { User } from './mockData';
 
@@ -176,6 +177,27 @@ export const setupMock = (axiosInstance: AxiosInstance) => {
   );
 
   // claims
+
+  mock.onPost(/\/items\/[^/]+\/claims$/).reply(
+    forSignedInUser((user, config) => {
+      const itemId = (config.url || '').split('/')[2] ?? '';
+
+      const body = JSON.parse(config.data || '{}') as {
+        message?: string;
+      };
+
+      try {
+        const claim = createClaim(user, itemId, body.message ?? '');
+
+        return [CREATED, success(claim)];
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Request failed';
+
+        return [CONFLICT, failure(message)];
+      }
+    }),
+  );
 
   mock.onGet(/\/items\/[^/]+\/claims$/).reply(
     forSignedInUser((_user, config) => {
