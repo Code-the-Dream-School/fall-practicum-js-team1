@@ -1,5 +1,5 @@
 // The only file that talks to the api.
-// Every function returns the data on success and THROWS an Error on any failure
+// Every function returns data on success and throws an Error on failure.
 import axios from 'axios';
 
 import { setupMock } from './mockService';
@@ -26,6 +26,7 @@ import type {
 if (import.meta.env['VITE_API_BASE_URL'] === undefined) {
   throw new Error('API url not defined');
 }
+
 const BASE_URL: string = `${import.meta.env['VITE_API_BASE_URL']}/api`;
 
 // Global axios defaults
@@ -33,8 +34,8 @@ axios.defaults.baseURL = BASE_URL;
 axios.defaults.headers.post['Content-Type'] = 'application/json';
 axios.defaults.withCredentials = true;
 
-// The switch: true = the mock answers the calls
-if (import.meta.env['VITE_USE_MOCKED_API_CALLS'] == 'true') {
+// The switch: true = the mock answers the calls.
+if (import.meta.env['VITE_USE_MOCKED_API_CALLS'] === 'true') {
   console.warn('API client is in mock mode!');
   setupMock(axios);
 }
@@ -48,10 +49,9 @@ export class ApiRequestError extends Error {
   }
 }
 
-// Turns any failure into an ApiRequestError with a message
+// Turns any failure into an ApiRequestError with a message.
 const toError = (error: unknown): ApiRequestError => {
   if (axios.isAxiosError(error)) {
-    // the server answered with an error status
     if (error.response) {
       const { status, data } = error.response;
       return new ApiRequestError(
@@ -59,15 +59,14 @@ const toError = (error: unknown): ApiRequestError => {
         status,
       );
     }
-    // the request was sent but nothing came back
+
     return new ApiRequestError('Could not reach the server. Please try again.');
   }
+
   return new ApiRequestError('Something went wrong');
 };
 
-// The api wraps every answer as { success, data }. Pages only need what is inside.
-// This also keeps the csrf token that the auth endpoints send, and sends it
-// in the X-CSRF-TOKEN header on every request after that.
+// Keep the CSRF token returned by the authentication endpoints.
 const keepCsrfToken = (auth: AuthData): AuthData => {
   axios.defaults.headers.common['X-CSRF-TOKEN'] = auth.csrfToken;
   return auth;
@@ -119,6 +118,7 @@ export const getCurrentUser = async (): Promise<AuthData> => {
 };
 
 // Categories and addresses
+
 export const getCategories = async (): Promise<Category[]> => {
   try {
     const resp = await axios.get('/categories');
@@ -145,9 +145,11 @@ export const createAddress = async (body: NewAddress): Promise<Address> => {
     throw toError(error);
   }
 };
+
 // end Categories and addresses
 
 // Items
+
 export const getItems = async (
   filters: ItemFilters = {},
 ): Promise<ItemList> => {
@@ -176,25 +178,93 @@ export const createItem = async (body: NewItem): Promise<ItemShow> => {
     throw toError(error);
   }
 };
+
 // end Items
 
 // Upload routes
+
 export const getUploadSignature = async (): Promise<UploadSignature> => {
   try {
     const response = await axios.post('/uploads/signature');
-
     return response.data.data;
   } catch (error) {
     throw toError(error);
   }
 };
+
+export const uploadPhoto = async (
+  file: File,
+): Promise<{ url: string; publicId: string }> => {
+  const signature = await getUploadSignature();
+
+  const form = new FormData();
+  form.append('file', file);
+  form.append('api_key', signature.apiKey);
+  form.append('timestamp', String(signature.timestamp));
+  form.append('folder', signature.folder);
+  form.append('signature', signature.signature);
+
+  // Send signed format restrictions unchanged when provided.
+  if (
+    'allowedFormats' in signature &&
+    typeof signature.allowedFormats === 'string'
+  ) {
+    form.append('allowed_formats', signature.allowedFormats);
+  }
+
+  // Cloudinary must not inherit our API cookies, CSRF token, or JSON headers.
+  const uploader = axios.create({
+    baseURL: '',
+    withCredentials: false,
+  });
+
+  uploader.defaults.headers.common = {
+    Accept: 'application/json',
+  };
+  uploader.defaults.headers.post = {};
+
+  if (import.meta.env['VITE_USE_MOCKED_API_CALLS'] === 'true') {
+    setupMock(uploader);
+  }
+
+  try {
+    const response = await uploader.post<{
+      secure_url?: unknown;
+      public_id?: unknown;
+    }>(
+      `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`,
+      form,
+    );
+
+    const { secure_url: url, public_id: publicId } = response.data;
+
+    if (
+      typeof url !== 'string' ||
+      !url.startsWith('https://') ||
+      typeof publicId !== 'string' ||
+      !publicId.trim()
+    ) {
+      throw new ApiRequestError(
+        'The photo upload returned an invalid response.',
+      );
+    }
+
+    return { url, publicId };
+  } catch (error) {
+    if (error instanceof ApiRequestError) throw error;
+    throw toError(error);
+  }
+};
+
 // end Upload routes
 
 // Claim routes
+
 type CreateClaimParams = {
   itemId: string;
   message?: string;
 };
+
 export async function createClaim({
   itemId,
   message,
@@ -204,11 +274,13 @@ export async function createClaim({
   }
 
   const payload: ClaimPayload = {};
-  if (message !== undefined && message !== '') payload['message'] = message;
+
+  if (message !== undefined && message !== '') {
+    payload['message'] = message;
+  }
 
   try {
     const response = await axios.post(`/items/${itemId}/claims`, payload);
-
     return response.data.data;
   } catch (error) {
     throw toError(error);
@@ -219,6 +291,7 @@ type ItemClaimParams = {
   itemId: string;
   status?: string;
 };
+
 export async function getItemClaims({
   itemId,
   status,
@@ -230,11 +303,13 @@ export async function getItemClaims({
   }
 
   let payload: Partial<GetItemClaimsPayload> = {};
-  if (status) payload = { params: { status } };
+
+  if (status) {
+    payload = { params: { status } };
+  }
 
   try {
     const response = await axios.get(`/items/${itemId}/claims`, payload);
-
     return response.data.data;
   } catch (error) {
     throw toError(error);
@@ -245,6 +320,7 @@ type UpdateClaimParams = {
   claimId: string;
   status: string;
 };
+
 export const updateClaim = async ({
   claimId,
   status,
@@ -260,6 +336,7 @@ export const updateClaim = async ({
 type PatchClaimParams = {
   claimId: string;
 };
+
 export const cancelClaim = async ({
   claimId,
 }: PatchClaimParams): Promise<PatchedClaim> => {
@@ -285,6 +362,7 @@ export const updateClaimNoShow = async ({
 type PickedUpParams = {
   itemId: string;
 };
+
 export const updateClaimPickedUp = async ({
   itemId,
 }: PickedUpParams): Promise<PatchedClaim> => {
@@ -299,6 +377,7 @@ export const updateClaimPickedUp = async ({
 type ItemIdParams = {
   itemId: string;
 };
+
 export const withdrawItem = async ({
   itemId,
 }: ItemIdParams): Promise<PatchedClaim> => {
@@ -320,9 +399,11 @@ export const restoreItem = async ({
     throw toError(error);
   }
 };
+
 // end Claim
 
 // Profile
+
 export const getMyItems = async (): Promise<Item[]> => {
   try {
     const resp = await axios.get('/profile/items');
@@ -349,9 +430,11 @@ export const getMyStats = async (): Promise<ProfileStats> => {
     throw toError(error);
   }
 };
+
 // end Profile
 
 // Messages
+
 export const sendMessage = async ({
   claimId,
   body,
@@ -370,6 +453,7 @@ export const sendMessage = async ({
 type GetMessageParams = {
   claimId: string;
 };
+
 export const getMessages = async ({
   claimId,
 }: GetMessageParams): Promise<Message[]> => {
@@ -391,4 +475,5 @@ export const readMessage = async ({
     throw toError(error);
   }
 };
+
 // end Messages

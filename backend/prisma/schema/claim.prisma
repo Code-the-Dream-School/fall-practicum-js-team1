@@ -22,6 +22,7 @@ model Claim {
 
   item    Item @relation("ItemClaims", fields: [itemId], references: [id], onDelete: Restrict)
   claimer User @relation("UserClaims", fields: [claimerId], references: [id], onDelete: Restrict)
+  messages ClaimMessage[] @relation("ClaimMessages")
 
   @@index([itemId, status])
   @@index([claimerId, status])
