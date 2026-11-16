@@ -6,15 +6,14 @@ import { ImageOff } from 'lucide-react';
 import { ApiRequestError, getItem } from '@/api/client';
 import ItemDetailsSkeleton from '@/components/ItemDetailsSkeleton';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
-import { ConditionChip } from '@/components/ui/ConditionChip';
-import { StatusChip } from '@/components/ui/StatusChip';
+import {
+  ConditionChip,
+  type ItemCondition,
+} from '@/components/ui/ConditionChip';
+import { StatusChip, type ItemStatus } from '@/components/ui/StatusChip';
 import { Button } from '@/components/ui/button';
 import { formatAgeRange } from '@/lib/formatAgeRange';
 import { useAuthStore } from '@/store/authStore';
-
-type ItemCondition = 'new' | 'like_new' | 'good' | 'used';
-
-type ItemStatus = 'available' | 'reserved' | 'picked_up' | 'withdrawn';
 
 type ItemPhoto = {
   id: string;
@@ -139,7 +138,6 @@ export default function ItemDetailsPage() {
 
   return (
     <main className="mx-auto max-w-6xl space-y-12 px-6 py-8">
-      {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <Link to="/" className="hover:underline">
           Browse
@@ -156,9 +154,7 @@ export default function ItemDetailsPage() {
         <span aria-current="page">{item.title}</span>
       </nav>
 
-      {/* Main item details */}
       <div className="grid gap-8 md:grid-cols-2">
-        {/* Photo gallery */}
         <section aria-label="Item photos">
           <div className="flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-muted">
             {selectedPhoto ? (
@@ -175,7 +171,6 @@ export default function ItemDetailsPage() {
             )}
           </div>
 
-          {/* Thumbnails */}
           {photos.length > 1 && (
             <div className="mt-3 grid grid-cols-4 gap-3">
               {photos.map((photo, index) => {
@@ -204,7 +199,6 @@ export default function ItemDetailsPage() {
           )}
         </section>
 
-        {/* Item information */}
         <section className="space-y-6">
           <div className="flex flex-wrap items-center gap-2">
             <ConditionChip condition={item.condition} />
@@ -221,12 +215,10 @@ export default function ItemDetailsPage() {
             </p>
           </div>
 
-          {/* Owner: first name only */}
           <div className="border-y py-5">
             <p className="font-medium">Shared by {firstName}</p>
           </div>
 
-          {/* Item attributes */}
           <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-4">
             <dt className="font-semibold">Category</dt>
             <dd>
@@ -244,13 +236,11 @@ export default function ItemDetailsPage() {
             </dd>
 
             <dt className="font-semibold">Condition</dt>
-
             <dd className="capitalize">
               {item.condition.replaceAll('_', ' ')}
             </dd>
           </dl>
 
-          {/* Claim action: JIRA-45 handles behavior */}
           {isOwner ? (
             <p className="rounded-md bg-muted px-4 py-3 text-center font-medium">
               This is your item
@@ -271,14 +261,12 @@ export default function ItemDetailsPage() {
         </section>
       </div>
 
-      {/* Description */}
       <section className="grid gap-6 border-t pt-10 md:grid-cols-2">
         <h2 className="text-3xl font-semibold">About this item</h2>
 
         <p className="whitespace-pre-line leading-7">{item.description}</p>
       </section>
 
-      {/* Claim instructions */}
       <section className="rounded-lg bg-muted p-6 md:p-8">
         <h2 className="text-2xl font-semibold">How a claim works</h2>
 
