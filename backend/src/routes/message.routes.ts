@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { jwtMiddleware } from '../middleware/jwtMiddleware.js';
+import { decideClaim } from '../controllers/claim.controller.js';
 import {
   sendMessage,
   getMessages,
@@ -8,6 +9,8 @@ import {
 } from '../controllers/message.controller.js';
 
 const router = Router();
+
+router.patch('/:id', jwtMiddleware, asyncHandler(decideClaim));
 
 router.post('/:id/messages', jwtMiddleware, asyncHandler(sendMessage));
 router.get('/:id/messages', jwtMiddleware, asyncHandler(getMessages));

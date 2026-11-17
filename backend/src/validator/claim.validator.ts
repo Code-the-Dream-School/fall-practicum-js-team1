@@ -11,3 +11,7 @@ export const createClaimSchema = z.object({
     .max(MESSAGE_MAX, `Message must be at most ${MESSAGE_MAX} characters long`)
     .optional(),
 });
+
+export const decideClaimSchema = z.object({
+  status: z.enum(['approved', 'declined']),
+});
