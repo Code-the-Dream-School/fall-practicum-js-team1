@@ -1,4 +1,3 @@
-
 import {
   afterAll,
   beforeAll,
@@ -23,16 +22,10 @@ jest.unstable_mockModule('../src/config/db.prisma.js', () => ({
   },
 }));
 
-const {
-  requireAuth,
-  requireCsrf,
-  requireAdmin,
-  optionalAuth,
-  jwtMiddleware,
-} = await import('../src/middleware/jwtMiddleware.js');
+const { requireAuth, requireCsrf, requireAdmin, optionalAuth, jwtMiddleware } =
+  await import('../src/middleware/jwtMiddleware.js');
 
-const { errorHandler } =
-  await import('../src/middleware/errorHandler.js');
+const { errorHandler } = await import('../src/middleware/errorHandler.js');
 
 const app = express();
 
@@ -71,10 +64,7 @@ const user = {
 const csrfToken = 'test-csrf-token';
 
 const makeCookie = () => {
-  const token = jwt.sign(
-    { id: user.id, csrfToken },
-    process.env.JWT_SECRET!,
-  );
+  const token = jwt.sign({ id: user.id, csrfToken }, process.env.JWT_SECRET!);
 
   return `jwt=${token}`;
 };
