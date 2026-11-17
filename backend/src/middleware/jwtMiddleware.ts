@@ -1,59 +1,77 @@
-import jwt, { type JwtPayload } from 'jsonwebtoken';
-import type { RequestHandler } from 'express';
+import jwt from 'jsonwebtoken';
+import type { Request, Response, NextFunction } from 'express';
+import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../config/db.prisma.js';
 import { ApiError } from '../utils/apiError.js';
 
-type AuthPayload = JwtPayload & {
+export interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    role: 'user' | 'admin';
+    deactivatedAt: Date | null;
+    csrfToken: string;
+  };
+}
+
+type UserPayload = {
   id: string;
   csrfToken: string;
 };
 
-const SIGN_IN_MESSAGE = 'Please sign in';
+const unauthorized = (res: Response): void => {
+  res.status(StatusCodes.UNAUTHORIZED).json({
+    success: false,
+    message: 'No user is authenticated.',
+  });
+};
 
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET;
+const forbidden = (res: Response): void => {
+  res.status(StatusCodes.FORBIDDEN).json({
+    success: false,
+    message: 'Invalid CSRF token',
+  });
+};
 
-  if (!secret) {
-    throw new Error('JWT_SECRET is not set');
+const getPayload = (req: Request): UserPayload | null => {
+  const token = req?.cookies?.jwt;
+
+  if (!token) {
+    return null;
   }
 
-  return secret;
-}
-
-function verifyToken(token: string): AuthPayload {
-  let decoded: string | JwtPayload;
+  if (process.env.JWT_SECRET === undefined) {
+    throw new Error('JWT_SECRET not defined');
+  }
 
   try {
-    decoded = jwt.verify(token, getJwtSecret());
-  } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError) {
-      throw new ApiError(SIGN_IN_MESSAGE, 401);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (
+      typeof decoded !== 'object' ||
+      decoded === null ||
+      typeof decoded.id !== 'string' ||
+      typeof decoded.csrfToken !== 'string'
+    ) {
+      return null;
     }
 
-    throw error;
+    return {
+      id: decoded.id,
+      csrfToken: decoded.csrfToken,
+    };
+  } catch {
+    return null;
   }
+};
 
-  if (
-    typeof decoded === 'string' ||
-    typeof decoded.id !== 'string' ||
-    typeof decoded.csrfToken !== 'string' ||
-    !decoded.id ||
-    !decoded.csrfToken
-  ) {
-    throw new ApiError(SIGN_IN_MESSAGE, 401);
+const loadUser = async (req: Request): Promise<boolean> => {
+  const payload = getPayload(req);
+
+  if (!payload) {
+    return false;
   }
-
-  return decoded as AuthPayload;
-}
-
-async function loadAuthenticatedUser(req: Parameters<RequestHandler>[0]) {
-  const token = req.cookies?.jwt;
-
-  if (typeof token !== 'string' || !token) {
-    throw new ApiError(SIGN_IN_MESSAGE, 401);
-  }
-
-  const payload = verifyToken(token);
 
   const user = await prisma.user.findUnique({
     where: { id: payload.id },
@@ -67,57 +85,67 @@ async function loadAuthenticatedUser(req: Parameters<RequestHandler>[0]) {
   });
 
   if (!user || user.deactivatedAt !== null) {
-    throw new ApiError(SIGN_IN_MESSAGE, 401);
+    return false;
   }
 
-  req.user = user;
+  req.user = {
+    ...user,
+    csrfToken: payload.csrfToken,
+  };
+
   req.authCsrfToken = payload.csrfToken;
-}
 
-export const requireAuth: RequestHandler = async (req, _res, next) => {
-  try {
-    await loadAuthenticatedUser(req);
+  return true;
+};
+
+export const requireAuth = async (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  if (!(await loadUser(req))) {
+    throw new ApiError('Please sign in', StatusCodes.UNAUTHORIZED);
+  }
+
+  next();
+};
+
+export const requireCsrf = (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): void => {
+  if (!['POST', 'PATCH', 'PUT', 'DELETE', 'CONNECT'].includes(req.method)) {
     next();
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const requireCsrf: RequestHandler = (req, _res, next) => {
-  const protectedMethods = ['POST', 'PATCH', 'PUT', 'DELETE'];
-
-  if (!protectedMethods.includes(req.method)) {
-    return next();
+    return;
   }
 
-  if (!req.user || !req.authCsrfToken) {
-    return next(new ApiError(SIGN_IN_MESSAGE, 401));
-  }
-
-  const headerToken = req.get('X-CSRF-TOKEN');
-
-  if (!headerToken || headerToken !== req.authCsrfToken) {
-    return next(new ApiError('Invalid CSRF token', 403));
+  if (!req.authCsrfToken || req.get('X-CSRF-TOKEN') !== req.authCsrfToken) {
+    throw new ApiError('Invalid CSRF token', StatusCodes.FORBIDDEN);
   }
 
   next();
 };
 
-export const requireAdmin: RequestHandler = (req, _res, next) => {
-  if (!req.user) {
-    return next(new ApiError(SIGN_IN_MESSAGE, 401));
-  }
-
-  if (req.user.role !== 'admin') {
-    return next(new ApiError('Admin access required', 403));
+export const requireAdmin = (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): void => {
+  if (req.user?.role !== 'admin') {
+    throw new ApiError('Admin access required', StatusCodes.FORBIDDEN);
   }
 
   next();
 };
 
-export const optionalAuth: RequestHandler = async (req, _res, next) => {
+export const optionalAuth = async (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
-    await loadAuthenticatedUser(req);
+    await loadUser(req);
   } catch {
     delete req.user;
     delete req.authCsrfToken;
@@ -126,4 +154,58 @@ export const optionalAuth: RequestHandler = async (req, _res, next) => {
   next();
 };
 
-export const jwtMiddleware = requireAuth;
+export const jwtMiddleware = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  if (process.env.JWT_SECRET === undefined) {
+    throw new Error('JWT_SECRET not defined');
+  }
+
+  const token = req?.cookies?.jwt;
+
+  if (!token) {
+    return unauthorized(res);
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as UserPayload;
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        deactivatedAt: true,
+      },
+    });
+
+    if (!user || user.deactivatedAt !== null) {
+      return unauthorized(res);
+    }
+
+    req.user = {
+      ...user,
+      csrfToken: decoded.csrfToken,
+    };
+
+    req.authCsrfToken = decoded.csrfToken;
+
+    if (['POST', 'PATCH', 'PUT', 'DELETE', 'CONNECT'].includes(req.method)) {
+      if (req.get('X-CSRF-TOKEN') != decoded.csrfToken) {
+        return forbidden(res);
+      }
+    }
+
+    next();
+  } catch (error) {
+    if (error instanceof jwt.JsonWebTokenError) {
+      return unauthorized(res);
+    }
+
+    next(error);
+  }
+};
