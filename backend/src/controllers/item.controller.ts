@@ -90,7 +90,7 @@ export const getItems = async (req: Request, res: Response): Promise<void> => {
     whereClause['condition'] = condition;
   }
 
-  if (ageMin) {
+  if (ageMin !== undefined) {
     whereClause['childAgeMinMonths'] = { gte: ageMin };
   }
 
