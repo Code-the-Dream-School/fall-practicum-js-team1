@@ -167,6 +167,7 @@ export const getItemById = async (
       childAgeMaxMonths: true,
       city: true,
       state: true,
+      postalCode: true,
       status: true,
       createdAt: true,
       category: {
