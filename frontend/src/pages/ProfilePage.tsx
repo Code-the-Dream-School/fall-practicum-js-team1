@@ -27,6 +27,7 @@ import { DonationsSection } from '@/components/profile/DonationsSection';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileTabs } from '@/components/profile/ProfileTabs';
 import type { Decision } from '@/components/profile/types';
+import { useMessageListSocket } from '@/components/messages/useMessageSocket';
 import { useAuthStore } from '@/store/authStore';
 
 // one profile action and the message for the toast
@@ -37,6 +38,8 @@ export default function ProfilePage() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const user = useAuthStore((state) => state.user);
+  // the unread dots on the rows update as soon as a message arrives
+  useMessageListSocket();
 
   // the tab lives in the url so a refresh or a shared link opens the same one
   const tab = searchParams.get('tab') === 'claims' ? 'claims' : 'donations';
