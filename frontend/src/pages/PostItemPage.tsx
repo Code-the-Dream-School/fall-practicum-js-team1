@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { useCategories } from '../hooks/useCategories';
 import {
@@ -11,6 +12,7 @@ import {
 } from '@/api/client';
 import type { Address, NewAddress, NewItem } from '@/types';
 import ItemPhotoPicker from '../components/ItemPhotoPicker';
+import type { PhotoUploadState } from '../components/ItemPhotoPicker';
 
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -102,6 +104,7 @@ function errorMessage(error: unknown): string {
 
 export default function PostItemPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const {
     categories,
     loading: categoriesLoading,
@@ -134,16 +137,93 @@ export default function PostItemPage() {
   const [errors, setErrors] = useState<Errors>({});
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const [uploadStates, setUploadStates] = useState<Map<File, PhotoUploadState>>(
+    () => new Map(),
+  );
 
   const formRef = useRef<HTMLFormElement>(null);
   const messageRef = useRef<HTMLParagraphElement>(null);
   const submitLock = useRef(false);
   const addressSaveLock = useRef(false);
+  const retryLock = useRef(false);
+  const uploadController = useRef<AbortController | null>(null);
   const uploadedPhotos = useRef(
     new WeakMap<File, { url: string; publicId: string }>(),
   );
 
-  const busy = isSubmitting || savingAddress;
+  const busy = isSubmitting || savingAddress || isRetrying;
+
+  useEffect(() => {
+    return () => uploadController.current?.abort();
+  }, []);
+
+  function updateUpload(file: File, state: PhotoUploadState) {
+    setUploadStates((previous) => {
+      const next = new Map(previous);
+      next.set(file, state);
+      return next;
+    });
+  }
+
+  async function uploadFile(file: File, signal: AbortSignal) {
+    const cached = uploadedPhotos.current.get(file);
+    if (cached) {
+      updateUpload(file, { status: 'uploaded' });
+      return cached;
+    }
+
+    updateUpload(file, { status: 'uploading' });
+    try {
+      const photo = await uploadPhoto(
+        file,
+        (progress) => {
+          if (!signal.aborted) {
+            updateUpload(file, { status: 'uploading', progress });
+          }
+        },
+        signal,
+      );
+      if (signal.aborted) return undefined;
+      uploadedPhotos.current.set(file, photo);
+      updateUpload(file, { status: 'uploaded' });
+      return photo;
+    } catch (error) {
+      if (!signal.aborted) {
+        updateUpload(file, { status: 'failed', message: errorMessage(error) });
+      }
+      return undefined;
+    }
+  }
+
+  async function retryPhoto(file: File) {
+    if (
+      submitLock.current ||
+      addressSaveLock.current ||
+      retryLock.current ||
+      !photos.includes(file)
+    )
+      return;
+
+    retryLock.current = true;
+    setIsRetrying(true);
+    setMessage('');
+    const controller = new AbortController();
+    uploadController.current = controller;
+    try {
+      const photo = await uploadFile(file, controller.signal);
+      if (!controller.signal.aborted) {
+        setMessage(
+          photo
+            ? ''
+            : 'The photo could not be uploaded. Use Retry or remove it. Your form has been kept.',
+        );
+      }
+    } finally {
+      retryLock.current = false;
+      setIsRetrying(false);
+    }
+  }
 
   const ageError =
     ageFrom !== 'any' && ageTo !== 'any' && Number(ageTo) < Number(ageFrom)
@@ -209,7 +289,8 @@ export default function PostItemPage() {
   }
 
   async function saveAddress() {
-    if (addressSaveLock.current || submitLock.current) return;
+    if (addressSaveLock.current || submitLock.current || retryLock.current)
+      return;
 
     const next: Errors = {};
 
@@ -269,7 +350,8 @@ export default function PostItemPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (submitLock.current || addressSaveLock.current) return;
+    if (submitLock.current || addressSaveLock.current || retryLock.current)
+      return;
 
     setMessage('');
 
@@ -350,18 +432,30 @@ export default function PostItemPage() {
     try {
       const uploaded: NewItem['photos'] = [];
 
+      const controller = new AbortController();
+      uploadController.current = controller;
+      let uploadFailed = false;
+
+      // Each file keeps its own state; successful uploads are reused on retry.
       for (const [index, file] of photos.entries()) {
-        let photo = uploadedPhotos.current.get(file);
-
+        if (controller.signal.aborted) return;
+        const photo = await uploadFile(file, controller.signal);
         if (!photo) {
-          photo = await uploadPhoto(file);
-          uploadedPhotos.current.set(file, photo);
+          uploadFailed = true;
+          continue;
         }
-
         uploaded.push({
           ...photo,
           altText: `${title.trim()} photo ${index + 1}`,
         });
+      }
+
+      if (controller.signal.aborted) return;
+      if (uploadFailed) {
+        setMessage(
+          'Some photos could not be uploaded. Use Retry beside each failed photo or remove it. Your form has been kept.',
+        );
+        return;
       }
 
       const body: NewItem = {
@@ -370,8 +464,9 @@ export default function PostItemPage() {
         category,
         condition,
         addressId,
-        instructions: instructions.trim(),
-        availability: availability.trim(),
+        ...(instructions.trim() ? { instructions: instructions.trim() } : {}),
+        ...(availability.trim() ? { availability: availability.trim() } : {}),
+
         photos: uploaded,
         ...(ageFrom !== 'any' ? { childAgeMinMonths: Number(ageFrom) } : {}),
         ...(ageTo !== 'any' ? { childAgeMaxMonths: Number(ageTo) } : {}),
@@ -379,6 +474,11 @@ export default function PostItemPage() {
 
       const saved = await createItem(body);
 
+      // Refresh all item lists when Home mounts, including cached filter results.
+      void queryClient.invalidateQueries({
+        queryKey: ['items'],
+        refetchType: 'none',
+      });
       navigate(`/items/${encodeURIComponent(saved.id)}`, {
         state: { message: 'Your item was posted' },
       });
@@ -712,8 +812,17 @@ export default function PostItemPage() {
           >
             <ItemPhotoPicker
               photos={photos}
+              uploadStates={uploadStates}
+              disabled={busy}
+              onRetry={(file) => void retryPhoto(file)}
               onChange={(selected) => {
                 setPhotos(selected);
+                setUploadStates(
+                  (previous) =>
+                    new Map(
+                      [...previous].filter(([file]) => selected.includes(file)),
+                    ),
+                );
                 setErrors((previous) => {
                   const next = { ...previous };
                   delete next['photos'];
