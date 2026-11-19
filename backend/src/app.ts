@@ -12,6 +12,8 @@ import categoryRoutes from './routes/category.routes.js';
 import addressRoutes from './routes/address.routes.js';
 import itemRoutes from './routes/item.routes.js';
 import messageRoutes from './routes/message.routes.js';
+import profileRoutes from './routes/profile.routes.js'
+
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -45,6 +47,7 @@ app.use('/api/uploads', uploadRoutes);
 app.use('/api/items', itemRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/addresses', addressRoutes);
+app.use('/api/profile', profileRoutes);
 
 // Root route
 app.get('/', (_req, res) => {
