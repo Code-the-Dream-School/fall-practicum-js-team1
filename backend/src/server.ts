@@ -1,9 +1,14 @@
+import { createServer } from 'node:http';
 import app from './app.js';
 import config from './config/config.js';
+import { initSocket } from './socket.js';
 
 const PORT = config.port;
 
-const server = app.listen(PORT, () => {
+const httpServer = createServer(app);
+initSocket(httpServer);
+
+const server = httpServer.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 
