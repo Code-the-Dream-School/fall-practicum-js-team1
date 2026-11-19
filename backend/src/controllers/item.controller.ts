@@ -92,11 +92,11 @@ export const getItems = async (req: Request, res: Response): Promise<void> => {
   }
 
   if (ageMin !== undefined) {
-    whereClause['childAgeMinMonths'] = { gte: ageMin };
+    whereClause['childAgeMaxMonths'] = { gte: ageMin };
   }
 
-  if (ageMax) {
-    whereClause['childAgeMaxMonths'] = { lte: ageMax };
+  if (ageMax !== undefined) {
+    whereClause['childAgeMinMonths'] = { lte: ageMax };
   }
 
   if (city) {
