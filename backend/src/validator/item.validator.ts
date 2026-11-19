@@ -48,7 +48,7 @@ export const getItemSchema = z
     category: z.string().trim().optional(),
     condition: z.enum(['new', 'like_new', 'good', 'used']).optional(),
     ageMin: z.coerce.number().optional(),
-    ageMax: z.coerce.number().gt(0).optional(),
+    ageMax: z.coerce.number().optional(),
     city: z.string().trim().min(1).optional(),
     page: z.coerce.number().gt(0).default(1),
     limit: z.coerce.number().gt(0).lte(50).default(12),
