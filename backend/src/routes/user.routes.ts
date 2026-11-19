@@ -7,7 +7,7 @@ const router = Router();
 
 router.post('/register', asyncHandler(register));
 router.post('/logon', asyncHandler(logon));
-router.post('/logoff', logoff);
+router.post('/logoff', jwtMiddleware, logoff);
 
 router.get('/me', jwtMiddleware, asyncHandler(me));
 

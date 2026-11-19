@@ -9,12 +9,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useRestoreScroll } from '@/components/messages/useRestoreScroll';
 import { useVisualViewport } from '@/components/messages/useVisualViewport';
 import { useAuthStore } from '@/store/authStore';
+import { POLL_INTERVAL_MS } from '@/components/messages/pollInterval';
+import {
+  messagesKey,
+  useMessageSocket,
+} from '@/components/messages/useMessageSocket';
 
 type MessageThreadProps = {
   claimId: string;
-  // the name shown on the messages of the other person
   otherPersonName: string;
-  // a declined, cancelled, no show or picked up claim can only be read
   isClosed: boolean;
 };
 
@@ -27,7 +30,9 @@ export const MessageThread = ({
   const queryClient = useQueryClient();
   useVisualViewport();
   useRestoreScroll();
-  const queryKey = ['messages', claimId];
+  const queryKey = messagesKey(claimId);
+  // a closed claim cannot get new messages, so it does not listen
+  useMessageSocket(claimId, !isClosed);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -38,9 +43,11 @@ export const MessageThread = ({
   } = useQuery({
     queryKey,
     queryFn: () => getMessages({ claimId }),
+    // the socket tells us about new messages, this slow poll only covers a lost connection
+    refetchInterval: isClosed ? false : POLL_INTERVAL_MS,
+    refetchIntervalInBackground: false,
   });
 
-  // the messages of the other person are marked as read when the thread is open
   const { mutate: markRead } = useMutation({
     mutationFn: () => readMessage({ claimId }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
@@ -55,7 +62,6 @@ export const MessageThread = ({
     }
   }, [hasUnread, markRead]);
 
-  // while it is sending, the message is already on the screen (see isPending below)
   const {
     mutate: send,
     isPending: isSending,
@@ -80,7 +86,7 @@ export const MessageThread = ({
 
   return (
     <div className="space-y-4 max-sm:flex max-sm:min-h-0 max-sm:flex-1 max-sm:flex-col">
-      <div className="h-[50vh] max-h-[36rem] min-h-64 space-y-4 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-sm:h-auto max-sm:max-h-none max-sm:min-h-0 max-sm:flex-1">
+      <div className="h-[50vh] max-h-144 min-h-64 space-y-4 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden max-sm:h-auto max-sm:max-h-none max-sm:min-h-0 max-sm:flex-1">
         {isLoading && (
           <div className="space-y-3">
             <Skeleton className="h-12 w-2/3" />
