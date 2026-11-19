@@ -6,6 +6,7 @@ import { prisma } from '../config/db.prisma.js';
 import { ApiError } from '../utils/apiError.js';
 import {
   createClaimSchema,
+  decideClaimSchema,
   itemIdSchema,
 } from '../validator/claim.validator.js';
 
@@ -75,6 +76,170 @@ export const createClaim = async (
     ) {
       throw new ApiError(
         'You already have an active claim on this item',
+        StatusCodes.CONFLICT,
+      );
+    }
+
+    throw error;
+  }
+};
+
+export const decideClaim = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    throw new ApiError('No user is authenticated.', StatusCodes.UNAUTHORIZED);
+  }
+
+  const claimId = itemIdSchema.safeParse(req.params.id);
+
+  if (!claimId.success) {
+    throw new ApiError('Invalid claim ID', StatusCodes.BAD_REQUEST);
+  }
+
+  const body = decideClaimSchema.safeParse(req.body);
+
+  if (!body.success) {
+    throw new ApiError(
+      body.error.issues[0]?.message ?? 'Invalid claim status',
+      StatusCodes.BAD_REQUEST,
+    );
+  }
+
+  const { status } = body.data;
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const claim = await tx.claim.findUnique({
+        where: { id: claimId.data },
+        select: {
+          id: true,
+          itemId: true,
+          status: true,
+          item: {
+            select: {
+              ownerId: true,
+              status: true,
+            },
+          },
+        },
+      });
+
+      if (!claim) {
+        throw new ApiError('Claim not found', StatusCodes.NOT_FOUND);
+      }
+
+      if (claim.item.ownerId !== userId) {
+        throw new ApiError(
+          'You are not the owner of this item',
+          StatusCodes.FORBIDDEN,
+        );
+      }
+
+      if (claim.status !== 'pending') {
+        throw new ApiError(
+          'Only pending claims can be approved or declined',
+          StatusCodes.CONFLICT,
+        );
+      }
+
+      if (status === 'declined') {
+        const updated = await tx.claim.updateMany({
+          where: {
+            id: claim.id,
+            status: 'pending',
+          },
+          data: {
+            status: 'declined',
+            decidedAt: new Date(),
+          },
+        });
+
+        if (updated.count !== 1) {
+          throw new ApiError(
+            'This claim is no longer pending',
+            StatusCodes.CONFLICT,
+          );
+        }
+
+        return { id: claim.id, status: 'declined' as const };
+      }
+
+      const approvedClaim = await tx.claim.findFirst({
+        where: {
+          itemId: claim.itemId,
+          status: 'approved',
+        },
+        select: { id: true },
+      });
+
+      if (approvedClaim) {
+        throw new ApiError(
+          'This item already has an approved claim. Release it first.',
+          StatusCodes.CONFLICT,
+        );
+      }
+
+      if (claim.item.status !== 'available') {
+        throw new ApiError(
+          'This item is not available for approval',
+          StatusCodes.CONFLICT,
+        );
+      }
+
+      const reserved = await tx.item.updateMany({
+        where: {
+          id: claim.itemId,
+          status: 'available',
+        },
+        data: {
+          status: 'reserved',
+          reservedAt: new Date(),
+        },
+      });
+
+      if (reserved.count !== 1) {
+        throw new ApiError(
+          'This item is no longer available for approval',
+          StatusCodes.CONFLICT,
+        );
+      }
+
+      const updated = await tx.claim.updateMany({
+        where: {
+          id: claim.id,
+          status: 'pending',
+        },
+        data: {
+          status: 'approved',
+          decidedAt: new Date(),
+        },
+      });
+
+      if (updated.count !== 1) {
+        throw new ApiError(
+          'This claim is no longer pending',
+          StatusCodes.CONFLICT,
+        );
+      }
+
+      return { id: claim.id, status: 'approved' as const };
+    });
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      (error.code === 'P2002' || error.code === 'P2034')
+    ) {
+      throw new ApiError(
+        'Claim approval conflict. Please try again.',
         StatusCodes.CONFLICT,
       );
     }
