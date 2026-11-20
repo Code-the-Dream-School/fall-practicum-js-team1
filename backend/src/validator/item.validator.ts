@@ -46,10 +46,10 @@ export const getItemSchema = z
   .object({
     q: z.string().trim().optional(),
     category: z.string().trim().optional(),
-    condition: z.enum(['new', 'like_new', 'good', 'used']).optional(),
+    condition: z.enum(['', 'new', 'like_new', 'good', 'used']).optional(),
     ageMin: z.coerce.number().optional(),
     ageMax: z.coerce.number().optional(),
-    city: z.string().trim().min(1).optional(),
+    city: z.string().trim().optional(),
     page: z.coerce.number().gt(0).default(1),
     limit: z.coerce.number().gt(0).lte(50).default(12),
   })
