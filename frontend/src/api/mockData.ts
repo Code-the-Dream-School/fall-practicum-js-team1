@@ -15,7 +15,7 @@ export type User = {
   name: string;
   email: string;
   role: string;
-  createdAt: string;
+  createdAt?: string;
 };
 
 type Photo = {
