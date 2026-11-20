@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react';
 import { useSearchParams } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { getCategories, getItems } from '@/api/client';
 import { ActiveFilters } from '@/components/home/ActiveFilters';
 import { FilterBar } from '@/components/home/FilterBar';
@@ -48,6 +48,7 @@ export default function HomePage() {
     queryKey: ['categories'],
     queryFn: getCategories,
   });
+
   const categoryOptions = (categories ?? []).map((category) => ({
     value: category.key,
     label: category.name,
@@ -55,15 +56,17 @@ export default function HomePage() {
 
   const searchText = searchParams.get('q') || '';
   const city = searchParams.get('city') || '';
-  const page = Math.max(Number(searchParams.get('page')) || 1, 1);
   const categoryParam = searchParams.get('category') || '';
+
   const category = categories
     ? pickValid(categoryOptions, categoryParam)
     : categoryParam;
+
   const condition = pickValid(
     conditionOptions,
     searchParams.get('condition') || '',
   );
+
   const age = pickValid(ageOptions, searchParams.get('age') || '');
   const ageOption = ageOptions.find((option) => option.value === age);
 
@@ -74,19 +77,33 @@ export default function HomePage() {
     city,
     ageMin: ageOption?.ageMin,
     ageMax: ageOption?.ageMax,
-    page: 1,
-    limit: page * PAGE_SIZE,
   };
 
-  // the filters are in the key, so changing a filter fetches again
-  const { data, isLoading, isError, refetch } = useQuery({
+  const {
+    data,
+    isPending,
+    isError,
+    isFetchingNextPage,
+    isFetchNextPageError,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
+  } = useInfiniteQuery({
     queryKey: ['items', filters],
-    queryFn: () => getItems(filters),
-    placeholderData: (previous) => previous,
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      getItems({
+        ...filters,
+        page: pageParam,
+        limit: PAGE_SIZE,
+      }),
+    getNextPageParam: (lastPage) =>
+      lastPage.pagination.hasNext ? lastPage.pagination.page + 1 : undefined,
   });
 
-  const items = data?.items ?? [];
-  const pagination = data?.pagination ?? {
+  const items = data?.pages.flatMap((page) => page.items) ?? [];
+
+  const pagination = data?.pages[0]?.pagination ?? {
     page: 1,
     limit: PAGE_SIZE,
     total: 0,
@@ -104,11 +121,9 @@ export default function HomePage() {
       next.delete(key);
     }
 
-    if (key !== 'page') {
-      next.delete('page');
-    }
+    next.delete('page');
 
-    setSearchParams(next, { replace: key === 'page' });
+    setSearchParams(next);
   };
 
   const dropdowns = [
@@ -161,9 +176,10 @@ export default function HomePage() {
           <h2 className="text-2xl font-semibold tracking-tight lg:text-3xl">
             Just posted
           </h2>
-          {!isLoading && !isError && (
+
+          {!isPending && data && (
             <p aria-live="polite" className="text-sm text-muted-foreground">
-              {pagination.hasNext && `Showing ${items.length} of `}
+              {hasNextPage && `Showing ${items.length} of `}
               {pagination.total} {pagination.total === 1 ? 'item' : 'items'}
             </p>
           )}
@@ -189,11 +205,17 @@ export default function HomePage() {
 
         <ItemResults
           items={items as ComponentProps<typeof ItemResults>['items']}
-          hasMore={pagination.hasNext}
-          isLoading={isLoading}
+          hasMore={Boolean(hasNextPage)}
+          isLoading={isPending}
           isError={isError}
-          onRetry={refetch}
-          onSeeMore={() => setParam('page', String(page + 1))}
+          isFetchingNextPage={isFetchingNextPage}
+          isFetchNextPageError={isFetchNextPageError}
+          onRetry={() => {
+            void refetch();
+          }}
+          onSeeMore={() => {
+            void fetchNextPage();
+          }}
           onClearFilters={() => setSearchParams({})}
         />
       </section>

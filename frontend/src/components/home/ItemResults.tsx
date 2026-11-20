@@ -14,6 +14,8 @@ type ItemResultsProps = {
   hasMore: boolean;
   isLoading: boolean;
   isError: boolean;
+  isFetchingNextPage?: boolean;
+  isFetchNextPageError?: boolean;
   onRetry: () => void;
   onSeeMore: () => void;
   onClearFilters: () => void;
@@ -24,6 +26,8 @@ export const ItemResults = ({
   hasMore,
   isLoading,
   isError,
+  isFetchingNextPage = false,
+  isFetchNextPageError = false,
   onRetry,
   onSeeMore,
   onClearFilters,
@@ -38,7 +42,7 @@ export const ItemResults = ({
     );
   }
 
-  if (isError) {
+  if (isError && items.length === 0) {
     return <ErrorMessage message="Could not load items" onRetry={onRetry} />;
   }
 
@@ -60,15 +64,25 @@ export const ItemResults = ({
         ))}
       </div>
 
-      {hasMore && (
+      {isFetchNextPageError && (
+        <div className="flex justify-center pt-4">
+          <ErrorMessage
+            message="Could not load more items"
+            onRetry={onSeeMore}
+          />
+        </div>
+      )}
+
+      {hasMore && !isFetchNextPageError && (
         <div className="flex justify-center pt-4">
           <Button
             variant="outline"
             size="lg"
             className="rounded-full px-8"
             onClick={onSeeMore}
+            disabled={isFetchingNextPage}
           >
-            See more
+            {isFetchingNextPage ? 'Loading...' : 'Load more'}
           </Button>
         </div>
       )}
