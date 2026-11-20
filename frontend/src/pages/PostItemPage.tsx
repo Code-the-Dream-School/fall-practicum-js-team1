@@ -1,3 +1,4 @@
+import { USE_MOCKS } from '@/api/config';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router';
@@ -24,7 +25,7 @@ import {
   SelectValue,
 } from '../components/ui/select';
 
-const useMocks = import.meta.env['VITE_USE_MOCKED_API_CALLS'] === 'true';
+const useMocks = USE_MOCKS.items;
 
 const conditions = [
   { value: 'new', label: 'New' },

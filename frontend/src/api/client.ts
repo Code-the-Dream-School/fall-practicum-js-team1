@@ -1,3 +1,5 @@
+import { useAuthStore } from '@/store/authStore';
+import { USE_MOCKS } from './config';
 // The only file that talks to the api.
 // Every function returns data on success and throws an Error on failure.
 import axios from 'axios';
@@ -23,11 +25,7 @@ import type {
   ReadMessage,
 } from '@/types';
 
-if (import.meta.env['VITE_API_BASE_URL'] === undefined) {
-  throw new Error('API url not defined');
-}
-
-const BASE_URL: string = `${import.meta.env['VITE_API_BASE_URL']}/api`;
+const BASE_URL = '/api';
 
 // Global axios defaults
 axios.defaults.baseURL = BASE_URL;
@@ -35,7 +33,7 @@ axios.defaults.headers.post['Content-Type'] = 'application/json';
 axios.defaults.withCredentials = true;
 
 // The switch: true = the mock answers the calls.
-if (import.meta.env['VITE_USE_MOCKED_API_CALLS'] === 'true') {
+if (Object.values(USE_MOCKS).some(Boolean)) {
   console.warn('API client is in mock mode!');
   setupMock(axios);
 }
@@ -66,9 +64,19 @@ const toError = (error: unknown): ApiRequestError => {
   return new ApiRequestError('Something went wrong');
 };
 
-// Keep the CSRF token returned by the authentication endpoints.
+axios.interceptors.request.use((request) => {
+  const token = useAuthStore.getState().csrfToken;
+  const isApiRequest =
+    request.baseURL === BASE_URL && /^\/(?!\/)/.test(request.url ?? '');
+
+  if (isApiRequest && request.method?.toLowerCase() !== 'get' && token) {
+    request.headers.set('X-CSRF-TOKEN', token);
+  }
+
+  return request;
+});
 const keepCsrfToken = (auth: AuthData): AuthData => {
-  axios.defaults.headers.common['X-CSRF-TOKEN'] = auth.csrfToken;
+  useAuthStore.getState().setCsrfToken(auth.csrfToken);
   return auth;
 };
 
@@ -102,7 +110,7 @@ export const logonUser = async (body: {
 export const logoffUser = async (): Promise<void> => {
   try {
     await axios.post('/users/logoff');
-    delete axios.defaults.headers.common['X-CSRF-TOKEN'];
+    useAuthStore.getState().setCsrfToken(null);
   } catch (error) {
     throw toError(error);
   }
@@ -223,7 +231,7 @@ export const uploadPhoto = async (
   };
   uploader.defaults.headers.post = {};
 
-  if (import.meta.env['VITE_USE_MOCKED_API_CALLS'] === 'true') {
+  if (USE_MOCKS.items) {
     setupMock(uploader);
   }
 
