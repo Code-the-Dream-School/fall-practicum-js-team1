@@ -67,6 +67,9 @@ export const getMyStats = async (
     },
   })
 
+  const _stats = await prisma.$queryRaw`
+  `
+
   /*
    * This needs to be raw sql b/c prisma doesn't support groupBy for relations:
    * https://github.com/prisma/orm/issues/8744
