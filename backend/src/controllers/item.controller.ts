@@ -38,10 +38,10 @@ type ItemFilterParams = {
   };
   condition?: 'new' | 'like_new' | 'good' | 'used';
   childAgeMinMonths?: {
-    gte: number;
+    lte: number;
   };
   childAgeMaxMonths?: {
-    lte: number;
+    gte: number;
   };
   city?: {
     equals: string;
@@ -111,7 +111,6 @@ export const getItems = async (req: Request, res: Response): Promise<void> => {
     select: {
       id: true,
       title: true,
-      description: true,
       condition: true,
       childAgeMinMonths: true,
       childAgeMaxMonths: true,
