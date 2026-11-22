@@ -194,10 +194,18 @@ export const markItemPickedUp = async (
       throw new ApiError('The item is not reserved', StatusCodes.CONFLICT);
     }
 
-    await tx.claim.updateMany({
+    const pickedUp = await tx.claim.updateMany({
       where: { itemId: item.id, status: 'approved' },
       data: { status: 'picked_up', pickedUpAt: now },
     });
+
+    // a reserved item must have an approved claim, otherwise undo everything
+    if (pickedUp.count !== 1) {
+      throw new ApiError(
+        'This item has no approved claim',
+        StatusCodes.CONFLICT,
+      );
+    }
 
     // nobody else can get the item now, so the waiting list is closed
     await tx.claim.updateMany({

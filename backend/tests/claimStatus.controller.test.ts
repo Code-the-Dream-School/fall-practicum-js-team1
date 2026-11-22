@@ -318,6 +318,16 @@ describe('markItemPickedUp', () => {
     expect(txMock.claim.updateMany).not.toHaveBeenCalled();
   });
 
+  test('returns 409 when the reserved item has no approved claim', async () => {
+    txMock.item.findUnique.mockResolvedValue(itemWith('reserved'));
+    txMock.item.updateMany.mockResolvedValue(ONE_ROW);
+    txMock.claim.updateMany.mockResolvedValueOnce(NO_ROWS);
+    const { call } = run();
+
+    expect(statusOf(await errorFrom(call))).toBe(StatusCodes.CONFLICT);
+    expect(txMock.claim.updateMany).toHaveBeenCalledTimes(1);
+  });
+
   test('closes the item, the approved claim and the waiting list', async () => {
     txMock.item.findUnique.mockResolvedValue(itemWith('reserved'));
     txMock.item.updateMany.mockResolvedValue(ONE_ROW);
