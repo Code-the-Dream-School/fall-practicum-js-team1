@@ -154,7 +154,13 @@ export const getItems = async (
   filters: ItemFilters = {},
 ): Promise<ItemList> => {
   try {
-    const resp = await axios.get('/items', { params: filters });
+    const params = Object.fromEntries(
+      Object.entries(filters).filter(
+        ([, value]) => value !== '' && value !== undefined && value !== null,
+      ),
+    );
+
+    const resp = await axios.get('/items', { params });
     return resp.data.data;
   } catch (error) {
     throw toError(error);
