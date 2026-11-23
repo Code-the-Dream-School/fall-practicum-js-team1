@@ -14,6 +14,7 @@ import addressRoutes from './routes/address.routes.js';
 import itemRoutes from './routes/item.routes.js';
 import messageRoutes from './routes/message.routes.js';
 import profileRoutes from './routes/profile.routes.js';
+import withdrawRoutes from './routes/withdraw.routes.js';
 
 // Middleware
 import { notFound } from './middleware/notFound.js';
@@ -49,6 +50,7 @@ app.use('/api/items', itemRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/addresses', addressRoutes);
+app.use('/api/items', withdrawRoutes);
 
 // Root route
 app.get('/', (_req, res) => {
