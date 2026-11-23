@@ -25,6 +25,7 @@ export default defineConfig([
         {
           varsIgnorePattern: '^_[^_].*$|^_$',
           caughtErrorsIgnorePattern: '^_[^_].*$|^_$',
+          ignoreRestSiblings: true,
         },
       ],
     },
