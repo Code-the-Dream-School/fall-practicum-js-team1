@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { ComponentProps } from 'react';
 import { ChevronRight } from 'lucide-react';
+import { UnreadDot } from '@/components/messages/UnreadDot';
+import { useUnreadMessages } from '@/components/messages/useUnreadMessages';
 import { AvatarStack } from '@/components/profile/AvatarStack';
 import { ConfirmButton } from '@/components/profile/ConfirmButton';
 import { ProfileRow } from '@/components/profile/ProfileRow';
@@ -50,6 +52,10 @@ export const DonationRow = ({
   actions,
 }: DonationRowProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const unreadByClaim = useUnreadMessages(
+    requests.map((request) => request.id),
+  );
+  const hasUnread = Object.values(unreadByClaim).some((count) => count > 0);
 
   const approved = requests.find((request) => request.status === 'approved');
   const pickedUp = requests.find((request) => request.status === 'picked_up');
@@ -117,6 +123,7 @@ export const DonationRow = ({
       >
         {text}
       </span>
+      {hasUnread && <UnreadDot className="ml-1" />}
       <ChevronRight
         className="ml-auto size-4 shrink-0 transition-transform group-hover:translate-x-0.5"
         aria-hidden="true"
@@ -138,7 +145,7 @@ export const DonationRow = ({
       return <p>Loading requests…</p>;
     }
 
-    // a picked up item can still open its requests
+    // a picked up item can still open its requests, to read the messages
     if (item.status === 'picked_up') {
       if (!pickedUp) {
         return <p>Picked up</p>;
@@ -186,6 +193,7 @@ export const DonationRow = ({
         onOpenChange={setIsOpen}
         onDecision={actions.onDecision}
         onNoShow={actions.onNoShow}
+        unreadByClaim={unreadByClaim}
       />
     </>
   );

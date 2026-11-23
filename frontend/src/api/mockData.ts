@@ -1,4 +1,5 @@
 import mockData from './mockData.json' with { type: 'json' };
+import type { Message as MessageResponse } from '../types';
 
 export const MOCK_PASSWORD = 'Password123';
 const CSRF_TOKEN = 'mock-csrf-token';
@@ -100,6 +101,7 @@ const users: User[] = [...mockData.users];
 const addresses: Address[] = [...mockData.addresses];
 const items: Item[] = [...mockData.items];
 const claims: Claim[] = [...mockData.claims];
+const messages: MessageResponse[] = [...mockData.messages];
 
 export const getSignedInUser = (): User | undefined => {
   const id = sessionStorage.getItem(SESSION_KEY);
@@ -179,13 +181,17 @@ const makeShortItem = (item: Item) => {
   };
 };
 
+const getOwnerOfItem = (item: Item) => {
+  const owner = users.find((user) => user.id === item.ownerId);
+  return { id: item.ownerId, name: owner ? owner.name : '' };
+};
+
 const makeFullItem = (item: Item) => {
   const address = getAddressOfItem(item);
-  const owner = users.find((user) => user.id === item.ownerId);
   return {
     ...makeShortItem(item),
     description: item.description,
-    owner: { id: item.ownerId, name: owner ? owner.name : '' },
+    owner: getOwnerOfItem(item),
     postalCode: address.postalCode,
     photos: item.photos,
     createdAt: item.createdAt,
@@ -332,8 +338,9 @@ export const getUploadSignature = () => {
   return {
     cloudName: 'mock-cloud',
     apiKey: 'mock-api-key',
-    timestamp: Date.now(),
+    timestamp: Math.floor(Date.now() / 1000),
     folder: 'hand-me-down/items',
+    allowedFormats: 'jpg,png,webp',
     signature: 'mock-signature',
   };
 };
@@ -386,6 +393,7 @@ export const getMyClaims = (user: User, status?: string) => {
           id: item.id,
           title: item.title,
           status: item.status,
+          owner: getOwnerOfItem(item),
           coverPhoto: getCoverPhoto(item),
         },
         pickup,
@@ -608,4 +616,78 @@ export const withdrawItem = (itemId: string) => {
   item.status = 'withdrawn';
   item.reservedAt = null;
   return { id: item.id, status: item.status };
+};
+
+const MESSAGE_MAX_LENGTH = 2000;
+
+export class MockApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
+const findClaimForUser = (user: User, claimId: string): Claim => {
+  const claim = claims.find((c) => c.id === claimId);
+  if (!claim) {
+    throw new MockApiError('Claim not found', 404);
+  }
+  const item = items.find((i) => i.id === claim.itemId);
+  if (claim.claimerId !== user.id && item?.ownerId !== user.id) {
+    throw new MockApiError('You are not part of this claim', 403);
+  }
+  return claim;
+};
+
+export const getClaimMessages = (user: User, claimId: string) => {
+  findClaimForUser(user, claimId);
+  return messages
+    .filter((message) => message.claimId === claimId)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+};
+
+export const addClaimMessage = (
+  user: User,
+  claimId: string,
+  rawBody: unknown,
+) => {
+  const claim = findClaimForUser(user, claimId);
+  const body = typeof rawBody === 'string' ? rawBody.trim() : '';
+  if (body.length < 1 || body.length > MESSAGE_MAX_LENGTH) {
+    throw new MockApiError(
+      'A message must be 1 to ' + MESSAGE_MAX_LENGTH + ' characters',
+      400,
+    );
+  }
+  if (claim.status !== 'pending' && claim.status !== 'approved') {
+    throw new MockApiError('This conversation is closed', 409);
+  }
+  const message: MessageResponse = {
+    id: crypto.randomUUID(),
+    claimId,
+    senderId: user.id,
+    body,
+    readAt: null,
+    createdAt: new Date().toISOString(),
+  };
+  messages.push(message);
+  return message;
+};
+
+export const markClaimMessagesRead = (user: User, claimId: string) => {
+  findClaimForUser(user, claimId);
+  let updatedCount = 0;
+  for (const message of messages) {
+    if (
+      message.claimId === claimId &&
+      message.senderId !== user.id &&
+      message.readAt === null
+    ) {
+      message.readAt = new Date().toISOString();
+      updatedCount += 1;
+    }
+  }
+  return { updatedCount };
 };

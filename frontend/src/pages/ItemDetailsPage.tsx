@@ -14,8 +14,11 @@ import type { Claim, CreatedClaim } from '@/types';
 
 import ItemDetailsSkeleton from '@/components/ItemDetailsSkeleton';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
-import { ConditionChip } from '@/components/ui/ConditionChip';
-import { StatusChip } from '@/components/ui/StatusChip';
+import {
+  ConditionChip,
+  type ItemCondition,
+} from '@/components/ui/ConditionChip';
+import { StatusChip, type ItemStatus } from '@/components/ui/StatusChip';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -28,10 +31,6 @@ import {
 
 import { formatAgeRange } from '@/lib/formatAgeRange';
 import { useAuthStore } from '@/store/authStore';
-
-type ItemCondition = 'new' | 'like_new' | 'good' | 'used';
-
-type ItemStatus = 'available' | 'reserved' | 'picked_up' | 'withdrawn';
 
 type ItemPhoto = {
   id: string;
@@ -68,14 +67,6 @@ export default function ItemDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const state: unknown = location.state;
-
-  const justPosted =
-    typeof state === 'object' &&
-    state !== null &&
-    'message' in state &&
-    state.message === 'Your item was posted';
-
   const queryClient = useQueryClient();
 
   const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
@@ -85,6 +76,14 @@ export default function ItemDetailsPage() {
   const [submittedClaim, setSubmittedClaim] = useState<CreatedClaim | null>(
     null,
   );
+
+  const state: unknown = location.state;
+
+  const justPosted =
+    typeof state === 'object' &&
+    state !== null &&
+    'message' in state &&
+    state.message === 'Your item was posted';
 
   const currentUserId = useAuthStore((state) => state.user?.id ?? null);
   const isCheckingSession = useAuthStore((state) => state.isCheckingSession);
@@ -392,7 +391,11 @@ export default function ItemDetailsPage() {
             <p className="rounded-md bg-muted px-4 py-3 text-center font-medium">
               This is your item
             </p>
-          ) : !canRequest ? null : showExistingClaim ? (
+          ) : !canRequest ? (
+            <p className="font-medium text-muted-foreground">
+              This item is no longer available
+            </p>
+          ) : showExistingClaim ? (
             <div className="rounded-md bg-muted px-4 py-3 text-center">
               <p className="font-medium">You requested this item</p>
               <p className="mt-1 text-sm capitalize text-muted-foreground">
