@@ -507,8 +507,17 @@ export default function ItemDetailsPage() {
                 className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
 
-              <p className="text-right text-xs text-muted-foreground">
+              <p
+                role="status"
+                className={`text-right text-xs ${
+                  message.length >= MAX_MESSAGE_LENGTH
+                    ? 'font-medium text-destructive'
+                    : 'text-muted-foreground'
+                }`}
+              >
                 {message.length}/{MAX_MESSAGE_LENGTH}
+                {message.length >= MAX_MESSAGE_LENGTH &&
+                  ' — Character limit reached'}
               </p>
             </div>
 
