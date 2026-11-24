@@ -11,6 +11,12 @@ import {
 } from '@/api/client';
 import PostItemPage from '@/pages/PostItemPage';
 
+const progressPercent = 40;
+const uploadAttempts = 2;
+
+const startsWith = (text: string) => (accessibleName: string) =>
+  accessibleName.startsWith(text);
+
 vi.mock('@/api/client', () => ({
   createItem: vi.fn(),
   createAddress: vi.fn(),
@@ -36,17 +42,14 @@ it('shows progress and lets the user retry a failed upload without losing the fo
     },
   ]);
 
-  let failUpload!: (error: Error) => void;
+  let finishUpload!: (photo: { url: string; publicId: string }) => void;
   vi.mocked(uploadPhoto)
+    .mockRejectedValueOnce(new Error('Upload failed'))
     .mockImplementationOnce((_file, onProgress) => {
-      onProgress?.(40);
-      return new Promise((_resolve, reject) => {
-        failUpload = reject;
+      onProgress?.(progressPercent);
+      return new Promise((resolve) => {
+        finishUpload = resolve;
       });
-    })
-    .mockResolvedValueOnce({
-      url: '/photos/stroller.png',
-      publicId: 'stroller',
     });
 
   const user = userEvent.setup();
@@ -58,39 +61,54 @@ it('shows progress and lets the user retry a failed upload without losing the fo
     </MemoryRouter>,
   );
 
-  const title = screen.getByLabelText(/Item Title/i);
-  const description = screen.getByLabelText(/Description/i);
-  await user.type(title, 'Travel stroller');
-  await user.type(description, 'Folds for easy storage.');
-
-  screen.getByRole('combobox', { name: /Category/i }).focus();
-  await user.keyboard('s');
-  screen.getByRole('combobox', { name: /Condition/i }).focus();
-  await user.keyboard('g');
-
   const file = new File(['photo'], 'stroller.png', { type: 'image/png' });
   await user.upload(
-    screen.getByLabelText(/Item Photos/i, { selector: 'input' }),
+    screen.getByLabelText('Add photos', { selector: 'input', exact: false }),
     file,
   );
-  await user.click(screen.getByRole('button', { name: 'Post Item' }));
+  await user.click(screen.getByRole('button', { name: 'Next' }));
 
-  expect(
-    await screen.findByRole('progressbar', { name: /stroller.png/ }),
-  ).toHaveAttribute('value', '40');
+  const title = screen.getByLabelText('Item title', { exact: false });
+  const description = screen.getByLabelText('Description', { exact: false });
+  await user.type(title, 'Travel stroller');
+  await user.type(description, 'Folds for easy storage.');
+  screen.getByRole('combobox', { name: startsWith('Category') }).focus();
+  await user.keyboard('s');
+  await user.click(screen.getByRole('radio', { name: startsWith('Good') }));
+  await user.click(screen.getByRole('button', { name: 'Next' }));
 
-  await act(async () => failUpload(new Error('Upload failed')));
+  await user.click(await screen.findByRole('button', { name: 'Post item' }));
+
+  // The failed upload sends the user back to the photos step to retry it.
   const retry = await screen.findByRole('button', {
     name: 'Retry upload for stroller.png',
   });
-  expect(title).toHaveValue('Travel stroller');
-  expect(description).toHaveValue('Folds for easy storage.');
   expect(createItem).not.toHaveBeenCalled();
 
   await user.click(retry);
+  expect(
+    await screen.findByRole('progressbar', {
+      name: 'Upload progress for stroller.png',
+    }),
+  ).toHaveAttribute('value', String(progressPercent));
+
+  await act(async () =>
+    finishUpload({ url: '/photos/stroller.png', publicId: 'stroller' }),
+  );
   expect(await screen.findByText('Uploaded (100%)')).toBeVisible();
-  expect(uploadPhoto).toHaveBeenCalledTimes(2);
+  expect(uploadPhoto).toHaveBeenCalledTimes(uploadAttempts);
   expect(vi.mocked(uploadPhoto).mock.calls[1]?.[0]).toBe(file);
-  expect(screen.queryByRole('button', { name: /Retry upload/ })).toBeNull();
+  expect(
+    screen.queryByRole('button', { name: startsWith('Retry upload') }),
+  ).toBeNull();
   expect(createItem).not.toHaveBeenCalled();
+
+  // The form was kept while the photo was retried.
+  await user.click(screen.getByRole('button', { name: 'Next' }));
+  expect(screen.getByLabelText('Item title', { exact: false })).toHaveValue(
+    'Travel stroller',
+  );
+  expect(screen.getByLabelText('Description', { exact: false })).toHaveValue(
+    'Folds for easy storage.',
+  );
 });

@@ -1,7 +1,20 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ImageOff } from 'lucide-react';
+import {
+  Ban,
+  Baby,
+  ChevronRight,
+  Clock,
+  HandHeart,
+  ImageOff,
+  PackageCheck,
+  Pencil,
+  ShieldCheck,
+  Sparkles,
+  Tag,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -11,14 +24,10 @@ import {
   getMyClaims,
 } from '@/api/client';
 import type { Claim, CreatedClaim } from '@/types';
-
 import ItemDetailsSkeleton from '@/components/ItemDetailsSkeleton';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
-import {
-  ConditionChip,
-  type ItemCondition,
-} from '@/components/ui/ConditionChip';
-import { StatusChip, type ItemStatus } from '@/components/ui/StatusChip';
+import type { ItemCondition } from '@/components/ui/ConditionChip';
+import type { ItemStatus } from '@/components/ui/StatusChip';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -28,7 +37,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-
+import { cn } from '@/lib/utils';
+import { conditionBadges, conditions, tints } from '@/lib/itemForm';
+import {
+  FactPill,
+  HeroBand,
+  LocationAndDate,
+  OwnerRow,
+  PhotoBlobs,
+  PickupAreaCard,
+  photoShapeClass,
+} from '@/components/item-details/ItemDetailParts';
 import { formatAgeRange } from '@/lib/formatAgeRange';
 import { useAuthStore } from '@/store/authStore';
 
@@ -63,6 +82,49 @@ type ItemDetails = {
 
 const MAX_MESSAGE_LENGTH = 500;
 
+const statusPills: Partial<
+  Record<ItemStatus, { label: string; icon: LucideIcon; badge: string }>
+> = {
+  reserved: {
+    label: 'Reserved',
+    icon: Clock,
+    badge: 'bg-status-reserved text-status-reserved-foreground',
+  },
+  picked_up: {
+    label: 'Picked up',
+    icon: PackageCheck,
+    badge: 'bg-status-picked-up text-status-picked-up-foreground',
+  },
+  withdrawn: {
+    label: 'Withdrawn',
+    icon: Ban,
+    badge: 'bg-status-inactive text-status-inactive-foreground',
+  },
+};
+
+function StatusPill({ status }: { status: ItemStatus }) {
+  const entry = statusPills[status];
+
+  if (!entry) return null;
+
+  const Icon = entry.icon;
+
+  return (
+    <p className="inline-flex items-center gap-2 rounded-full bg-card py-1 pr-4 pl-1 text-sm font-semibold shadow-sm ring-1 ring-border">
+      <span
+        aria-hidden="true"
+        className={cn(
+          'flex size-7 items-center justify-center rounded-full',
+          entry.badge,
+        )}
+      >
+        <Icon className="size-4" />
+      </span>
+      {entry.label}
+    </p>
+  );
+}
+
 export default function ItemDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -76,17 +138,6 @@ export default function ItemDetailsPage() {
   const [submittedClaim, setSubmittedClaim] = useState<CreatedClaim | null>(
     null,
   );
-
-  const state: unknown = location.state;
-
-  const justPosted =
-    typeof state === 'object' &&
-    state !== null &&
-    'message' in state &&
-    state.message === 'Your item was posted';
-
-  const currentUserId = useAuthStore((state) => state.user?.id ?? null);
-  const isCheckingSession = useAuthStore((state) => state.isCheckingSession);
 
   const {
     data: item,
@@ -106,6 +157,9 @@ export default function ItemDetailsPage() {
       return failureCount < 2;
     },
   });
+
+  const currentUserId = useAuthStore((state) => state.user?.id ?? null);
+  const isCheckingSession = useAuthStore((state) => state.isCheckingSession);
 
   const {
     data: myClaims = [],
@@ -143,17 +197,9 @@ export default function ItemDetailsPage() {
 
       toast.success('Request sent');
 
-      void queryClient.invalidateQueries({
-        queryKey: ['myClaims'],
-      });
-
-      void queryClient.invalidateQueries({
-        queryKey: ['myStats'],
-      });
-
-      void queryClient.invalidateQueries({
-        queryKey: ['item', id],
-      });
+      void queryClient.invalidateQueries({ queryKey: ['myClaims'] });
+      void queryClient.invalidateQueries({ queryKey: ['myStats'] });
+      void queryClient.invalidateQueries({ queryKey: ['item', id] });
     },
 
     onError: (mutationError: unknown) => {
@@ -253,208 +299,249 @@ export default function ItemDetailsPage() {
   const selectedPhoto =
     photos.find((photo) => photo.id === selectedPhotoId) ?? photos[0];
 
-  const firstName = item.owner.name.trim().split(/\s+/)[0];
-
   const isOwner = currentUserId != null && currentUserId === item.owner.id;
-
-  const postedDate = new Date(item.createdAt).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
 
   const categoryUrl = `/?category=${encodeURIComponent(item.category.key)}`;
 
+  const requestable =
+    !isOwner && ['available', 'reserved'].includes(item.status);
+
   const canRequest = item.status === 'available' || item.status === 'reserved';
+
+  const showExistingClaim = Boolean(currentClaim) && !isOwner;
 
   const requestButtonText =
     item.status === 'reserved' ? 'Join the waiting list' : 'Request this item';
 
-  const showExistingClaim = Boolean(currentClaim) && !isOwner;
+  const pillClass = 'h-14 w-full rounded-full text-base';
+
+  const action = isOwner ? (
+    <Button asChild className={pillClass}>
+      <Link to={`/items/${item.id}/edit`}>
+        <Pencil className="size-4" aria-hidden="true" />
+        Edit item
+      </Link>
+    </Button>
+  ) : !canRequest ? (
+    <p className="rounded-full bg-muted px-4 py-3.5 text-center font-medium text-muted-foreground">
+      This item is no longer available
+    </p>
+  ) : showExistingClaim ? (
+    <div className="rounded-3xl bg-muted px-4 py-3 text-center">
+      <p className="font-medium">You requested this item</p>
+      <p className="mt-1 text-sm text-muted-foreground capitalize">
+        Status: {currentClaim?.status.replaceAll('_', ' ')}
+      </p>
+    </div>
+  ) : currentUserId && isClaimsPending ? (
+    <Button type="button" className={pillClass} disabled>
+      Checking your requests...
+    </Button>
+  ) : currentUserId && isClaimsError ? (
+    <div className="space-y-2">
+      <p role="alert" className="text-center text-sm text-destructive">
+        Unable to check your existing requests.
+      </p>
+      <Button
+        type="button"
+        variant="outline"
+        className="h-12 w-full rounded-full"
+        onClick={() => {
+          void refetchClaims();
+        }}
+      >
+        Try again
+      </Button>
+    </div>
+  ) : (
+    <Button
+      type="button"
+      className={pillClass}
+      onClick={handleRequestClick}
+      disabled={isCheckingSession || claimMutation.isPending}
+    >
+      {item.status === 'available' && (
+        <HandHeart className="size-5" aria-hidden="true" />
+      )}
+      {requestButtonText}
+    </Button>
+  );
+
+  const selectedIndex = photos.findIndex(
+    (photo) => photo.id === selectedPhoto?.id,
+  );
 
   return (
-    <main className="mx-auto max-w-6xl space-y-12 px-6 py-8">
-      {justPosted && (
-        <p
-          role="status"
-          className="rounded-md border border-green-300 p-3 text-green-700"
-        >
-          Your item was posted
-        </p>
-      )}
-
-      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-        <Link to="/" className="hover:underline">
-          Browse
-        </Link>
-
-        <span className="mx-3">/</span>
-
-        <Link to={categoryUrl} className="hover:underline">
-          {item.category.name}
-        </Link>
-
-        <span className="mx-3">/</span>
-
-        <span aria-current="page">{item.title}</span>
-      </nav>
-
-      <div className="grid gap-8 md:grid-cols-2">
-        <section aria-label="Item photos">
-          <div className="flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-muted">
-            {selectedPhoto ? (
-              <img
-                src={selectedPhoto.url}
-                alt={selectedPhoto.altText || item.title}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                <ImageOff className="h-20 w-20" aria-hidden="true" />
-                <p>No photo available</p>
-              </div>
-            )}
-          </div>
-
-          {photos.length > 1 && (
-            <div className="mt-3 grid grid-cols-4 gap-3">
-              {photos.map((photo, index) => {
-                const isSelected = photo.id === selectedPhoto?.id;
-
-                return (
-                  <button
-                    key={photo.id}
-                    type="button"
-                    onClick={() => setSelectedPhotoId(photo.id)}
-                    aria-label={`View photo ${index + 1}`}
-                    aria-pressed={isSelected}
-                    className={`aspect-square overflow-hidden rounded-md border-2 ${
-                      isSelected ? 'border-primary' : 'border-transparent'
-                    }`}
-                  >
-                    <img
-                      src={photo.url}
-                      alt={photo.altText || item.title}
-                      className="h-full w-full object-cover"
-                    />
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        <section className="space-y-6">
-          <div className="flex flex-wrap items-center gap-2">
-            <ConditionChip condition={item.condition} />
-            <StatusChip kind="item" status={item.status} />
-          </div>
-
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
-              {item.title}
-            </h1>
-
-            <p className="mt-3 text-muted-foreground">
-              Posted {postedDate} · {item.city}, {item.state}
-            </p>
-          </div>
-
-          <div className="border-y py-5">
-            <p className="font-medium">Shared by {firstName}</p>
-          </div>
-
-          <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-4">
-            <dt className="font-semibold">Category</dt>
-            <dd>
+    <main className="pb-10">
+      <HeroBand>
+        <nav aria-label="Breadcrumb" className="text-sm">
+          <ol className="flex flex-wrap items-center gap-1 text-muted-foreground">
+            <li>
+              <Link to="/" className="hover:text-foreground hover:underline">
+                Browse
+              </Link>
+            </li>
+            <li aria-hidden="true">
+              <ChevronRight className="size-4" />
+            </li>
+            <li>
               <Link
                 to={categoryUrl}
-                className="text-primary underline-offset-4 hover:underline"
+                className="hover:text-foreground hover:underline"
               >
                 {item.category.name}
               </Link>
-            </dd>
+            </li>
+            <li aria-hidden="true">
+              <ChevronRight className="size-4" />
+            </li>
+            <li aria-current="page" className="truncate text-foreground">
+              {item.title}
+            </li>
+          </ol>
+        </nav>
 
-            <dt className="font-semibold">Age range</dt>
-            <dd>
-              {formatAgeRange(item.childAgeMinMonths, item.childAgeMaxMonths)}
-            </dd>
+        <div className="mt-6 grid gap-10 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] xl:items-center xl:gap-16">
+          <section
+            aria-label="Item photos"
+            className="@container relative mx-auto w-full max-w-2xl xl:max-w-none"
+          >
+            <PhotoBlobs />
 
-            <dt className="font-semibold">Condition</dt>
-            <dd className="capitalize">
-              {item.condition.replaceAll('_', ' ')}
-            </dd>
-          </dl>
-
-          {isOwner ? (
-            <p className="rounded-md bg-muted px-4 py-3 text-center font-medium">
-              This is your item
-            </p>
-          ) : !canRequest ? (
-            <p className="font-medium text-muted-foreground">
-              This item is no longer available
-            </p>
-          ) : showExistingClaim ? (
-            <div className="rounded-md bg-muted px-4 py-3 text-center">
-              <p className="font-medium">You requested this item</p>
-              <p className="mt-1 text-sm capitalize text-muted-foreground">
-                Status: {currentClaim?.status.replaceAll('_', ' ')}
-              </p>
-            </div>
-          ) : currentUserId && isClaimsPending ? (
-            <Button type="button" size="lg" className="w-full" disabled>
-              Checking your requests...
-            </Button>
-          ) : currentUserId && isClaimsError ? (
-            <div className="space-y-2">
-              <p role="alert" className="text-sm text-destructive">
-                Unable to check your existing requests.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  void refetchClaims();
-                }}
-              >
-                Try again
-              </Button>
-            </div>
-          ) : (
-            <Button
-              type="button"
-              size="lg"
-              className="w-full"
-              onClick={handleRequestClick}
-              disabled={isCheckingSession || claimMutation.isPending}
+            <div
+              className={cn(
+                'relative flex aspect-[4/3] items-center justify-center xl:aspect-square',
+                photoShapeClass,
+              )}
             >
-              {requestButtonText}
-            </Button>
-          )}
-        </section>
+              {selectedPhoto ? (
+                <img
+                  src={selectedPhoto.url}
+                  alt={selectedPhoto.altText || item.title}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                  <ImageOff className="size-16" aria-hidden="true" />
+                  <p>No photo available</p>
+                </div>
+              )}
+
+              {photos.length > 1 && (
+                <span className="absolute right-4 bottom-4 rounded-full bg-foreground/80 px-2.5 py-1 text-xs font-semibold text-background">
+                  {selectedIndex + 1} / {photos.length}
+                </span>
+              )}
+            </div>
+
+            {photos.length > 1 && (
+              <div className="relative mt-3 flex justify-center gap-2.5 px-4 @md:-mt-8">
+                {photos.map((photo, index) => {
+                  const isSelected = photo.id === selectedPhoto?.id;
+
+                  return (
+                    <button
+                      key={photo.id}
+                      type="button"
+                      onClick={() => setSelectedPhotoId(photo.id)}
+                      aria-label={`View photo ${index + 1}`}
+                      aria-pressed={isSelected}
+                      className={cn(
+                        'size-12 overflow-hidden rounded-2xl border-4 shadow-md transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none @md:size-16',
+                        isSelected
+                          ? 'scale-110 border-primary'
+                          : 'border-card opacity-90 hover:scale-105',
+                      )}
+                    >
+                      <img
+                        src={photo.url}
+                        alt={photo.altText || item.title}
+                        className="size-full object-cover"
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <StatusPill status={item.status} />
+              <h1 className="text-4xl leading-[1.05] font-bold tracking-tight md:text-5xl">
+                {item.title}
+              </h1>
+
+              <LocationAndDate
+                city={item.city}
+                state={item.state}
+                createdAt={item.createdAt}
+              />
+            </div>
+
+            <dl className="grid gap-2.5 sm:grid-cols-3">
+              <FactPill icon={Tag} label="Category" tint={tints.coral.solid}>
+                <Link
+                  to={categoryUrl}
+                  className="underline-offset-4 hover:underline"
+                >
+                  {item.category.name}
+                </Link>
+              </FactPill>
+              <FactPill icon={Baby} label="Child age" tint={tints.blue.solid}>
+                {formatAgeRange(item.childAgeMinMonths, item.childAgeMaxMonths)}
+              </FactPill>
+              <FactPill
+                icon={Sparkles}
+                label="Condition"
+                badgeClassName={conditionBadges[item.condition]}
+              >
+                {
+                  conditions.find((entry) => entry.value === item.condition)
+                    ?.label
+                }
+              </FactPill>
+            </dl>
+
+            <OwnerRow name={item.owner.name} />
+
+            <div className="space-y-3">
+              <div className={cn(requestable && 'max-md:hidden')}>{action}</div>
+
+              {!isOwner && (
+                <p className="flex items-start justify-center gap-2 text-center text-sm text-muted-foreground">
+                  <ShieldCheck
+                    className="mt-0.5 size-4 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
+                  Your address stays private until the owner approves.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </HeroBand>
+
+      <div className="mx-auto mt-6 grid max-w-6xl gap-y-3 px-4 sm:px-6 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] md:gap-x-16">
+        <h2 className="text-2xl font-semibold md:col-start-1 md:row-start-1">
+          <span className="box-decoration-clone bg-[linear-gradient(transparent_62%,color-mix(in_oklab,var(--primary)_35%,transparent)_62%)]">
+            About this item
+          </span>
+        </h2>
+        <p className="max-w-prose text-lg leading-8 whitespace-pre-line md:col-start-1 md:row-start-2">
+          {item.description}
+        </p>
+
+        <PickupAreaCard city={item.city} state={item.state} />
       </div>
 
-      <section className="grid gap-6 border-t pt-10 md:grid-cols-2">
-        <h2 className="text-3xl font-semibold">About this item</h2>
-
-        <p className="whitespace-pre-line leading-7">{item.description}</p>
-      </section>
-
-      <section className="rounded-lg bg-muted p-6 md:p-8">
-        <h2 className="text-2xl font-semibold">How a claim works</h2>
-
-        <ol className="mt-4 list-inside list-decimal space-y-3">
-          <li>Request the item or join its waiting list.</li>
-          <li>The owner reviews requests and approves a claim.</li>
-          <li>Once approved, coordinate pickup privately with the owner.</li>
-        </ol>
-
-        <p className="mt-4 text-sm text-muted-foreground">
-          Pickup addresses are shared privately after approval.
-        </p>
-      </section>
+      {requestable && (
+        <div className="sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 mt-6 px-4 md:hidden">
+          <div className="rounded-3xl bg-background/95 p-3 shadow-lg ring-1 ring-border backdrop-blur">
+            {action}
+          </div>
+        </div>
+      )}
 
       <Dialog
         open={isDialogOpen}
@@ -472,11 +559,7 @@ export default function ItemDetailsPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {item.status === 'reserved'
-                ? 'Join the waiting list'
-                : 'Request this item'}
-            </DialogTitle>
+            <DialogTitle>{requestButtonText}</DialogTitle>
 
             <DialogDescription>
               Send a request to the owner of this item. You can include an
@@ -512,11 +595,12 @@ export default function ItemDetailsPage() {
 
               <p
                 role="status"
-                className={`text-right text-xs ${
+                className={cn(
+                  'text-right text-xs',
                   message.length >= MAX_MESSAGE_LENGTH
                     ? 'font-medium text-destructive'
-                    : 'text-muted-foreground'
-                }`}
+                    : 'text-muted-foreground',
+                )}
               >
                 {message.length}/{MAX_MESSAGE_LENGTH}
                 {message.length >= MAX_MESSAGE_LENGTH &&

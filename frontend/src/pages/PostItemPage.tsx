@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
-
+import { toast } from 'sonner';
+import { Camera, Check, MapPin, PenLine, ShieldCheck } from 'lucide-react';
 import { useCategories } from '../hooks/useCategories';
 import {
   createAddress,
@@ -13,7 +14,19 @@ import {
 import type { Address, NewAddress, NewItem } from '@/types';
 import ItemPhotoPicker from '../components/ItemPhotoPicker';
 import type { PhotoUploadState } from '../components/ItemPhotoPicker';
-
+import { cn } from '@/lib/utils';
+import { conditions, limits, tints } from '@/lib/itemForm';
+import {
+  AgeRangeFields,
+  CharCount,
+  ConditionPicker,
+  ErrorText,
+  FormSection,
+} from '@/components/item-form/ItemFormParts';
+import { AddressFields } from '@/components/item-form/AddressFields';
+import { addressFields, emptyAddress } from '@/lib/addressForm';
+import type { AddressDraft } from '@/lib/addressForm';
+import { ItemCard } from '@/components/ui/ItemCard';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -28,79 +41,93 @@ import {
 
 const useMocks = import.meta.env['VITE_USE_MOCKED_API_CALLS'] === 'true';
 
-const conditions = [
-  { value: 'new', label: 'New' },
-  { value: 'like_new', label: 'Like new' },
-  { value: 'good', label: 'Good' },
-  { value: 'used', label: 'Used' },
-];
-
-const ages = [
-  { value: 'any', label: 'Any' },
-  { value: '0', label: 'Newborn' },
-  { value: '3', label: '3 months' },
-  { value: '6', label: '6 months' },
-  { value: '9', label: '9 months' },
-  { value: '12', label: '1 year' },
-  { value: '18', label: '18 months' },
-  { value: '24', label: '2 years' },
-  { value: '36', label: '3 years' },
-  { value: '48', label: '4 years' },
-  { value: '60', label: '5 years' },
-];
-
 type Errors = Record<string, string>;
-
-type AddressDraft = {
-  nickname: string;
-  line1: string;
-  line2: string;
-  city: string;
-  state: string;
-  postalCode: string;
-};
-
-const emptyAddress: AddressDraft = {
-  nickname: '',
-  line1: '',
-  line2: '',
-  city: '',
-  state: '',
-  postalCode: '',
-};
-
-const addressFields: {
-  key: keyof AddressDraft;
-  label: string;
-  required: boolean;
-}[] = [
-  { key: 'nickname', label: 'Nickname', required: false },
-  { key: 'line1', label: 'Street address', required: true },
-  { key: 'line2', label: 'Apartment or unit', required: false },
-  { key: 'city', label: 'City', required: true },
-  { key: 'state', label: 'State', required: true },
-  { key: 'postalCode', label: 'Postal code', required: true },
-];
-
-function ErrorText({
-  id,
-  message,
-}: {
-  id: string;
-  message: string | undefined;
-}) {
-  return message ? (
-    <p id={id} role="alert" className="text-sm text-red-600">
-      {message}
-    </p>
-  ) : null;
-}
 
 function errorMessage(error: unknown): string {
   return error instanceof Error
     ? error.message
     : 'Something went wrong. Please try again.';
 }
+
+function StepIndicator({
+  labels,
+  current,
+  onGo,
+}: {
+  labels: string[];
+  current: number;
+  onGo: (step: number) => void;
+}) {
+  return (
+    <nav aria-label="Posting steps">
+      <ol className="flex items-center gap-2 sm:gap-3">
+        {labels.map((label, index) => {
+          const done = index < current;
+          const active = index === current;
+          const last = index === labels.length - 1;
+
+          return (
+            <li
+              key={label}
+              className={cn(
+                'flex items-center gap-2 sm:gap-3',
+                !last && 'flex-1',
+              )}
+            >
+              <button
+                type="button"
+                disabled={!done}
+                onClick={() => onGo(index)}
+                aria-current={active ? 'step' : undefined}
+                className="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-default"
+              >
+                <span
+                  className={cn(
+                    'flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors',
+                    done && 'bg-primary text-primary-foreground',
+                    active && 'bg-foreground text-background',
+                    !done && !active && 'bg-muted text-muted-foreground',
+                  )}
+                >
+                  {done ? (
+                    <Check className="size-4" aria-hidden="true" />
+                  ) : (
+                    index + 1
+                  )}
+                </span>
+                <span
+                  className={cn(
+                    'text-sm font-medium',
+                    active ? 'text-foreground' : 'text-muted-foreground',
+                  )}
+                >
+                  {label}
+                </span>
+              </button>
+              {!last && (
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'h-px flex-1 transition-colors',
+                    done ? 'bg-primary' : 'bg-border',
+                  )}
+                />
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
+
+const stepLabels = ['Photos', 'Details', 'Pickup'];
+
+const stepFields = [
+  ['photos'],
+  ['title', 'category', 'condition', 'description', 'ageTo'],
+  ['address', 'instructions', 'availability'],
+];
 
 export default function PostItemPage() {
   const navigate = useNavigate();
@@ -134,6 +161,7 @@ export default function PostItemPage() {
   const [addressSaveError, setAddressSaveError] = useState('');
   const [savingAddress, setSavingAddress] = useState(false);
 
+  const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<Errors>({});
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -145,6 +173,7 @@ export default function PostItemPage() {
   const formRef = useRef<HTMLFormElement>(null);
   const messageRef = useRef<HTMLParagraphElement>(null);
   const submitLock = useRef(false);
+  const pendingFocus = useRef('');
   const addressSaveLock = useRef(false);
   const retryLock = useRef(false);
   const uploadController = useRef<AbortController | null>(null);
@@ -168,12 +197,14 @@ export default function PostItemPage() {
 
   async function uploadFile(file: File, signal: AbortSignal) {
     const cached = uploadedPhotos.current.get(file);
+
     if (cached) {
       updateUpload(file, { status: 'uploaded' });
       return cached;
     }
 
     updateUpload(file, { status: 'uploading' });
+
     try {
       const photo = await uploadPhoto(
         file,
@@ -184,7 +215,9 @@ export default function PostItemPage() {
         },
         signal,
       );
+
       if (signal.aborted) return undefined;
+
       uploadedPhotos.current.set(file, photo);
       updateUpload(file, { status: 'uploaded' });
       return photo;
@@ -192,6 +225,7 @@ export default function PostItemPage() {
       if (!signal.aborted) {
         updateUpload(file, { status: 'failed', message: errorMessage(error) });
       }
+
       return undefined;
     }
   }
@@ -202,16 +236,20 @@ export default function PostItemPage() {
       addressSaveLock.current ||
       retryLock.current ||
       !photos.includes(file)
-    )
+    ) {
       return;
+    }
 
     retryLock.current = true;
     setIsRetrying(true);
     setMessage('');
+
     const controller = new AbortController();
     uploadController.current = controller;
+
     try {
       const photo = await uploadFile(file, controller.signal);
+
       if (!controller.signal.aborted) {
         setMessage(
           photo
@@ -224,6 +262,37 @@ export default function PostItemPage() {
       setIsRetrying(false);
     }
   }
+
+  const coverFile = photos[0];
+  const [coverUrl, setCoverUrl] = useState('');
+
+  useEffect(() => {
+    if (!coverFile) {
+      setCoverUrl('');
+      return;
+    }
+
+    const url = URL.createObjectURL(coverFile);
+    setCoverUrl(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [coverFile]);
+
+  const selectedAddress = addresses.find((address) => address.id === addressId);
+
+  const previewItem = {
+    id: 'preview',
+    title: title.trim() || 'Your item title',
+    condition:
+      conditions.find((item) => item.value === condition)?.value ?? 'good',
+    status: 'available' as const,
+    childAgeMinMonths: ageFrom !== 'any' ? Number(ageFrom) : null,
+    childAgeMaxMonths: ageTo !== 'any' ? Number(ageTo) : null,
+    city: selectedAddress?.city ?? 'Your city',
+    coverPhoto: coverUrl
+      ? { url: coverUrl, altText: 'Cover photo preview' }
+      : null,
+  };
 
   const ageError =
     ageFrom !== 'any' && ageTo !== 'any' && Number(ageTo) < Number(ageFrom)
@@ -260,6 +329,17 @@ export default function PostItemPage() {
   }, []);
 
   useEffect(() => {
+    window.scrollTo({ top: 0 });
+
+    const key = pendingFocus.current;
+
+    if (key) {
+      pendingFocus.current = '';
+      requestAnimationFrame(() => focusField(key));
+    }
+  }, [step]);
+
+  useEffect(() => {
     if (message) {
       messageRef.current?.focus();
     }
@@ -284,13 +364,24 @@ export default function PostItemPage() {
     }
   }
 
+  function clearError(key: string) {
+    setErrors((previous) => {
+      if (!(key in previous)) return previous;
+
+      const next = { ...previous };
+      delete next[key];
+      return next;
+    });
+  }
+
   function focusField(id: string) {
     formRef.current?.querySelector<HTMLElement>(`#${id}`)?.focus();
   }
 
   async function saveAddress() {
-    if (addressSaveLock.current || submitLock.current || retryLock.current)
+    if (addressSaveLock.current || submitLock.current || retryLock.current) {
       return;
+    }
 
     const next: Errors = {};
 
@@ -347,53 +438,13 @@ export default function PostItemPage() {
     }
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (submitLock.current || addressSaveLock.current || retryLock.current)
-      return;
-
-    setMessage('');
-
-    if (showAddressEditor) {
-      setMessage('Save or cancel the new address before posting.');
-      return;
-    }
-
+  function collectErrors(): Errors {
     const next: Errors = {};
-
-    if (!title.trim()) {
-      next['title'] = 'Enter an item title.';
-    } else if (title.length > 80) {
-      next['title'] = 'Title must be 80 characters or fewer.';
-    }
-
-    if (!description.trim()) {
-      next['description'] = 'Enter a description.';
-    } else if (description.length > 1000) {
-      next['description'] = 'Description must be 1000 characters or fewer.';
-    }
-
-    if (!categories.some((item) => item.key === category)) {
-      next['category'] = 'Select a category.';
-    }
-
-    if (!conditions.some((item) => item.value === condition)) {
-      next['condition'] = 'Select a condition.';
-    }
-
-    if (ageError) {
-      next['ageTo'] = ageError;
-    }
-
-    if (!addresses.some((address) => address.id === addressId)) {
-      next['address'] = 'Select a pickup address.';
-    }
 
     if (photos.length === 0) {
       next['photos'] = 'Add at least 1 photo.';
-    } else if (photos.length > 6) {
-      next['photos'] = 'You can add up to 6 photos';
+    } else if (photos.length > limits.photos) {
+      next['photos'] = `You can add up to ${limits.photos} photos`;
     } else {
       const wrongType = photos.find(
         (file) =>
@@ -408,21 +459,117 @@ export default function PostItemPage() {
       }
     }
 
-    if (instructions.length > 300) {
-      next['instructions'] =
-        'Pickup instructions must be 300 characters or fewer.';
+    if (!title.trim()) {
+      next['title'] = 'Enter an item title.';
+    } else if (title.length > limits.title) {
+      next['title'] = `Title must be ${limits.title} characters or fewer.`;
     }
 
-    if (availability.length > 200) {
-      next['availability'] = 'Availability must be 200 characters or fewer.';
+    if (!categories.some((item) => item.key === category)) {
+      next['category'] = 'Select a category.';
     }
+
+    if (!conditions.some((item) => item.value === condition)) {
+      next['condition'] = 'Select a condition.';
+    }
+
+    if (!description.trim()) {
+      next['description'] = 'Enter a description.';
+    } else if (description.length > limits.description) {
+      next['description'] =
+        `Description must be ${limits.description} characters or fewer.`;
+    }
+
+    if (ageError) {
+      next['ageTo'] = ageError;
+    }
+
+    if (!addresses.some((address) => address.id === addressId)) {
+      next['address'] = 'Select a pickup address.';
+    }
+
+    if (instructions.length > limits.instructions) {
+      next['instructions'] =
+        `Pickup instructions must be ${limits.instructions} characters or fewer.`;
+    }
+
+    if (availability.length > limits.availability) {
+      next['availability'] =
+        `Availability must be ${limits.availability} characters or fewer.`;
+    }
+
+    return next;
+  }
+
+  function goToField(key: string) {
+    const target = stepFields.findIndex((fields) => fields.includes(key));
+
+    if (target === -1 || target === step) {
+      focusField(key);
+      return;
+    }
+
+    pendingFocus.current = key;
+    setStep(target);
+  }
+
+  function handleNext() {
+    if (showAddressEditor) {
+      setMessage('Save or cancel the new address before continuing.');
+      return;
+    }
+
+    setMessage('');
+
+    const all = collectErrors();
+    const mine = Object.fromEntries(
+      Object.entries(all).filter(([key]) => stepFields[step]?.includes(key)),
+    );
+
+    setErrors(mine);
+
+    const firstError = Object.keys(mine)[0];
+
+    if (firstError) {
+      focusField(firstError);
+      return;
+    }
+
+    setStep(step + 1);
+  }
+
+  function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
+    if (step < stepLabels.length - 1) {
+      event.preventDefault();
+      handleNext();
+      return;
+    }
+
+    void handleSubmit(event);
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (submitLock.current || addressSaveLock.current || retryLock.current) {
+      return;
+    }
+
+    setMessage('');
+
+    if (showAddressEditor) {
+      setMessage('Save or cancel the new address before posting.');
+      return;
+    }
+
+    const next = collectErrors();
 
     setErrors(next);
 
     const firstError = Object.keys(next)[0];
 
     if (firstError) {
-      focusField(firstError);
+      goToField(firstError);
       return;
     }
 
@@ -439,11 +586,14 @@ export default function PostItemPage() {
       // Each file keeps its own state; successful uploads are reused on retry.
       for (const [index, file] of photos.entries()) {
         if (controller.signal.aborted) return;
+
         const photo = await uploadFile(file, controller.signal);
+
         if (!photo) {
           uploadFailed = true;
           continue;
         }
+
         uploaded.push({
           ...photo,
           altText: `${title.trim()} photo ${index + 1}`,
@@ -451,9 +601,11 @@ export default function PostItemPage() {
       }
 
       if (controller.signal.aborted) return;
+
       if (uploadFailed) {
+        setStep(0);
         setMessage(
-          'Some photos could not be uploaded. Use Retry beside each failed photo or remove it. Your form has been kept.',
+          'Some photos could not be uploaded. Use Retry on each failed photo or remove it. Your form has been kept.',
         );
         return;
       }
@@ -466,7 +618,6 @@ export default function PostItemPage() {
         addressId,
         ...(instructions.trim() ? { instructions: instructions.trim() } : {}),
         ...(availability.trim() ? { availability: availability.trim() } : {}),
-
         photos: uploaded,
         ...(ageFrom !== 'any' ? { childAgeMinMonths: Number(ageFrom) } : {}),
         ...(ageTo !== 'any' ? { childAgeMaxMonths: Number(ageTo) } : {}),
@@ -479,9 +630,9 @@ export default function PostItemPage() {
         queryKey: ['items'],
         refetchType: 'none',
       });
-      navigate(`/items/${encodeURIComponent(saved.id)}`, {
-        state: { message: 'Your item was posted' },
-      });
+
+      toast.success('Your item was posted');
+      navigate(`/items/${encodeURIComponent(saved.id)}`);
     } catch (error) {
       setMessage(`${errorMessage(error)} Your form has been kept.`);
     } finally {
@@ -490,404 +641,434 @@ export default function PostItemPage() {
     }
   }
 
-  function renderAgeSelect(
-    id: string,
-    label: string,
-    value: string,
-    onChange: (value: string) => void,
-  ) {
-    return (
-      <div className="space-y-2">
-        <Label htmlFor={id}>{label}</Label>
-        <Select value={value} onValueChange={onChange} disabled={busy}>
-          <SelectTrigger
-            id={id}
-            className="w-full"
-            aria-invalid={id === 'ageTo' && Boolean(ageError)}
-            aria-describedby={id === 'ageTo' ? 'age-error' : undefined}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {ages.map((age) => (
-              <SelectItem key={age.value} value={age.value}>
-                {age.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {id === 'ageTo' && <ErrorText id="age-error" message={ageError} />}
-      </div>
-    );
-  }
+  const isLastStep = step === stepLabels.length - 1;
 
   return (
-    <main className="mx-auto w-full max-w-2xl space-y-6 p-4 sm:p-6">
-      <h1 className="text-2xl font-semibold">Post an Item</h1>
-
-      <p className="text-sm text-muted-foreground">
-        Share baby gear with families in your community.
-      </p>
-
-      {useMocks && (
-        <p className="text-sm text-muted-foreground">
-          Development preview: using shared sample data. New listings and
-          addresses reset when you refresh. Uploaded photos use sample images.
+    <main className="mx-auto w-full max-w-5xl px-4 pt-6 pb-10 sm:px-6 sm:pt-10">
+      <header className="space-y-2">
+        <h1 className="text-4xl font-bold tracking-tight">
+          Post an{' '}
+          <span className="box-decoration-clone bg-[linear-gradient(transparent_62%,color-mix(in_oklab,var(--primary)_35%,transparent)_62%)]">
+            item
+          </span>
+        </h1>
+        <p className="max-w-xl text-lg text-muted-foreground">
+          It only takes a couple of minutes.
         </p>
-      )}
+      </header>
 
-      {message && (
-        <p
-          ref={messageRef}
-          role="alert"
-          tabIndex={-1}
-          className="rounded-md border border-red-300 p-3 text-sm text-red-600"
-        >
-          {message}
-        </p>
-      )}
+      <div className="mt-6 max-w-xl">
+        <StepIndicator
+          labels={stepLabels}
+          current={step}
+          onGo={(target) => {
+            setMessage('');
+            setStep(target);
+          }}
+        />
+      </div>
 
-      <form
-        ref={formRef}
-        onSubmit={handleSubmit}
-        noValidate
-        className="space-y-5"
-        aria-busy={busy}
-      >
-        <fieldset disabled={busy} className="min-w-0 space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="title">Item Title *</Label>
-            <Input
-              id="title"
-              name="title"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="Enter item title"
-              required
-              maxLength={80}
-              aria-invalid={Boolean(errors['title'])}
-              aria-describedby="title-error"
-            />
-            <ErrorText id="title-error" message={errors['title']} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
-            <Textarea
-              id="description"
-              name="description"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="Describe your item"
-              required
-              maxLength={1000}
-              aria-invalid={Boolean(errors['description'])}
-              aria-describedby="description-error"
-            />
-            <ErrorText id="description-error" message={errors['description']} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="category">Category *</Label>
-            <Select
-              value={category}
-              onValueChange={setCategory}
-              disabled={busy || categoriesLoading || Boolean(categoriesError)}
-              required
-            >
-              <SelectTrigger
-                id="category"
-                className="w-full"
-                aria-invalid={Boolean(errors['category'])}
-                aria-describedby="category-error category-load"
-              >
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((item) => (
-                  <SelectItem key={item.key} value={item.key}>
-                    {item.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {categoriesLoading && (
-              <p id="category-load" role="status" className="text-sm">
-                Loading categories…
-              </p>
-            )}
-            <ErrorText id="category-load" message={categoriesError} />
-            <ErrorText id="category-error" message={errors['category']} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="condition">Condition *</Label>
-            <Select
-              value={condition}
-              onValueChange={setCondition}
-              disabled={busy}
-              required
-            >
-              <SelectTrigger
-                id="condition"
-                className="w-full"
-                aria-invalid={Boolean(errors['condition'])}
-                aria-describedby="condition-error"
-              >
-                <SelectValue placeholder="Select condition" />
-              </SelectTrigger>
-              <SelectContent>
-                {conditions.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <ErrorText id="condition-error" message={errors['condition']} />
-          </div>
-
-          <fieldset className="min-w-0 space-y-3">
-            <legend className="text-sm font-medium">
-              Age range (optional)
-            </legend>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {renderAgeSelect('ageFrom', 'From', ageFrom, setAgeFrom)}
-              {renderAgeSelect('ageTo', 'To', ageTo, setAgeTo)}
-            </div>
-          </fieldset>
-
-          <div className="space-y-2">
-            <Label htmlFor="address">Pickup Address *</Label>
-
-            {addressesLoading && (
-              <p role="status" className="text-sm">
-                Loading addresses…
-              </p>
-            )}
-
-            {addressLoadError && (
-              <div className="space-y-2">
-                <p role="alert" className="text-sm text-red-600">
-                  {addressLoadError}
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={busy || addressesLoading}
-                  onClick={() => void retryAddresses()}
-                >
-                  Retry loading addresses
-                </Button>
-              </div>
-            )}
-
-            {!addressesLoading &&
-              !addressLoadError &&
-              addresses.length === 0 && (
-                <p className="text-sm">
-                  You have no saved addresses. Add a pickup address below.
-                </p>
-              )}
-
-            <Select
-              value={addressId}
-              onValueChange={setAddressId}
-              disabled={busy || addressesLoading || addresses.length === 0}
-              required
-            >
-              <SelectTrigger
-                id="address"
-                className="w-full"
-                aria-invalid={Boolean(errors['address'])}
-                aria-describedby="address-error address-privacy"
-              >
-                <SelectValue placeholder="Choose your address" />
-              </SelectTrigger>
-              <SelectContent>
-                {addresses.map((address) => (
-                  <SelectItem key={address.id} value={address.id}>
-                    {address.nickname || 'Saved address'} — {address.city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <ErrorText id="address-error" message={errors['address']} />
-
-            <p id="address-privacy" className="text-xs text-muted-foreground">
-              Only your city is shown publicly. Your address is shared only with
-              the person you approve.
+      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0">
+          {useMocks && (
+            <p className="mb-4 rounded-xl bg-muted p-3 text-sm text-muted-foreground">
+              Development preview: using shared sample data. New listings and
+              addresses reset when you refresh. Uploaded photos use sample
+              images.
             </p>
-
-            {!showAddressEditor && (
-              <Button
-                type="button"
-                variant="outline"
-                disabled={busy || addressesLoading}
-                onClick={() => {
-                  setAddressErrors({});
-                  setAddressSaveError('');
-                  setShowAddressEditor(true);
-                }}
-              >
-                Add new address
-              </Button>
-            )}
-          </div>
-
-          {showAddressEditor && (
-            <fieldset className="min-w-0 space-y-4 rounded-md border p-4">
-              <legend className="px-1 text-sm font-medium">
-                New pickup address
-              </legend>
-
-              {addressFields.map((field) => (
-                <div key={field.key} className="space-y-2">
-                  <Label htmlFor={`new-${field.key}`}>
-                    {field.label}
-                    {field.required ? ' *' : ''}
-                  </Label>
-                  <Input
-                    id={`new-${field.key}`}
-                    value={addressDraft[field.key]}
-                    autoComplete={
-                      field.key === 'line1'
-                        ? 'address-line1'
-                        : field.key === 'line2'
-                          ? 'address-line2'
-                          : field.key === 'city'
-                            ? 'address-level2'
-                            : field.key === 'state'
-                              ? 'address-level1'
-                              : field.key === 'postalCode'
-                                ? 'postal-code'
-                                : 'off'
-                    }
-                    required={field.required}
-                    onChange={(event) =>
-                      setAddressDraft((previous) => ({
-                        ...previous,
-                        [field.key]: event.target.value,
-                      }))
-                    }
-                    aria-invalid={Boolean(addressErrors[field.key])}
-                    aria-describedby={`new-${field.key}-error`}
-                  />
-                  <ErrorText
-                    id={`new-${field.key}-error`}
-                    message={addressErrors[field.key]}
-                  />
-                </div>
-              ))}
-
-              <ErrorText id="address-save-error" message={addressSaveError} />
-
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  type="button"
-                  onClick={() => void saveAddress()}
-                  disabled={busy}
-                >
-                  {savingAddress ? 'Saving…' : 'Save address'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={busy}
-                  onClick={() => setShowAddressEditor(false)}
-                >
-                  Cancel address
-                </Button>
-              </div>
-            </fieldset>
           )}
 
-          <div
-            className="space-y-2"
-            role="group"
-            aria-label="Item photos"
-            aria-describedby="required-photos-error"
-            aria-invalid={Boolean(errors['photos'])}
-          >
-            <ItemPhotoPicker
-              photos={photos}
-              uploadStates={uploadStates}
-              disabled={busy}
-              onRetry={(file) => void retryPhoto(file)}
-              onChange={(selected) => {
-                setPhotos(selected);
-                setUploadStates(
-                  (previous) =>
-                    new Map(
-                      [...previous].filter(([file]) => selected.includes(file)),
-                    ),
-                );
-                setErrors((previous) => {
-                  const next = { ...previous };
-                  delete next['photos'];
-                  return next;
-                });
-              }}
-            />
-            <ErrorText id="required-photos-error" message={errors['photos']} />
-          </div>
+          {message && (
+            <p
+              ref={messageRef}
+              role="alert"
+              tabIndex={-1}
+              className="mb-4 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300"
+            >
+              {message}
+            </p>
+          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="instructions">Pickup Instructions</Label>
-            <Textarea
-              id="instructions"
-              name="instructions"
-              value={instructions}
-              onChange={(event) => setInstructions(event.target.value)}
-              maxLength={300}
-              placeholder="Optional pickup instructions"
-              aria-invalid={Boolean(errors['instructions'])}
-              aria-describedby="instructions-error"
-            />
-            <ErrorText
-              id="instructions-error"
-              message={errors['instructions']}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="availability">Pickup Availability</Label>
-            <Input
-              id="availability"
-              name="availability"
-              value={availability}
-              onChange={(event) => setAvailability(event.target.value)}
-              maxLength={200}
-              placeholder="Example: Weekdays after 5pm"
-              aria-invalid={Boolean(errors['availability'])}
-              aria-describedby="availability-error"
-            />
-            <ErrorText
-              id="availability-error"
-              message={errors['availability']}
-            />
-          </div>
-        </fieldset>
-
-        <div className="flex flex-wrap gap-3">
-          <Button
-            type="submit"
-            disabled={busy || addressesLoading || categoriesLoading}
-            aria-busy={isSubmitting}
+          <form
+            ref={formRef}
+            onSubmit={handleFormSubmit}
+            noValidate
+            aria-busy={busy}
           >
-            {isSubmitting ? 'Posting…' : 'Post Item'}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={busy}
-            onClick={() => navigate('/')}
-          >
-            Cancel
-          </Button>
+            <fieldset disabled={busy} className="min-w-0">
+              {step === 0 && (
+                <FormSection
+                  title="Add photos *"
+                  hint="Clear, bright photos get claimed faster."
+                  icon={Camera}
+                  tint={tints.coral}
+                >
+                  <div
+                    className="space-y-2"
+                    role="group"
+                    aria-label="Item photos"
+                    aria-describedby="required-photos-error"
+                    aria-invalid={Boolean(errors['photos'])}
+                  >
+                    <ItemPhotoPicker
+                      photos={photos}
+                      uploadStates={uploadStates}
+                      disabled={busy}
+                      onRetry={(file) => void retryPhoto(file)}
+                      onChange={(selected) => {
+                        setPhotos(selected);
+                        setUploadStates(
+                          (previous) =>
+                            new Map(
+                              [...previous].filter(([file]) =>
+                                selected.includes(file),
+                              ),
+                            ),
+                        );
+                        clearError('photos');
+                      }}
+                    />
+                    <ErrorText
+                      id="required-photos-error"
+                      message={errors['photos']}
+                    />
+                  </div>
+                </FormSection>
+              )}
+
+              {step === 1 && (
+                <FormSection title="Details" icon={PenLine} tint={tints.blue}>
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Item title *</Label>
+                    <Input
+                      id="title"
+                      name="title"
+                      value={title}
+                      onChange={(event) => {
+                        setTitle(event.target.value);
+                        clearError('title');
+                      }}
+                      placeholder="e.g. Graco convertible car seat"
+                      required
+                      maxLength={limits.title}
+                      aria-invalid={Boolean(errors['title'])}
+                      aria-describedby="title-error"
+                    />
+                    <ErrorText id="title-error" message={errors['title']} />
+                    <CharCount value={title} max={limits.title} />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category *</Label>
+                    <Select
+                      value={category}
+                      onValueChange={(value) => {
+                        setCategory(value);
+                        clearError('category');
+                      }}
+                      disabled={
+                        busy || categoriesLoading || Boolean(categoriesError)
+                      }
+                      required
+                    >
+                      <SelectTrigger
+                        id="category"
+                        className="w-full"
+                        aria-invalid={Boolean(errors['category'])}
+                        aria-describedby="category-error category-load"
+                      >
+                        <SelectValue placeholder="Pick a category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((item) => (
+                          <SelectItem key={item.key} value={item.key}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {categoriesLoading && (
+                      <p
+                        id="category-load"
+                        role="status"
+                        className="text-sm text-muted-foreground"
+                      >
+                        Loading categories…
+                      </p>
+                    )}
+                    <ErrorText id="category-load" message={categoriesError} />
+                    <ErrorText
+                      id="category-error"
+                      message={errors['category']}
+                    />
+                  </div>
+
+                  <ConditionPicker
+                    value={condition}
+                    error={errors['condition']}
+                    onChange={(value) => {
+                      setCondition(value);
+                      clearError('condition');
+                    }}
+                  />
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description *</Label>
+                    <Textarea
+                      id="description"
+                      name="description"
+                      value={description}
+                      onChange={(event) => {
+                        setDescription(event.target.value);
+                        clearError('description');
+                      }}
+                      placeholder="Brand, size, how it was used, anything the next family should know"
+                      required
+                      rows={4}
+                      maxLength={limits.description}
+                      aria-invalid={Boolean(errors['description'])}
+                      aria-describedby="description-error"
+                    />
+                    <ErrorText
+                      id="description-error"
+                      message={errors['description']}
+                    />
+                    <CharCount value={description} max={limits.description} />
+                  </div>
+
+                  <AgeRangeFields
+                    ageFrom={ageFrom}
+                    ageTo={ageTo}
+                    onFromChange={setAgeFrom}
+                    onToChange={setAgeTo}
+                    disabled={busy}
+                    error={ageError}
+                  />
+                </FormSection>
+              )}
+
+              {step === 2 && (
+                <FormSection title="Pickup" icon={MapPin} tint={tints.sage}>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Pickup address *</Label>
+
+                    {addressesLoading && (
+                      <p
+                        role="status"
+                        className="text-sm text-muted-foreground"
+                      >
+                        Loading addresses…
+                      </p>
+                    )}
+
+                    {addressLoadError && (
+                      <div className="space-y-2">
+                        <p role="alert" className="text-sm text-red-600">
+                          {addressLoadError}
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={busy || addressesLoading}
+                          onClick={() => void retryAddresses()}
+                        >
+                          Retry loading addresses
+                        </Button>
+                      </div>
+                    )}
+
+                    {!addressesLoading &&
+                      !addressLoadError &&
+                      addresses.length === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          You have no saved addresses. Add a pickup address
+                          below.
+                        </p>
+                      )}
+
+                    <Select
+                      value={addressId}
+                      onValueChange={(value) => {
+                        setAddressId(value);
+                        clearError('address');
+                      }}
+                      disabled={
+                        busy || addressesLoading || addresses.length === 0
+                      }
+                      required
+                    >
+                      <SelectTrigger
+                        id="address"
+                        className="w-full"
+                        aria-invalid={Boolean(errors['address'])}
+                        aria-describedby="address-error address-privacy"
+                      >
+                        <SelectValue placeholder="Choose your address" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {addresses.map((address) => (
+                          <SelectItem key={address.id} value={address.id}>
+                            {address.nickname || 'Saved address'} —{' '}
+                            {address.city}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <ErrorText id="address-error" message={errors['address']} />
+
+                    <p
+                      id="address-privacy"
+                      className="flex items-start gap-2 text-sm text-muted-foreground"
+                    >
+                      <ShieldCheck
+                        className="mt-0.5 size-4 shrink-0 text-primary"
+                        aria-hidden="true"
+                      />
+                      Only your city is public. Your address is shared with the
+                      person you approve.
+                    </p>
+
+                    {!showAddressEditor && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={busy || addressesLoading}
+                        onClick={() => {
+                          setAddressErrors({});
+                          setAddressSaveError('');
+                          setShowAddressEditor(true);
+                        }}
+                      >
+                        Add new address
+                      </Button>
+                    )}
+                  </div>
+
+                  {showAddressEditor && (
+                    <AddressFields
+                      draft={addressDraft}
+                      errors={addressErrors}
+                      saveError={addressSaveError}
+                      saving={savingAddress}
+                      busy={busy}
+                      onChange={(key, value) => {
+                        setAddressDraft((previous) => ({
+                          ...previous,
+                          [key]: value,
+                        }));
+                        setAddressErrors((previous) => {
+                          const next = { ...previous };
+                          delete next[key];
+                          return next;
+                        });
+                        setAddressSaveError('');
+                      }}
+                      onSave={() => void saveAddress()}
+                      onCancel={() => setShowAddressEditor(false)}
+                    />
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="availability">
+                      When can people pick up? (optional)
+                    </Label>
+                    <Input
+                      id="availability"
+                      name="availability"
+                      value={availability}
+                      onChange={(event) => {
+                        setAvailability(event.target.value);
+                        clearError('availability');
+                      }}
+                      maxLength={limits.availability}
+                      placeholder="e.g. Weekdays after 5pm"
+                      aria-invalid={Boolean(errors['availability'])}
+                      aria-describedby="availability-error"
+                    />
+                    <ErrorText
+                      id="availability-error"
+                      message={errors['availability']}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="instructions">
+                      Pickup notes (optional)
+                    </Label>
+                    <Textarea
+                      id="instructions"
+                      name="instructions"
+                      value={instructions}
+                      onChange={(event) => {
+                        setInstructions(event.target.value);
+                        clearError('instructions');
+                      }}
+                      maxLength={limits.instructions}
+                      rows={3}
+                      placeholder="e.g. Porch pickup, ring the bell twice"
+                      aria-invalid={Boolean(errors['instructions'])}
+                      aria-describedby="instructions-error"
+                    />
+                    <ErrorText
+                      id="instructions-error"
+                      message={errors['instructions']}
+                    />
+                    <CharCount value={instructions} max={limits.instructions} />
+                  </div>
+                </FormSection>
+              )}
+            </fieldset>
+
+            <div className="sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 mt-6 md:bottom-4">
+              <div className="flex gap-3 rounded-2xl bg-background/95 p-3 shadow-lg ring-1 ring-border backdrop-blur">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-12 px-5 text-base"
+                  disabled={busy}
+                  onClick={() => {
+                    if (step === 0) {
+                      navigate('/');
+                      return;
+                    }
+
+                    setMessage('');
+                    setStep(step - 1);
+                  }}
+                >
+                  {step === 0 ? 'Cancel' : 'Back'}
+                </Button>
+                {isLastStep ? (
+                  <Button
+                    type="submit"
+                    className="h-12 flex-1 text-base"
+                    disabled={busy || addressesLoading || categoriesLoading}
+                    aria-busy={isSubmitting}
+                  >
+                    {isSubmitting ? 'Posting…' : 'Post item'}
+                  </Button>
+                ) : (
+                  <Button type="submit" className="h-12 flex-1 text-base">
+                    Next
+                  </Button>
+                )}
+              </div>
+            </div>
+          </form>
         </div>
-      </form>
+
+        <aside className="hidden lg:block">
+          <div className="sticky top-24 space-y-3">
+            <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+              Live preview
+            </h2>
+            <div inert aria-hidden="true" className="select-none">
+              <ItemCard item={previewItem} />
+            </div>
+          </div>
+        </aside>
+      </div>
     </main>
   );
 }

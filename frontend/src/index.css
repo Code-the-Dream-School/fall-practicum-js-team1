@@ -17,6 +17,12 @@
    PALETTE
    ========================================================================== */
 @theme {
+  /* accents for the item pages */
+  --color-accent-coral: #ee7c6c;
+  --color-accent-blue: #5c96cd;
+  --color-accent-sage: #6faf86;
+  --color-accent-sun: #e8b43c;
+
   /* neutrals */
   --color-white: oklch(1 0 0);
   --color-cream-100: oklch(0.977 0.007 80.7);

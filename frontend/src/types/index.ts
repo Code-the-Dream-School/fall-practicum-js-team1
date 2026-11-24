@@ -17,6 +17,7 @@ import type { ReadMessage } from './message';
 import type {
   ItemFilters,
   NewItem,
+  ItemUpdate,
   NewAddress,
   AuthData,
   ProfileStats,
@@ -40,6 +41,7 @@ export type {
   PatchedClaim,
   ItemFilters,
   NewItem,
+  ItemUpdate,
   NewAddress,
   AuthData,
   ProfileStats,

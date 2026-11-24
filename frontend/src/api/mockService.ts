@@ -31,6 +31,7 @@ import {
   restoreItem,
   signIn,
   signOut,
+  updateItem,
   withdrawItem,
   createClaim,
 } from './mockData';
@@ -244,6 +245,14 @@ export const setupMock = (axiosInstance: AxiosInstance) => {
       const claimId = (config.url || '').split('/')[2] ?? '';
       const body = JSON.parse(config.data);
       return answerAction(() => decideClaim(claimId, body.status));
+    }),
+  );
+
+  mock.onPatch(/\/items\/[^/]+$/).reply(
+    forSignedInUser((user, config) => {
+      const itemId = (config.url || '').split('/')[2] ?? '';
+      const body = JSON.parse(config.data);
+      return answerMessage(() => updateItem(user, itemId, body));
     }),
   );
 
