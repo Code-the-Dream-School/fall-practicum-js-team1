@@ -5,7 +5,6 @@ import { prisma } from '../config/db.prisma.js';
 import { ApiError } from '../utils/apiError.js';
 import { getItemWithCoverPhoto } from '../utils/coverPhoto.js';
 
-import { getProfileStatsMyDonationsClaimed } from '../generated/prisma/sql.js';
 
 export const getMyItems = async (
   req: AuthenticatedRequest,
@@ -75,64 +74,30 @@ export const getMyStats = async (
     },
   });
 
-  /*
-   * This query needs to use raw sql b/c prisma doesn't support groupBy for
-   * relations:
-   * https://github.com/prisma/orm/issues/8744
-   */
-  const donationStats = await prisma.$queryRawTyped(
-    getProfileStatsMyDonationsClaimed(userId),
-  );
+  const countItems = (status: 'pending' | 'approved' | 'picked_up') =>
+    prisma.item.count({
+      where: { ownerId: userId, claims: { some: { status } } },
+    });
 
-  let myDonationsPending = 0;
-  let myDonationsApproved = 0;
-  let myDonationsPickedUp = 0;
+  const [myDonationsPending, myDonationsApproved, myDonationsPickedUp] =
+    await Promise.all([
+      countItems('pending'),
+      countItems('approved'),
+      countItems('picked_up'),
+    ]);
 
-  donationStats.forEach((stats) => {
-    switch (stats.status) {
-      case 'pending':
-        myDonationsPending = Number(stats.count);
-        break;
-      case 'approved':
-        myDonationsApproved = Number(stats.count);
-        break;
-      case 'picked_up':
-        myDonationsPickedUp = Number(stats.count);
-        break;
-    }
-  });
+  const countClaims = (status?: 'pending' | 'approved' | 'picked_up') =>
+    prisma.claim.count({
+      where: { claimerId: userId, ...(status ? { status } : {}) },
+    });
 
-  const myClaimStats = await prisma.claim.groupBy({
-    by: ['status'],
-    where: {
-      claimerId: userId,
-    },
-    _count: {
-      status: true,
-    },
-  });
-
-  let myClaimsPending = 0;
-  let myClaimsApproved = 0;
-  let myClaimsPickedUp = 0;
-  let myClaimCount = 0;
-
-  myClaimStats.forEach((stats) => {
-    myClaimCount += 1;
-    switch (stats.status) {
-      case 'pending':
-        myClaimsPending = Number(stats._count.status);
-        break;
-      case 'approved':
-        myClaimsApproved = Number(stats._count.status);
-        break;
-      case 'picked_up':
-        myClaimsPickedUp = Number(stats._count.status);
-        break;
-      default:
-        break;
-    }
-  });
+  const [myClaimCount, myClaimsPending, myClaimsApproved, myClaimsPickedUp] =
+    await Promise.all([
+      countClaims(),
+      countClaims('pending'),
+      countClaims('approved'),
+      countClaims('picked_up'),
+    ]);
 
   res.status(200).json({
     success: true,
