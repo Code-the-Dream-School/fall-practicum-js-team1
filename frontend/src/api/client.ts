@@ -25,11 +25,12 @@ import type {
   ReadMessage,
 } from '@/types';
 
-const apiOrigin = (import.meta.env['VITE_API_BASE_URL'] ?? '').replace(
-  /\/+$/,
-  '',
-);
-const BASE_URL = `${apiOrigin}/api`;
+const apiOrigin = import.meta.env['VITE_API_BASE_URL'];
+if (apiOrigin === undefined) {
+  throw new Error('API url not defined');
+}
+
+const BASE_URL = `${apiOrigin.replace(/\/+$/, '')}/api`;
 
 // Global axios defaults
 axios.defaults.baseURL = BASE_URL;
