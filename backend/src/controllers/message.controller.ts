@@ -3,7 +3,9 @@ import { StatusCodes } from 'http-status-codes';
 import type { AuthenticatedRequest } from '../middleware/jwtMiddleware.js';
 import { prisma } from '../config/db.prisma.js';
 import { ApiError } from '../utils/apiError.js';
+import { loadClaimForParticipant } from '../utils/claimAccess.js';
 import { decryptMessage, encryptMessage } from '../utils/messageCrypto.js';
+import { emitMessagesChanged } from '../socket.js';
 import {
   claimIdSchema,
   sendMessageSchema,
@@ -24,6 +26,11 @@ const toReadable = <T extends { body: string }>(message: T): T => ({
   body: decryptMessage(message.body),
 });
 
+const participantsOf = (claim: {
+  claimerId: string;
+  item: { ownerId: string };
+}) => [claim.claimerId, claim.item.ownerId];
+
 const getUserId = (req: AuthenticatedRequest): string => {
   if (!req.user) {
     throw new ApiError('No user is authenticated.', StatusCodes.UNAUTHORIZED);
@@ -43,26 +50,6 @@ const getClaimId = (req: AuthenticatedRequest): string => {
   }
 
   return result.data;
-};
-
-const loadClaimForParticipant = async (claimId: string, userId: string) => {
-  const claim = await prisma.claim.findUnique({
-    where: { id: claimId },
-    include: { item: { select: { ownerId: true } } },
-  });
-
-  if (!claim) {
-    throw new ApiError('Claim not found', StatusCodes.NOT_FOUND);
-  }
-
-  const isClaimer = claim.claimerId === userId;
-  const isOwner = claim.item.ownerId === userId;
-
-  if (!isClaimer && !isOwner) {
-    throw new ApiError('You are not part of this claim', StatusCodes.FORBIDDEN);
-  }
-
-  return claim;
 };
 
 export const sendMessage = async (req: AuthenticatedRequest, res: Response) => {
@@ -96,6 +83,8 @@ export const sendMessage = async (req: AuthenticatedRequest, res: Response) => {
     select: messageSelect,
   });
 
+  emitMessagesChanged(claimId, participantsOf(claim));
+
   res
     .status(StatusCodes.CREATED)
     .json({ success: true, data: toReadable(message) });
@@ -125,7 +114,7 @@ export const markMessagesRead = async (
   const userId = getUserId(req);
   const claimId = getClaimId(req);
 
-  await loadClaimForParticipant(claimId, userId);
+  const claim = await loadClaimForParticipant(claimId, userId);
 
   const { count } = await prisma.claimMessage.updateMany({
     where: {
@@ -136,6 +125,10 @@ export const markMessagesRead = async (
     },
     data: { readAt: new Date() },
   });
+
+  if (count > 0) {
+    emitMessagesChanged(claimId, participantsOf(claim));
+  }
 
   res
     .status(StatusCodes.OK)

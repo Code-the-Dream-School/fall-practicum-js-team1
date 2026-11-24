@@ -1,9 +1,17 @@
 import { useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ImageOff } from 'lucide-react';
+import { toast } from 'sonner';
 
-import { ApiRequestError, getItem } from '@/api/client';
+import {
+  ApiRequestError,
+  createClaim,
+  getItem,
+  getMyClaims,
+} from '@/api/client';
+import type { Claim, CreatedClaim } from '@/types';
+
 import ItemDetailsSkeleton from '@/components/ItemDetailsSkeleton';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import {
@@ -12,6 +20,15 @@ import {
 } from '@/components/ui/ConditionChip';
 import { StatusChip, type ItemStatus } from '@/components/ui/StatusChip';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+
 import { formatAgeRange } from '@/lib/formatAgeRange';
 import { useAuthStore } from '@/store/authStore';
 
@@ -44,11 +61,21 @@ type ItemDetails = {
   createdAt: string;
 };
 
+const MAX_MESSAGE_LENGTH = 500;
+
 export default function ItemDetailsPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
 
   const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [message, setMessage] = useState('');
+  const [requestError, setRequestError] = useState<string | null>(null);
+  const [submittedClaim, setSubmittedClaim] = useState<CreatedClaim | null>(
+    null,
+  );
 
   const state: unknown = location.state;
 
@@ -57,6 +84,9 @@ export default function ItemDetailsPage() {
     state !== null &&
     'message' in state &&
     state.message === 'Your item was posted';
+
+  const currentUserId = useAuthStore((state) => state.user?.id ?? null);
+  const isCheckingSession = useAuthStore((state) => state.isCheckingSession);
 
   const {
     data: item,
@@ -77,7 +107,98 @@ export default function ItemDetailsPage() {
     },
   });
 
-  const currentUserId = useAuthStore((state) => state.user?.id ?? null);
+  const {
+    data: myClaims = [],
+    isPending: isClaimsPending,
+    isError: isClaimsError,
+    refetch: refetchClaims,
+  } = useQuery<Claim[]>({
+    queryKey: ['myClaims', currentUserId],
+    queryFn: () => getMyClaims(),
+    enabled: Boolean(currentUserId),
+    retry: false,
+  });
+
+  const existingClaim = myClaims.find(
+    (claim) =>
+      claim.item.id === id &&
+      (claim.status === 'pending' || claim.status === 'approved'),
+  );
+
+  const currentClaim =
+    submittedClaim?.itemId === id ? submittedClaim : existingClaim;
+
+  const claimMutation = useMutation({
+    mutationFn: () =>
+      createClaim({
+        itemId: id!,
+        message: message.trim() || undefined,
+      }),
+
+    onSuccess: (claim) => {
+      setSubmittedClaim(claim);
+      setIsDialogOpen(false);
+      setMessage('');
+      setRequestError(null);
+
+      toast.success('Request sent');
+
+      void queryClient.invalidateQueries({
+        queryKey: ['myClaims'],
+      });
+
+      void queryClient.invalidateQueries({
+        queryKey: ['myStats'],
+      });
+
+      void queryClient.invalidateQueries({
+        queryKey: ['item', id],
+      });
+    },
+
+    onError: (mutationError: unknown) => {
+      if (mutationError instanceof ApiRequestError) {
+        setRequestError(mutationError.message);
+      } else {
+        setRequestError('Unable to send request. Please try again.');
+      }
+    },
+  });
+
+  const handleRequestClick = () => {
+    if (isCheckingSession) {
+      return;
+    }
+
+    if (!currentUserId) {
+      navigate('/login', {
+        state: {
+          from: {
+            pathname: location.pathname,
+          },
+        },
+      });
+      return;
+    }
+
+    setRequestError(null);
+    setMessage('');
+    setIsDialogOpen(true);
+  };
+
+  const handleSendRequest = () => {
+    if (
+      !id ||
+      !currentUserId ||
+      message.length > MAX_MESSAGE_LENGTH ||
+      claimMutation.isPending
+    ) {
+      return;
+    }
+
+    setRequestError(null);
+    claimMutation.mutate();
+  };
 
   if (!id) {
     return (
@@ -144,6 +265,13 @@ export default function ItemDetailsPage() {
   });
 
   const categoryUrl = `/?category=${encodeURIComponent(item.category.key)}`;
+
+  const canRequest = item.status === 'available' || item.status === 'reserved';
+
+  const requestButtonText =
+    item.status === 'reserved' ? 'Join the waiting list' : 'Request this item';
+
+  const showExistingClaim = Boolean(currentClaim) && !isOwner;
 
   return (
     <main className="mx-auto max-w-6xl space-y-12 px-6 py-8">
@@ -263,18 +391,47 @@ export default function ItemDetailsPage() {
             <p className="rounded-md bg-muted px-4 py-3 text-center font-medium">
               This is your item
             </p>
-          ) : item.status === 'available' ? (
-            <Button type="button" size="lg" className="w-full">
-              Request this item
-            </Button>
-          ) : item.status === 'reserved' ? (
-            <Button type="button" size="lg" className="w-full">
-              Join the waiting list
-            </Button>
-          ) : (
+          ) : !canRequest ? (
             <p className="font-medium text-muted-foreground">
               This item is no longer available
             </p>
+          ) : showExistingClaim ? (
+            <div className="rounded-md bg-muted px-4 py-3 text-center">
+              <p className="font-medium">You requested this item</p>
+              <p className="mt-1 text-sm capitalize text-muted-foreground">
+                Status: {currentClaim?.status.replaceAll('_', ' ')}
+              </p>
+            </div>
+          ) : currentUserId && isClaimsPending ? (
+            <Button type="button" size="lg" className="w-full" disabled>
+              Checking your requests...
+            </Button>
+          ) : currentUserId && isClaimsError ? (
+            <div className="space-y-2">
+              <p role="alert" className="text-sm text-destructive">
+                Unable to check your existing requests.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  void refetchClaims();
+                }}
+              >
+                Try again
+              </Button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              size="lg"
+              className="w-full"
+              onClick={handleRequestClick}
+              disabled={isCheckingSession || claimMutation.isPending}
+            >
+              {requestButtonText}
+            </Button>
           )}
         </section>
       </div>
@@ -298,6 +455,103 @@ export default function ItemDetailsPage() {
           Pickup addresses are shared privately after approval.
         </p>
       </section>
+
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          if (claimMutation.isPending) {
+            return;
+          }
+
+          setIsDialogOpen(open);
+
+          if (!open) {
+            setRequestError(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {item.status === 'reserved'
+                ? 'Join the waiting list'
+                : 'Request this item'}
+            </DialogTitle>
+
+            <DialogDescription>
+              Send a request to the owner of this item. You can include an
+              optional message.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleSendRequest();
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <label htmlFor="claim-message" className="text-sm font-medium">
+                Message (optional)
+              </label>
+
+              <textarea
+                id="claim-message"
+                value={message}
+                onChange={(event) => {
+                  setMessage(event.target.value);
+                  setRequestError(null);
+                }}
+                maxLength={MAX_MESSAGE_LENGTH}
+                rows={4}
+                disabled={claimMutation.isPending}
+                placeholder="Write a message to the owner..."
+                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+
+              <p
+                role="status"
+                className={`text-right text-xs ${
+                  message.length >= MAX_MESSAGE_LENGTH
+                    ? 'font-medium text-destructive'
+                    : 'text-muted-foreground'
+                }`}
+              >
+                {message.length}/{MAX_MESSAGE_LENGTH}
+                {message.length >= MAX_MESSAGE_LENGTH &&
+                  ' — Character limit reached'}
+              </p>
+            </div>
+
+            {requestError && (
+              <p role="alert" className="text-sm text-destructive">
+                {requestError}
+              </p>
+            )}
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={claimMutation.isPending}
+                onClick={() => setIsDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                type="submit"
+                disabled={
+                  claimMutation.isPending || message.length > MAX_MESSAGE_LENGTH
+                }
+              >
+                {claimMutation.isPending ? 'Sending...' : 'Send'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
