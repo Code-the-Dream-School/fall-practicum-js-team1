@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Toaster } from '@/components/ui/sonner';
 import {
   QueryCache,
   QueryClient,
@@ -47,6 +48,7 @@ createRoot(document.getElementById('root')!).render(
           <App />
         </AuthInitializer>
       </BrowserRouter>
+      <Toaster />
     </QueryClientProvider>
   </StrictMode>,
 );
