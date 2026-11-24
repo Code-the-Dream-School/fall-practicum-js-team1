@@ -1,7 +1,3 @@
-// Fake data for the api while we are in mock mode.
-// New users, addresses and items are only saved temporarily, so they go away when you refresh.
-// The signed in user is saved in sessionStorage, so you stay signed in after a refresh.
-// To sign in, use any email in mockData.json and MOCK_PASSWORD.
 import mockData from './mockData.json' with { type: 'json' };
 import type { Message as MessageResponse } from '../types';
 
@@ -68,7 +64,6 @@ type Claim = {
   pickedUpAt: string | null;
 };
 
-// what the Home page can send to getItems
 export type ItemFilters = {
   q?: string;
   category?: string;
@@ -80,7 +75,6 @@ export type ItemFilters = {
   limit?: number;
 };
 
-// what the Post an item form sends
 export type NewItem = {
   title: string;
   description: string;
@@ -103,14 +97,11 @@ export type NewAddress = {
   postalCode: string;
 };
 
-// I copy the arrays so adding something does not change the json file
 const users: User[] = [...mockData.users];
 const addresses: Address[] = [...mockData.addresses];
 const items: Item[] = [...mockData.items];
 const claims: Claim[] = [...mockData.claims];
 const messages: MessageResponse[] = [...mockData.messages];
-
-// Users
 
 export const getSignedInUser = (): User | undefined => {
   const id = sessionStorage.getItem(SESSION_KEY);
@@ -141,12 +132,9 @@ export const addUser = (name: string, email: string): User => {
   return user;
 };
 
-// what login, register and /users/me send back
 export const getAuthData = (user: User) => {
   return { user, csrfToken: CSRF_TOKEN };
 };
-
-// Categories
 
 export const getCategories = () => {
   return mockData.categories.map((category) => ({
@@ -155,8 +143,6 @@ export const getCategories = () => {
     name: category.name,
   }));
 };
-
-// Items
 
 const getAddressOfItem = (item: Item): Address => {
   const address = addresses.find((a) => a.id === item.addressId);
@@ -179,7 +165,6 @@ const getCoverPhoto = (item: Item) => {
   return { url: firstPhoto.url, altText: firstPhoto.altText };
 };
 
-// the short item for the lists and the cards (no description, owner or street address)
 const makeShortItem = (item: Item) => {
   const address = getAddressOfItem(item);
   return {
@@ -196,13 +181,11 @@ const makeShortItem = (item: Item) => {
   };
 };
 
-// who owns the item, as { id, name }
 const getOwnerOfItem = (item: Item) => {
   const owner = users.find((user) => user.id === item.ownerId);
   return { id: item.ownerId, name: owner ? owner.name : '' };
 };
 
-// the item for the details page (still no street address or pickup instructions)
 const makeFullItem = (item: Item) => {
   const address = getAddressOfItem(item);
   return {
@@ -215,7 +198,6 @@ const makeFullItem = (item: Item) => {
   };
 };
 
-// checks one item against all the filters
 const itemMatches = (item: Item, filters: ItemFilters): boolean => {
   if (item.status === 'withdrawn') {
     return false;
@@ -241,8 +223,6 @@ const itemMatches = (item: Item, filters: ItemFilters): boolean => {
     return false;
   }
 
-  // the age range of the item has to overlap the filter
-  // if the item has no min or no max, that side is open
   const itemMin = item.childAgeMinMonths ?? 0;
   const itemMax = item.childAgeMaxMonths ?? Infinity;
   const wantedMin = filters.ageMin ?? 0;
@@ -254,7 +234,6 @@ export const getItems = (filters: ItemFilters = {}) => {
   const page = Number(filters.page) || 1;
   const limit = Number(filters.limit) || DEFAULT_LIMIT;
 
-  // newest first
   const matches = items
     .filter((item) => itemMatches(item, filters))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -275,7 +254,6 @@ export const getItems = (filters: ItemFilters = {}) => {
   };
 };
 
-// returns undefined if there is no item, a withdrawn item counts as not found
 export const findItem = (id: string) => {
   const item = items.find((i) => i.id === id);
   if (!item || item.status === 'withdrawn') {
@@ -314,8 +292,6 @@ export const addItem = (user: User, body: NewItem) => {
   return makeFullItem(item);
 };
 
-// Addresses
-
 const makeAddress = (address: Address) => {
   return {
     id: address.id,
@@ -330,7 +306,6 @@ const makeAddress = (address: Address) => {
 };
 
 export const getAddresses = (user: User) => {
-  // the default address goes first
   return addresses
     .filter((address) => address.userId === user.id)
     .sort((a, b) => Number(b.isDefault) - Number(a.isDefault))
@@ -350,14 +325,11 @@ export const addAddress = (user: User, body: NewAddress) => {
     state: body.state,
     postalCode: body.postalCode,
     country: 'US',
-    // the first address of a user is the default
     isDefault: !hasAddress,
   };
   addresses.push(address);
   return makeAddress(address);
 };
-
-// Uploads
 
 export const CLOUDINARY_UPLOAD_URL =
   'https://api.cloudinary.com/v1_1/mock-cloud/image/upload';
@@ -373,7 +345,6 @@ export const getUploadSignature = () => {
   };
 };
 
-// what cloudinary sends back after a photo is uploaded
 export const getFakeUploadResult = () => {
   const id = crypto.randomUUID();
   return {
@@ -381,8 +352,6 @@ export const getFakeUploadResult = () => {
     public_id: 'hand-me-down/items/' + id,
   };
 };
-
-// Profile
 
 export const getMyItems = (user: User) => {
   return items
@@ -403,7 +372,6 @@ export const getMyClaims = (user: User, status?: string) => {
       }
       const address = getAddressOfItem(item);
 
-      // the street address is only shared while the claim is approved
       let pickup = null;
       if (claim.status === 'approved') {
         pickup = {
@@ -448,7 +416,6 @@ export const getMyStats = (user: User) => {
     donations: {
       posted: myItems.filter((item) => item.status !== 'withdrawn').length,
       waitingForYou: countClaims(claimsOnMyItems, 'pending'),
-      // an approved claim makes the item reserved
       approved: myItems.filter((item) => item.status === 'reserved').length,
       pickedUp: myItems.filter((item) => item.status === 'picked_up').length,
     },
@@ -461,7 +428,58 @@ export const getMyStats = (user: User) => {
   };
 };
 
-// the owner sees who requested the item (GET /api/items/:id/claims)
+const CLAIMABLE_ITEM_STATUSES = ['available', 'reserved'];
+
+const isUnavailable = (item: Item | undefined): boolean => {
+  return !item || !CLAIMABLE_ITEM_STATUSES.includes(item.status);
+};
+
+export const createClaim = (user: User, itemId: string, message = '') => {
+  const item = items.find((i) => i.id === itemId);
+
+  if (!item || isUnavailable(item)) {
+    throw new Error('This item is no longer available');
+  }
+
+  if (item.ownerId === user.id) {
+    throw new Error('You cannot request your own item');
+  }
+
+  const alreadyRequested = claims.some(
+    (claim) =>
+      claim.itemId === itemId &&
+      claim.claimerId === user.id &&
+      (claim.status === 'pending' || claim.status === 'approved'),
+  );
+
+  if (alreadyRequested) {
+    throw new Error('You already requested this item');
+  }
+
+  if (message.length > 500) {
+    throw new Error('Message cannot exceed 500 characters');
+  }
+
+  const claim: Claim = {
+    id: crypto.randomUUID(),
+    itemId,
+    claimerId: user.id,
+    status: 'pending',
+    message,
+    createdAt: new Date().toISOString(),
+    decidedAt: null,
+    pickedUpAt: null,
+  };
+
+  claims.push(claim);
+
+  return {
+    id: claim.id,
+    itemId: claim.itemId,
+    status: claim.status,
+  };
+};
+
 export const getItemClaims = (itemId: string) => {
   return claims
     .filter((claim) => claim.itemId === itemId)
@@ -479,7 +497,6 @@ export const getItemClaims = (itemId: string) => {
     });
 };
 
-// the owner approves or declines a pending claim (PATCH /api/claims/:id)
 export const decideClaim = (
   claimId: string,
   status: 'approved' | 'declined',
@@ -501,7 +518,6 @@ export const decideClaim = (
     if (hasApproved) {
       throw new Error('This item already has an approved request');
     }
-    // an approved claim makes the item reserved
     item.status = 'reserved';
     item.reservedAt = new Date().toISOString();
   }
@@ -511,14 +527,12 @@ export const decideClaim = (
   return { id: claim.id, status: claim.status };
 };
 
-// the claimer changes their mind (PATCH /api/claims/:id/cancel)
 export const cancelClaim = (claimId: string) => {
   const claim = claims.find((c) => c.id === claimId);
   if (!claim || (claim.status !== 'pending' && claim.status !== 'approved')) {
     throw new Error('Only a pending or approved request can be cancelled');
   }
 
-  // cancelling an approved claim puts the item back
   if (claim.status === 'approved') {
     const item = items.find((i) => i.id === claim.itemId);
     if (item) {
@@ -531,7 +545,6 @@ export const cancelClaim = (claimId: string) => {
   return { id: claim.id, status: claim.status };
 };
 
-// the owner marks the approved request as picked up (PATCH /api/items/:id/picked-up)
 export const markPickedUp = (itemId: string) => {
   const item = items.find((i) => i.id === itemId);
   if (!item || item.status !== 'reserved') {
@@ -546,7 +559,6 @@ export const markPickedUp = (itemId: string) => {
         claim.status = 'picked_up';
         claim.pickedUpAt = now;
       } else if (claim.status === 'pending') {
-        // everyone still waiting is told no
         claim.status = 'declined';
         claim.decidedAt = now;
       }
@@ -557,7 +569,6 @@ export const markPickedUp = (itemId: string) => {
   return { id: item.id, status: item.status };
 };
 
-// the approved person did not show up (PATCH /api/claims/:id/no-show)
 export const markNoShow = (claimId: string) => {
   const claim = claims.find((c) => c.id === claimId);
   if (!claim || claim.status !== 'approved') {
@@ -574,7 +585,6 @@ export const markNoShow = (claimId: string) => {
   return { id: claim.id, status: claim.status };
 };
 
-// brings a withdrawn item back
 export const restoreItem = (itemId: string) => {
   const item = items.find((i) => i.id === itemId);
   if (!item || item.status !== 'withdrawn') {
@@ -585,7 +595,6 @@ export const restoreItem = (itemId: string) => {
   return { id: item.id, status: item.status };
 };
 
-// the owner takes the item down (PATCH /api/items/:id/withdraw)
 export const withdrawItem = (itemId: string) => {
   const item = items.find((i) => i.id === itemId);
   if (!item || (item.status !== 'available' && item.status !== 'reserved')) {
@@ -609,11 +618,8 @@ export const withdrawItem = (itemId: string) => {
   return { id: item.id, status: item.status };
 };
 
-// Messages
-
 const MESSAGE_MAX_LENGTH = 2000;
 
-// an error that carries the status the real api would answer with
 export class MockApiError extends Error {
   readonly status: number;
 
@@ -623,7 +629,6 @@ export class MockApiError extends Error {
   }
 }
 
-// finds the claim, and checks that the user is the claimer or the owner of the item
 const findClaimForUser = (user: User, claimId: string): Claim => {
   const claim = claims.find((c) => c.id === claimId);
   if (!claim) {
@@ -636,7 +641,6 @@ const findClaimForUser = (user: User, claimId: string): Claim => {
   return claim;
 };
 
-// the messages of one claim, oldest first (GET /api/claims/:id/messages)
 export const getClaimMessages = (user: User, claimId: string) => {
   findClaimForUser(user, claimId);
   return messages
@@ -644,7 +648,6 @@ export const getClaimMessages = (user: User, claimId: string) => {
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 };
 
-// sends a message, only while the claim is pending or approved (POST /api/claims/:id/messages)
 export const addClaimMessage = (
   user: User,
   claimId: string,
@@ -673,7 +676,6 @@ export const addClaimMessage = (
   return message;
 };
 
-// marks what the other person sent as read (PATCH /api/claims/:id/messages/read)
 export const markClaimMessagesRead = (user: User, claimId: string) => {
   findClaimForUser(user, claimId);
   let updatedCount = 0;
