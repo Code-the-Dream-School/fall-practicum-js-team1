@@ -5,7 +5,6 @@ import { prisma } from '../config/db.prisma.js';
 import { ApiError } from '../utils/apiError.js';
 import { getItemWithCoverPhoto } from '../utils/coverPhoto.js';
 
-
 export const getMyItems = async (
   req: AuthenticatedRequest,
   res: Response,
