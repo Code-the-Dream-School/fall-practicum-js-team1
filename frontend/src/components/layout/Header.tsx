@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { Menu, X } from 'lucide-react';
-
+import { Menu, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
 import { logoutUser } from '@/services/authApi';
+import UserMenu from '@/components/layout/UserMenu';
+import logo from '@/assets/logo.svg';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -23,22 +24,24 @@ export default function Header() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Display the user's first name
-  const firstName = user?.name.split(' ')[0];
-
-  // Navigation styling from JIRA-50
-  const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
+  const pillClassName = ({ isActive }: { isActive: boolean }) =>
     cn(
-      'py-1',
-      isActive &&
-        'underline decoration-nav-underline decoration-2 underline-offset-8',
+      'rounded-full px-4 py-1.5 transition-colors',
+      isActive
+        ? 'bg-background text-foreground shadow-sm'
+        : 'text-muted-foreground hover:text-foreground',
+    );
+
+  const authLinkClassName = ({ isActive }: { isActive: boolean }) =>
+    cn(
+      'inline-flex h-9 items-center rounded-full px-4 transition-colors hover:bg-muted',
+      isActive && 'bg-muted',
     );
 
   const mobileLinkClassName = ({ isActive }: { isActive: boolean }) =>
     cn(
-      'flex min-h-11 w-full items-center justify-center',
-      isActive &&
-        'font-semibold underline decoration-nav-underline decoration-2 underline-offset-8',
+      'flex min-h-11 w-full items-center justify-center rounded-full transition-colors',
+      isActive ? 'bg-muted font-semibold' : 'hover:bg-muted/60',
     );
 
   // Mobile menu handlers
@@ -98,135 +101,97 @@ export default function Header() {
     <header className="border-b">
       <nav
         aria-label="Main"
-        className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:grid md:grid-cols-[1fr_auto_1fr]"
+        className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3 md:grid md:grid-cols-[1fr_auto_1fr]"
       >
         {/* Logo */}
-        <Link to="/" className="justify-self-start text-lg font-bold">
-          Hand Me Down
+        <Link
+          to="/"
+          className="flex items-center gap-3 justify-self-start font-brand text-xl font-extrabold tracking-tight text-brand md:text-2xl"
+        >
+          <img src={logo} alt="" className="size-10 md:size-11" />
+          <span>
+            Hand <span className="text-primary">Me</span> Down
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden gap-8 text-sm font-medium md:flex">
-          <NavLink to="/" end className={navLinkClassName}>
-            Home page
-          </NavLink>
+        {user && (
+          <div className="hidden items-center gap-1 rounded-full bg-muted p-1 text-sm font-medium md:flex">
+            <NavLink to="/" end className={pillClassName}>
+              Home page
+            </NavLink>
 
-          <NavLink to="/items/new" className={navLinkClassName}>
-            Post an item
-          </NavLink>
+            <NavLink to="/profile" className={pillClassName}>
+              Profile
+            </NavLink>
+          </div>
+        )}
 
-          <NavLink to="/profile" className={navLinkClassName}>
-            Profile
-          </NavLink>
-        </div>
+        {!isCheckingSession &&
+          (user ? (
+            <div className="flex items-center justify-self-end gap-3 text-sm font-medium md:col-start-3">
+              <Button
+                asChild
+                className="hidden h-9 rounded-full px-5 md:inline-flex"
+              >
+                <Link to="/items/new">
+                  <Plus />
+                  Post an item
+                </Link>
+              </Button>
 
-        {/* Desktop Authentication */}
-        <div className="hidden items-center justify-self-end gap-4 text-sm font-medium md:flex">
-          {!isCheckingSession &&
-            (user ? (
-              <>
-                <span className="font-medium">{firstName}</span>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-full px-5"
-                  disabled={isLoggingOut}
-                  onClick={handleLogout}
-                >
-                  {isLoggingOut ? 'Logging out...' : 'Log out'}
-                </Button>
-              </>
-            ) : (
-              <>
-                <NavLink to="/login" className={navLinkClassName}>
+              <UserMenu
+                name={user.name}
+                email={user.email}
+                isLoggingOut={isLoggingOut}
+                onLogout={handleLogout}
+              />
+            </div>
+          ) : (
+            <>
+              <div className="hidden items-center justify-self-end gap-3 text-sm font-medium md:col-start-3 md:flex">
+                <NavLink to="/login" className={authLinkClassName}>
                   Log in
                 </NavLink>
 
-                <Button asChild className="rounded-full px-5">
+                <Button asChild className="h-9 rounded-full px-5">
                   <Link to="/register">Register</Link>
                 </Button>
-              </>
-            ))}
-        </div>
+              </div>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          type="button"
-          className="p-3 md:hidden"
-          aria-label="Menu"
-          aria-expanded={isMenuOpen}
-          aria-controls="mobile-menu"
-          onClick={toggleMenu}
-        >
-          {isMenuOpen ? <X /> : <Menu />}
-        </button>
+              <button
+                type="button"
+                className="p-3 md:hidden"
+                aria-label="Menu"
+                aria-expanded={isMenuOpen}
+                aria-controls="mobile-menu"
+                onClick={toggleMenu}
+              >
+                {isMenuOpen ? <X /> : <Menu />}
+              </button>
+            </>
+          ))}
       </nav>
 
       {/* Mobile Navigation */}
-      {isMenuOpen && (
+      {isMenuOpen && !user && (
         <div
           id="mobile-menu"
           className="flex flex-col items-center border-t px-6 py-3 text-sm font-medium md:hidden"
         >
           <NavLink
-            to="/"
-            end
+            to="/login"
             className={mobileLinkClassName}
             onClick={closeMenu}
           >
-            Home page
+            Log in
           </NavLink>
 
-          <NavLink
-            to="/items/new"
-            className={mobileLinkClassName}
-            onClick={closeMenu}
-          >
-            Post an item
-          </NavLink>
-
-          <NavLink
-            to="/profile"
-            className={mobileLinkClassName}
-            onClick={closeMenu}
-          >
-            Profile
-          </NavLink>
-
-          {/* Mobile Authentication */}
-          {!isCheckingSession &&
-            (user ? (
-              <>
-                <span className="py-3 font-medium">{firstName}</span>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="mt-2 h-11 w-full rounded-full"
-                  disabled={isLoggingOut}
-                  onClick={handleLogout}
-                >
-                  {isLoggingOut ? 'Logging out...' : 'Log out'}
-                </Button>
-              </>
-            ) : (
-              <>
-                <NavLink
-                  to="/login"
-                  className={mobileLinkClassName}
-                  onClick={closeMenu}
-                >
-                  Log in
-                </NavLink>
-
-                <Button asChild className="mt-2 h-11 w-full rounded-full">
-                  <Link to="/register" onClick={closeMenu}>
-                    Register
-                  </Link>
-                </Button>
-              </>
-            ))}
+          <Button asChild className="mt-2 h-11 w-full rounded-full">
+            <Link to="/register" onClick={closeMenu}>
+              Register
+            </Link>
+          </Button>
         </div>
       )}
 
