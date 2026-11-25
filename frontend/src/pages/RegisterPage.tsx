@@ -1,196 +1,137 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Link } from 'react-router';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-
 import { registerUser } from '@/services/authApi';
+import { registerField } from '@/lib/authForm';
 import { useAuthStore } from '@/store/authStore';
 import {
   registerSchema,
   type RegisterFormValues,
 } from '@/schemas/registerSchema';
-
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import AuthField from '@/components/auth/AuthField';
+import AuthShell from '@/components/auth/AuthShell';
+import PasswordChecklist from '@/components/auth/PasswordChecklist';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 
 export default function RegisterPage() {
-  // API error state
   const [apiError, setApiError] = useState<string | null>(null);
 
-  // Zustand authentication store
   const setUser = useAuthStore((state) => state.setUser);
   const setCsrfToken = useAuthStore((state) => state.setCsrfToken);
 
-  // React Hook Form with Zod validation
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    reValidateMode: 'onBlur',
+  });
+
   const {
-    register,
     handleSubmit,
     getValues,
     trigger,
-    formState: { errors, isSubmitting },
-  } = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    mode: 'onTouched',
-  });
+    control,
+    formState: { errors, isSubmitting, isSubmitted },
+  } = form;
 
-  // Handle registration submission
+  const password = useWatch({ control, name: 'password' }) ?? '';
+
   const onSubmit = async (data: RegisterFormValues) => {
     setApiError(null);
 
     try {
       const result = await registerUser(data);
 
-      // Save authenticated user and CSRF token in Zustand.
-      // GuestRoute handles the redirect.
+      // GuestRoute redirects once the user is saved.
       setCsrfToken(result.csrfToken);
       setUser(result.user);
     } catch (error) {
-      if (error instanceof Error) {
-        setApiError(error.message);
-      } else {
-        setApiError('Something went wrong. Please try again.');
-      }
+      setApiError(
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong. Please try again.',
+      );
     }
   };
 
   return (
-    <main className="mx-auto max-w-md px-6 py-10">
-      <h1 className="mb-6 text-2xl font-semibold">Create an account</h1>
-
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        {/* API Error Message */}
+    <AuthShell
+      title="Join Hand Me Down"
+      subtitle="Free baby and toddler gear, handed down by families nearby."
+      footer={
+        <>
+          Already have an account?{' '}
+          <Link
+            to="/login"
+            className="font-semibold text-primary underline-offset-4 hover:underline"
+          >
+            Log in
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         {apiError && (
-          <Alert variant="destructive" role="alert" className="mb-4">
+          <Alert variant="destructive" role="alert" className="rounded-xl">
             <AlertDescription>{apiError}</AlertDescription>
           </Alert>
         )}
 
-        {/* Full Name */}
-        <div className="mb-4">
-          <Label htmlFor="name" className="mb-2">
-            Full name
-          </Label>
+        <AuthField
+          id="name"
+          label="Full name"
+          autoComplete="name"
+          error={errors.name?.message}
+          registration={registerField(form, 'name')}
+        />
 
-          <Input
-            id="name"
-            type="text"
-            autoComplete="name"
-            {...register('name')}
-            aria-invalid={!!errors.name}
-            aria-describedby={errors.name ? 'name-error' : undefined}
-          />
+        <AuthField
+          id="email"
+          label="Email"
+          type="email"
+          autoComplete="email"
+          error={errors.email?.message}
+          registration={registerField(form, 'email')}
+        />
 
-          {errors.name && (
-            <p
-              id="name-error"
-              role="alert"
-              className="mt-1 text-sm text-destructive"
-            >
-              {errors.name.message}
-            </p>
-          )}
-        </div>
-
-        {/* Email */}
-        <div className="mb-4">
-          <Label htmlFor="email" className="mb-2">
-            Email
-          </Label>
-
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            {...register('email')}
-            aria-invalid={!!errors.email}
-            aria-describedby={errors.email ? 'email-error' : undefined}
-          />
-
-          {errors.email && (
-            <p
-              id="email-error"
-              role="alert"
-              className="mt-1 text-sm text-destructive"
-            >
-              {errors.email.message}
-            </p>
-          )}
-        </div>
-
-        {/* Password */}
-        <div className="mb-4">
-          <Label htmlFor="password" className="mb-2">
-            Password
-          </Label>
-
-          <Input
-            id="password"
-            type="password"
-            autoComplete="new-password"
-            {...register('password', {
-              onChange: () => {
-                if (getValues('confirmPassword')) {
-                  void trigger('confirmPassword');
-                }
-              },
-            })}
-            aria-invalid={!!errors.password}
-            aria-describedby={
-              errors.password ? 'password-help password-error' : 'password-help'
+        {/* The checklist shows what is missing, so the password has no error text. */}
+        <AuthField
+          id="password"
+          label="Password"
+          type="password"
+          autoComplete="new-password"
+          error={undefined}
+          describedBy="password-requirements"
+          registration={registerField(form, 'password', () => {
+            if (getValues('confirmPassword')) {
+              void trigger('confirmPassword');
             }
+          })}
+        >
+          <PasswordChecklist
+            id="password-requirements"
+            password={password}
+            showResults={password.length > 0 || isSubmitted}
           />
+        </AuthField>
 
-          {/* Password requirements */}
-          <p id="password-help" className="mt-1 text-sm text-muted-foreground">
-            At least 8 characters, 1 lowercase letter, 1 capital letter, and 1
-            number.
-          </p>
+        <AuthField
+          id="confirmPassword"
+          label="Confirm password"
+          type="password"
+          autoComplete="new-password"
+          error={errors.confirmPassword?.message}
+          registration={registerField(form, 'confirmPassword')}
+        />
 
-          {errors.password && (
-            <p
-              id="password-error"
-              role="alert"
-              className="mt-1 text-sm text-destructive"
-            >
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-
-        {/* Confirm Password */}
-        <div className="mb-4">
-          <Label htmlFor="confirmPassword" className="mb-2">
-            Confirm password
-          </Label>
-
-          <Input
-            id="confirmPassword"
-            type="password"
-            autoComplete="new-password"
-            {...register('confirmPassword')}
-            aria-invalid={!!errors.confirmPassword}
-            aria-describedby={
-              errors.confirmPassword ? 'confirm-password-error' : undefined
-            }
-          />
-
-          {errors.confirmPassword && (
-            <p
-              id="confirm-password-error"
-              role="alert"
-              className="mt-1 text-sm text-destructive"
-            >
-              {errors.confirmPassword.message}
-            </p>
-          )}
-        </div>
-
-        {/* Submit Button */}
-        <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? 'Registering...' : 'Register'}
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="mt-2 h-12 w-full rounded-full text-base"
+        >
+          {isSubmitting ? 'Creating account...' : 'Create account'}
         </Button>
       </form>
-    </main>
+    </AuthShell>
   );
 }

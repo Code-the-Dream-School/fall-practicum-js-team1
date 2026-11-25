@@ -34,8 +34,9 @@ export default function Header() {
 
   const authLinkClassName = ({ isActive }: { isActive: boolean }) =>
     cn(
-      'inline-flex h-9 items-center rounded-full px-4 transition-colors hover:bg-muted',
-      isActive && 'bg-muted',
+      'inline-flex h-9 items-center rounded-full px-4 text-foreground/80 transition-colors hover:bg-muted hover:text-foreground',
+      isActive &&
+        'text-foreground underline decoration-primary decoration-2 underline-offset-8',
     );
 
   const mobileLinkClassName = ({ isActive }: { isActive: boolean }) =>
@@ -98,17 +99,21 @@ export default function Header() {
   }, [isMenuOpen]);
 
   return (
-    <header className="border-b">
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <nav
         aria-label="Main"
-        className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3 md:grid md:grid-cols-[1fr_auto_1fr]"
+        className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3 md:grid md:grid-cols-[1fr_auto_1fr] md:py-3.5"
       >
         {/* Logo */}
         <Link
           to="/"
-          className="flex items-center gap-3 justify-self-start font-brand text-xl font-extrabold tracking-tight text-brand md:text-2xl"
+          className="flex items-center gap-2.5 justify-self-start font-brand text-xl font-extrabold tracking-tight text-brand md:text-2xl"
         >
-          <img src={logo} alt="" className="size-10 md:size-11" />
+          <img
+            src={logo}
+            alt=""
+            className="size-10 rounded-xl shadow-sm md:size-11"
+          />
           <span>
             Hand <span className="text-primary">Me</span> Down
           </span>
