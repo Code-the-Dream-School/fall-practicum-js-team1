@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import { Check, type LucideIcon } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -12,6 +12,15 @@ import { cn } from '@/lib/utils';
 import { ages, conditions, tints } from '@/lib/itemForm';
 
 const COUNTER_SHOWN_FROM = 0.8;
+
+export const fieldClass =
+  'h-12 rounded-xl px-4 text-base md:text-base data-[size=default]:h-12';
+export const textareaClass = 'rounded-xl px-4 py-3 text-base md:text-base';
+export const labelClass = 'text-base font-semibold';
+
+export function FieldHint({ children }: { children: ReactNode }) {
+  return <p className="text-sm text-muted-foreground">{children}</p>;
+}
 
 export function ErrorText({
   id,
@@ -43,14 +52,12 @@ export function CharCount({ value, max }: { value: string; max: number }) {
 }
 
 export function FormSection({
-  id,
   title,
   hint,
   icon: Icon,
   tint,
   children,
 }: {
-  id?: string;
   title: string;
   hint?: string;
   icon: LucideIcon;
@@ -58,17 +65,18 @@ export function FormSection({
   children: ReactNode;
 }) {
   return (
-    <section
-      id={id}
-      className="scroll-mt-24 overflow-hidden rounded-3xl bg-card ring-1 ring-border"
-    >
+    <section className="overflow-hidden rounded-3xl bg-card shadow-sm ring-1 ring-border">
+      <div aria-hidden="true" className={cn('h-1.5', tint.solid)} />
       <header
-        className={cn('flex items-center gap-3 px-5 py-4 sm:px-6', tint.soft)}
+        className={cn(
+          'flex items-center gap-3 border-b border-dashed border-border px-5 py-4 sm:px-6',
+          tint.soft,
+        )}
       >
         <span
           aria-hidden="true"
           className={cn(
-            'flex size-11 shrink-0 items-center justify-center rounded-2xl text-white shadow-sm',
+            'flex size-11 shrink-0 items-center justify-center rounded-2xl text-white',
             tint.solid,
           )}
         >
@@ -79,7 +87,7 @@ export function FormSection({
           {hint && <p className="text-sm text-muted-foreground">{hint}</p>}
         </div>
       </header>
-      <div className="space-y-5 p-5 sm:p-6">{children}</div>
+      <div className="space-y-6 p-5 sm:p-6">{children}</div>
     </section>
   );
 }
@@ -95,12 +103,12 @@ export function ConditionPicker({
 }) {
   return (
     <fieldset className="min-w-0 space-y-2" aria-describedby="condition-error">
-      <legend className="mb-2 text-sm leading-none font-medium">
+      <legend className="mb-2 text-base leading-none font-semibold">
         Condition *
       </legend>
       <div className="grid gap-2 sm:grid-cols-2">
         {conditions.map((item, index) => (
-          <label key={item.value} className="cursor-pointer">
+          <label key={item.value} className="group cursor-pointer">
             <input
               type="radio"
               name="condition"
@@ -112,13 +120,19 @@ export function ConditionPicker({
             />
             <span
               className={cn(
-                'block rounded-xl p-3 ring-1 ring-border transition-colors hover:bg-muted peer-checked:bg-accent-blue/15 peer-checked:ring-2 peer-checked:ring-accent-blue peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50',
+                'relative block rounded-xl p-4 pr-10 ring-1 ring-border transition-colors hover:bg-muted peer-checked:bg-accent-blue/15 peer-checked:ring-2 peer-checked:ring-accent-blue peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50',
                 error && 'ring-red-400',
               )}
             >
               <span className="block font-semibold">{item.label}</span>
-              <span className="block text-xs text-muted-foreground">
+              <span className="block text-sm text-muted-foreground">
                 {item.hint}
+              </span>
+              <span
+                aria-hidden="true"
+                className="absolute top-3 right-3 flex size-5 items-center justify-center rounded-full bg-accent-blue text-white opacity-0 transition-opacity group-has-checked:opacity-100"
+              >
+                <Check className="size-3.5" />
               </span>
             </span>
           </label>
@@ -177,8 +191,14 @@ function AgeField({
 }) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={props.id}>{label}</Label>
-      <AgeSelect {...props} error={error} className="w-full" />
+      <Label htmlFor={props.id} className="text-sm">
+        {label}
+      </Label>
+      <AgeSelect
+        {...props}
+        error={error}
+        className={cn(fieldClass, 'w-full')}
+      />
       {error && <ErrorText id="age-error" message={error} />}
     </div>
   );
@@ -201,9 +221,12 @@ export function AgeRangeFields({
 }) {
   return (
     <fieldset className="min-w-0 space-y-2">
-      <legend className="mb-2 text-sm leading-none font-medium">
+      <legend className="mb-1 text-base leading-none font-semibold">
         Child&apos;s age (optional)
       </legend>
+      <FieldHint>
+        Helps families find gear that fits their little one.
+      </FieldHint>
       <div className="grid grid-cols-2 gap-4">
         <AgeField
           id="ageFrom"

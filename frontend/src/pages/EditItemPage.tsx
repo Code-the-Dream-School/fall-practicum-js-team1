@@ -7,6 +7,7 @@ import {
   Baby,
   ChevronLeft,
   ImageOff,
+  Pencil,
   Plus,
   ShieldCheck,
   Sparkles,
@@ -22,11 +23,11 @@ import {
 } from '@/api/client';
 import ItemDetailsSkeleton from '@/components/ItemDetailsSkeleton';
 import {
-  FactPill,
+  FactList,
+  FactRow,
   HeroBand,
   LocationAndDate,
   OwnerRow,
-  PhotoBlobs,
   PickupAreaCard,
   photoShapeClass,
 } from '@/components/item-details/ItemDetailParts';
@@ -330,13 +331,32 @@ function EditItemForm({ item }: { item: ItemShow }) {
       >
         <fieldset disabled={isSubmitting} className="min-w-0">
           <HeroBand>
-            <Link
-              to={`/items/${item.id}`}
-              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
-            >
-              <ChevronLeft className="size-4" aria-hidden="true" />
-              Back to item
-            </Link>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Link
+                to={`/items/${item.id}`}
+                className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="size-4" aria-hidden="true" />
+                Back to item
+              </Link>
+            </div>
+
+            <div className="mt-4 flex items-center gap-3 rounded-2xl bg-accent-sun/25 px-4 py-3 ring-1 ring-accent-sun/40">
+              <span
+                aria-hidden="true"
+                className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent-sun text-brown-900"
+              >
+                <Pencil className="size-[1.15rem]" />
+              </span>
+              <p className="leading-tight">
+                <span className="block font-semibold">
+                  You&apos;re editing your listing
+                </span>
+                <span className="block text-sm text-muted-foreground">
+                  Changes show up once you save.
+                </span>
+              </p>
+            </div>
 
             {message && (
               <p
@@ -347,16 +367,14 @@ function EditItemForm({ item }: { item: ItemShow }) {
               </p>
             )}
 
-            <div className="mt-6 grid gap-10 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] xl:items-center xl:gap-16">
+            <div className="mt-6 grid grid-cols-1 gap-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] xl:items-start xl:gap-14">
               <section
                 aria-label="Item photos"
                 className="@container relative mx-auto w-full max-w-2xl xl:max-w-none"
               >
-                <PhotoBlobs />
-
                 <div
                   className={cn(
-                    'relative flex aspect-[4/3] items-center justify-center xl:aspect-square',
+                    'relative flex aspect-[4/3] items-center justify-center',
                     photoShapeClass,
                   )}
                 >
@@ -374,7 +392,7 @@ function EditItemForm({ item }: { item: ItemShow }) {
                   )}
                 </div>
 
-                <div className="relative mt-3 flex flex-wrap justify-center gap-3 px-4 @md:-mt-9">
+                <div className="mt-4 flex flex-wrap justify-center gap-3 p-1">
                   {photos.map((photo, index) => (
                     <div key={photo.key} className="relative">
                       <button
@@ -383,10 +401,10 @@ function EditItemForm({ item }: { item: ItemShow }) {
                         aria-label={`Show photo ${index + 1}`}
                         aria-pressed={photo.key === mainPhoto?.key}
                         className={cn(
-                          'block size-14 overflow-hidden rounded-2xl border-4 shadow-md transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none @md:size-[4.5rem]',
+                          'block size-16 overflow-hidden rounded-xl ring-1 ring-border transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none @md:size-[4.5rem]',
                           photo.key === mainPhoto?.key
-                            ? 'border-primary'
-                            : 'border-card',
+                            ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                            : 'opacity-70 hover:opacity-100',
                         )}
                       >
                         <img
@@ -456,7 +474,7 @@ function EditItemForm({ item }: { item: ItemShow }) {
                       />
                       <label
                         htmlFor="photos"
-                        className="flex size-14 cursor-pointer items-center justify-center rounded-2xl border-4 border-dashed border-card bg-card/70 text-muted-foreground shadow-md transition hover:text-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring @md:size-[4.5rem]"
+                        className="flex size-16 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-card/70 text-muted-foreground transition hover:border-primary hover:text-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring @md:size-[4.5rem]"
                       >
                         <Plus className="size-6" aria-hidden="true" />
                         <span className="sr-only">Add photos</span>
@@ -465,16 +483,13 @@ function EditItemForm({ item }: { item: ItemShow }) {
                   )}
                 </div>
 
-                <div className="mt-5 text-center">
+                <div className="mt-3">
                   <ErrorText id="photos-error" message={errors['photos']} />
                 </div>
               </section>
 
-              <div className="space-y-6">
+              <div className="min-w-0 space-y-5">
                 <div className="space-y-3">
-                  <p className="text-sm font-semibold tracking-wide text-primary uppercase">
-                    Editing
-                  </p>
                   <label htmlFor="title" className="sr-only">
                     Item title
                   </label>
@@ -505,12 +520,8 @@ function EditItemForm({ item }: { item: ItemShow }) {
                   />
                 </div>
 
-                <div className="flex flex-wrap gap-2.5">
-                  <FactPill
-                    icon={Tag}
-                    label="Category"
-                    tint={tints.coral.solid}
-                  >
+                <FactList>
+                  <FactRow icon={Tag} label="Category" tint={tints.coral.solid}>
                     <Select
                       value={category}
                       onValueChange={(value) => {
@@ -535,14 +546,14 @@ function EditItemForm({ item }: { item: ItemShow }) {
                         ))}
                       </SelectContent>
                     </Select>
-                  </FactPill>
+                  </FactRow>
 
-                  <FactPill
+                  <FactRow
                     icon={Baby}
                     label="Child age"
                     tint={tints.blue.solid}
                   >
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <AgeSelect
                         className={pillSelectClass}
                         id="ageFrom"
@@ -567,9 +578,9 @@ function EditItemForm({ item }: { item: ItemShow }) {
                         disabled={isSubmitting}
                       />
                     </div>
-                  </FactPill>
+                  </FactRow>
 
-                  <FactPill
+                  <FactRow
                     icon={Sparkles}
                     label="Condition"
                     badgeClassName={conditionBadges[condition]}
@@ -603,8 +614,8 @@ function EditItemForm({ item }: { item: ItemShow }) {
                         ))}
                       </SelectContent>
                     </Select>
-                  </FactPill>
-                </div>
+                  </FactRow>
+                </FactList>
 
                 <div className="space-y-1">
                   <ErrorText id="category-error" message={errors['category']} />
@@ -615,26 +626,31 @@ function EditItemForm({ item }: { item: ItemShow }) {
                   <ErrorText id="age-error" message={errors['ageTo']} />
                 </div>
 
-                <OwnerRow name={item.owner.name} />
-
-                <div className="space-y-3 max-md:hidden">
-                  <p className="text-center text-sm text-muted-foreground">
+                <div className="space-y-4 rounded-2xl bg-card p-4 shadow-sm ring-1 ring-border max-md:hidden">
+                  <OwnerRow name={item.owner.name} />
+                  <p
+                    role="status"
+                    className="text-center text-sm text-muted-foreground"
+                  >
                     {hasChanges ? 'You have unsaved changes' : 'No changes yet'}
                   </p>
-                  {saveButton('h-14 w-full rounded-full text-base')}
+                  {saveButton('h-12 w-full rounded-full text-base')}
                   <Button
                     asChild
                     variant="ghost"
-                    className="h-11 w-full rounded-full"
+                    className="h-10 w-full rounded-full"
                   >
                     <Link to={`/items/${item.id}`}>Cancel</Link>
                   </Button>
+                </div>
+                <div className="md:hidden">
+                  <OwnerRow name={item.owner.name} />
                 </div>
               </div>
             </div>
           </HeroBand>
 
-          <div className="mx-auto mt-6 grid max-w-6xl gap-y-3 px-4 sm:px-6 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] md:gap-x-16">
+          <div className="mx-auto mt-10 grid max-w-6xl gap-y-3 px-4 sm:px-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-x-14">
             <h2 className="text-2xl font-semibold md:col-start-1 md:row-start-1">
               <label htmlFor="description">
                 <span className="box-decoration-clone bg-[linear-gradient(transparent_62%,color-mix(in_oklab,var(--primary)_35%,transparent)_62%)]">

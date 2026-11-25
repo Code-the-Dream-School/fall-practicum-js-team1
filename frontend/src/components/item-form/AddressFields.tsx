@@ -1,4 +1,5 @@
-import { ErrorText } from '@/components/item-form/ItemFormParts';
+import { ErrorText, fieldClass } from '@/components/item-form/ItemFormParts';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -38,7 +39,7 @@ export function AddressFields({
 
       {addressFields.map((field) => (
         <div key={field.key} className="space-y-2">
-          <Label htmlFor={`new-${field.key}`}>
+          <Label htmlFor={`new-${field.key}`} className="text-sm">
             {field.label}
             {field.required ? ' *' : ''}
           </Label>
@@ -49,7 +50,7 @@ export function AddressFields({
             >
               <SelectTrigger
                 id="new-state"
-                className="w-full"
+                className={cn(fieldClass, 'w-full')}
                 aria-invalid={Boolean(errors['state'])}
                 aria-describedby="new-state-error"
               >
@@ -66,6 +67,7 @@ export function AddressFields({
           ) : (
             <Input
               id={`new-${field.key}`}
+              className={fieldClass}
               value={draft[field.key]}
               autoComplete={addressAutoComplete[field.key] ?? 'off'}
               required={field.required}

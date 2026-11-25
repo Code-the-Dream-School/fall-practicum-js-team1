@@ -16,12 +16,17 @@ import ItemPhotoPicker from '../components/ItemPhotoPicker';
 import type { PhotoUploadState } from '../components/ItemPhotoPicker';
 import { cn } from '@/lib/utils';
 import { conditions, limits, tints } from '@/lib/itemForm';
+import { PageBackdrop } from '@/components/item-details/ItemDetailParts';
 import {
   AgeRangeFields,
   CharCount,
   ConditionPicker,
   ErrorText,
+  FieldHint,
   FormSection,
+  fieldClass,
+  labelClass,
+  textareaClass,
 } from '@/components/item-form/ItemFormParts';
 import { AddressFields } from '@/components/item-form/AddressFields';
 import { addressFields, emptyAddress } from '@/lib/addressForm';
@@ -48,6 +53,8 @@ function errorMessage(error: unknown): string {
     ? error.message
     : 'Something went wrong. Please try again.';
 }
+
+const stepTints = [tints.coral.solid, tints.blue.solid, tints.sage.solid];
 
 function StepIndicator({
   labels,
@@ -84,8 +91,9 @@ function StepIndicator({
                 <span
                   className={cn(
                     'flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors',
-                    done && 'bg-primary text-primary-foreground',
-                    active && 'bg-foreground text-background',
+                    done && 'text-white',
+                    active && 'text-white ring-4 ring-ring/30',
+                    (done || active) && stepTints[index],
                     !done && !active && 'bg-muted text-muted-foreground',
                   )}
                 >
@@ -109,7 +117,7 @@ function StepIndicator({
                   aria-hidden="true"
                   className={cn(
                     'h-px flex-1 transition-colors',
-                    done ? 'bg-primary' : 'bg-border',
+                    done ? stepTints[index] : 'bg-border',
                   )}
                 />
               )}
@@ -644,431 +652,483 @@ export default function PostItemPage() {
   const isLastStep = step === stepLabels.length - 1;
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 pt-6 pb-10 sm:px-6 sm:pt-10">
-      <header className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight">
-          Post an{' '}
-          <span className="box-decoration-clone bg-[linear-gradient(transparent_62%,color-mix(in_oklab,var(--primary)_35%,transparent)_62%)]">
-            item
-          </span>
-        </h1>
-        <p className="max-w-xl text-lg text-muted-foreground">
-          It only takes a couple of minutes.
-        </p>
-      </header>
+    <PageBackdrop variant="blocks">
+      <main className="mx-auto w-full max-w-6xl px-4 pt-6 pb-10 sm:px-6 sm:pt-10">
+        <div className="grid gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="min-w-0 space-y-6 lg:col-span-2">
+            <header className="space-y-2">
+              <h1 className="text-4xl font-bold tracking-tight">
+                Post an{' '}
+                <span className="box-decoration-clone bg-[linear-gradient(transparent_62%,color-mix(in_oklab,var(--primary)_35%,transparent)_62%)]">
+                  item
+                </span>
+              </h1>
+              <p className="max-w-xl text-lg text-muted-foreground">
+                Outgrown something your little one loved? Pass it on to a family
+                nearby. It only takes a couple of minutes.
+              </p>
+            </header>
 
-      <div className="mt-6 max-w-xl">
-        <StepIndicator
-          labels={stepLabels}
-          current={step}
-          onGo={(target) => {
-            setMessage('');
-            setStep(target);
-          }}
-        />
-      </div>
+            <div className="lg:w-[calc(100%-24.5rem)]">
+              <StepIndicator
+                labels={stepLabels}
+                current={step}
+                onGo={(target) => {
+                  setMessage('');
+                  setStep(target);
+                }}
+              />
+            </div>
+          </div>
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="min-w-0">
-          {useMocks && (
-            <p className="mb-4 rounded-xl bg-muted p-3 text-sm text-muted-foreground">
-              Development preview: using shared sample data. New listings and
-              addresses reset when you refresh. Uploaded photos use sample
-              images.
-            </p>
-          )}
+          <div className="min-w-0 lg:col-start-1">
+            {useMocks && (
+              <p className="mb-4 rounded-xl bg-muted p-3 text-sm text-muted-foreground">
+                Development preview: using shared sample data. New listings and
+                addresses reset when you refresh. Uploaded photos use sample
+                images.
+              </p>
+            )}
 
-          {message && (
-            <p
-              ref={messageRef}
-              role="alert"
-              tabIndex={-1}
-              className="mb-4 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300"
+            {message && (
+              <p
+                ref={messageRef}
+                role="alert"
+                tabIndex={-1}
+                className="mb-4 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300"
+              >
+                {message}
+              </p>
+            )}
+
+            <form
+              ref={formRef}
+              onSubmit={handleFormSubmit}
+              noValidate
+              aria-busy={busy}
             >
-              {message}
-            </p>
-          )}
-
-          <form
-            ref={formRef}
-            onSubmit={handleFormSubmit}
-            noValidate
-            aria-busy={busy}
-          >
-            <fieldset disabled={busy} className="min-w-0">
-              {step === 0 && (
-                <FormSection
-                  title="Add photos *"
-                  hint="Clear, bright photos get claimed faster."
-                  icon={Camera}
-                  tint={tints.coral}
-                >
-                  <div
-                    className="space-y-2"
-                    role="group"
-                    aria-label="Item photos"
-                    aria-describedby="required-photos-error"
-                    aria-invalid={Boolean(errors['photos'])}
+              <fieldset disabled={busy} className="min-w-0">
+                {step === 0 && (
+                  <FormSection
+                    title="Add photos *"
+                    hint="Clear, bright photos get claimed faster."
+                    icon={Camera}
+                    tint={tints.coral}
                   >
-                    <ItemPhotoPicker
-                      photos={photos}
-                      uploadStates={uploadStates}
-                      disabled={busy}
-                      onRetry={(file) => void retryPhoto(file)}
-                      onChange={(selected) => {
-                        setPhotos(selected);
-                        setUploadStates(
-                          (previous) =>
-                            new Map(
-                              [...previous].filter(([file]) =>
-                                selected.includes(file),
-                              ),
-                            ),
-                        );
-                        clearError('photos');
-                      }}
-                    />
-                    <ErrorText
-                      id="required-photos-error"
-                      message={errors['photos']}
-                    />
-                  </div>
-                </FormSection>
-              )}
-
-              {step === 1 && (
-                <FormSection title="Details" icon={PenLine} tint={tints.blue}>
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Item title *</Label>
-                    <Input
-                      id="title"
-                      name="title"
-                      value={title}
-                      onChange={(event) => {
-                        setTitle(event.target.value);
-                        clearError('title');
-                      }}
-                      placeholder="e.g. Graco convertible car seat"
-                      required
-                      maxLength={limits.title}
-                      aria-invalid={Boolean(errors['title'])}
-                      aria-describedby="title-error"
-                    />
-                    <ErrorText id="title-error" message={errors['title']} />
-                    <CharCount value={title} max={limits.title} />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Category *</Label>
-                    <Select
-                      value={category}
-                      onValueChange={(value) => {
-                        setCategory(value);
-                        clearError('category');
-                      }}
-                      disabled={
-                        busy || categoriesLoading || Boolean(categoriesError)
-                      }
-                      required
+                    <div
+                      className="space-y-2"
+                      role="group"
+                      aria-label="Item photos"
+                      aria-describedby="required-photos-error"
+                      aria-invalid={Boolean(errors['photos'])}
                     >
-                      <SelectTrigger
-                        id="category"
-                        className="w-full"
-                        aria-invalid={Boolean(errors['category'])}
-                        aria-describedby="category-error category-load"
+                      <ItemPhotoPicker
+                        photos={photos}
+                        uploadStates={uploadStates}
+                        disabled={busy}
+                        onRetry={(file) => void retryPhoto(file)}
+                        onChange={(selected) => {
+                          setPhotos(selected);
+                          setUploadStates(
+                            (previous) =>
+                              new Map(
+                                [...previous].filter(([file]) =>
+                                  selected.includes(file),
+                                ),
+                              ),
+                          );
+                          clearError('photos');
+                        }}
+                      />
+                      <ErrorText
+                        id="required-photos-error"
+                        message={errors['photos']}
+                      />
+                    </div>
+                  </FormSection>
+                )}
+
+                {step === 1 && (
+                  <FormSection
+                    title="Details"
+                    hint="Tell the next family what they're getting."
+                    icon={PenLine}
+                    tint={tints.blue}
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor="title" className={labelClass}>
+                        Item title *
+                      </Label>
+                      <FieldHint>
+                        Name it the way a parent would search for it.
+                      </FieldHint>
+                      <Input
+                        id="title"
+                        className={fieldClass}
+                        name="title"
+                        value={title}
+                        onChange={(event) => {
+                          setTitle(event.target.value);
+                          clearError('title');
+                        }}
+                        placeholder="e.g. Graco convertible car seat"
+                        required
+                        maxLength={limits.title}
+                        aria-invalid={Boolean(errors['title'])}
+                        aria-describedby="title-error"
+                      />
+                      <ErrorText id="title-error" message={errors['title']} />
+                      <CharCount value={title} max={limits.title} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="category" className={labelClass}>
+                        Category *
+                      </Label>
+                      <Select
+                        value={category}
+                        onValueChange={(value) => {
+                          setCategory(value);
+                          clearError('category');
+                        }}
+                        disabled={
+                          busy || categoriesLoading || Boolean(categoriesError)
+                        }
+                        required
                       >
-                        <SelectValue placeholder="Pick a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((item) => (
-                          <SelectItem key={item.key} value={item.key}>
-                            {item.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {categoriesLoading && (
-                      <p
-                        id="category-load"
-                        role="status"
-                        className="text-sm text-muted-foreground"
-                      >
-                        Loading categories…
-                      </p>
-                    )}
-                    <ErrorText id="category-load" message={categoriesError} />
-                    <ErrorText
-                      id="category-error"
-                      message={errors['category']}
-                    />
-                  </div>
-
-                  <ConditionPicker
-                    value={condition}
-                    error={errors['condition']}
-                    onChange={(value) => {
-                      setCondition(value);
-                      clearError('condition');
-                    }}
-                  />
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description *</Label>
-                    <Textarea
-                      id="description"
-                      name="description"
-                      value={description}
-                      onChange={(event) => {
-                        setDescription(event.target.value);
-                        clearError('description');
-                      }}
-                      placeholder="Brand, size, how it was used, anything the next family should know"
-                      required
-                      rows={4}
-                      maxLength={limits.description}
-                      aria-invalid={Boolean(errors['description'])}
-                      aria-describedby="description-error"
-                    />
-                    <ErrorText
-                      id="description-error"
-                      message={errors['description']}
-                    />
-                    <CharCount value={description} max={limits.description} />
-                  </div>
-
-                  <AgeRangeFields
-                    ageFrom={ageFrom}
-                    ageTo={ageTo}
-                    onFromChange={setAgeFrom}
-                    onToChange={setAgeTo}
-                    disabled={busy}
-                    error={ageError}
-                  />
-                </FormSection>
-              )}
-
-              {step === 2 && (
-                <FormSection title="Pickup" icon={MapPin} tint={tints.sage}>
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Pickup address *</Label>
-
-                    {addressesLoading && (
-                      <p
-                        role="status"
-                        className="text-sm text-muted-foreground"
-                      >
-                        Loading addresses…
-                      </p>
-                    )}
-
-                    {addressLoadError && (
-                      <div className="space-y-2">
-                        <p role="alert" className="text-sm text-red-600">
-                          {addressLoadError}
+                        <SelectTrigger
+                          id="category"
+                          className={cn(fieldClass, 'w-full')}
+                          aria-invalid={Boolean(errors['category'])}
+                          aria-describedby="category-error category-load"
+                        >
+                          <SelectValue placeholder="Pick a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((item) => (
+                            <SelectItem key={item.key} value={item.key}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {categoriesLoading && (
+                        <p
+                          id="category-load"
+                          role="status"
+                          className="text-sm text-muted-foreground"
+                        >
+                          Loading categories…
                         </p>
+                      )}
+                      <ErrorText id="category-load" message={categoriesError} />
+                      <ErrorText
+                        id="category-error"
+                        message={errors['category']}
+                      />
+                    </div>
+
+                    <ConditionPicker
+                      value={condition}
+                      error={errors['condition']}
+                      onChange={(value) => {
+                        setCondition(value);
+                        clearError('condition');
+                      }}
+                    />
+
+                    <div className="space-y-2">
+                      <Label htmlFor="description" className={labelClass}>
+                        Description *
+                      </Label>
+                      <FieldHint>
+                        Brand, size, how it was used, anything worth knowing.
+                      </FieldHint>
+                      <Textarea
+                        id="description"
+                        className={textareaClass}
+                        name="description"
+                        value={description}
+                        onChange={(event) => {
+                          setDescription(event.target.value);
+                          clearError('description');
+                        }}
+                        placeholder="e.g. Used for one child, smoke-free home, all straps included"
+                        required
+                        rows={4}
+                        maxLength={limits.description}
+                        aria-invalid={Boolean(errors['description'])}
+                        aria-describedby="description-error"
+                      />
+                      <ErrorText
+                        id="description-error"
+                        message={errors['description']}
+                      />
+                      <CharCount value={description} max={limits.description} />
+                    </div>
+
+                    <AgeRangeFields
+                      ageFrom={ageFrom}
+                      ageTo={ageTo}
+                      onFromChange={setAgeFrom}
+                      onToChange={setAgeTo}
+                      disabled={busy}
+                      error={ageError}
+                    />
+                  </FormSection>
+                )}
+
+                {step === 2 && (
+                  <FormSection
+                    title="Pickup"
+                    hint="Where and when someone can collect it."
+                    icon={MapPin}
+                    tint={tints.sage}
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor="address" className={labelClass}>
+                        Pickup address *
+                      </Label>
+
+                      {addressesLoading && (
+                        <p
+                          role="status"
+                          className="text-sm text-muted-foreground"
+                        >
+                          Loading addresses…
+                        </p>
+                      )}
+
+                      {addressLoadError && (
+                        <div className="space-y-2">
+                          <p role="alert" className="text-sm text-red-600">
+                            {addressLoadError}
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={busy || addressesLoading}
+                            onClick={() => void retryAddresses()}
+                          >
+                            Retry loading addresses
+                          </Button>
+                        </div>
+                      )}
+
+                      {!addressesLoading &&
+                        !addressLoadError &&
+                        addresses.length === 0 && (
+                          <p className="text-sm text-muted-foreground">
+                            You have no saved addresses. Add a pickup address
+                            below.
+                          </p>
+                        )}
+
+                      <Select
+                        value={addressId}
+                        onValueChange={(value) => {
+                          setAddressId(value);
+                          clearError('address');
+                        }}
+                        disabled={
+                          busy || addressesLoading || addresses.length === 0
+                        }
+                        required
+                      >
+                        <SelectTrigger
+                          id="address"
+                          className={cn(fieldClass, 'w-full')}
+                          aria-invalid={Boolean(errors['address'])}
+                          aria-describedby="address-error address-privacy"
+                        >
+                          <SelectValue placeholder="Choose your address" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {addresses.map((address) => (
+                            <SelectItem key={address.id} value={address.id}>
+                              {address.nickname || 'Saved address'} —{' '}
+                              {address.city}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <ErrorText
+                        id="address-error"
+                        message={errors['address']}
+                      />
+
+                      <p
+                        id="address-privacy"
+                        className="flex items-start gap-2 text-sm text-muted-foreground"
+                      >
+                        <ShieldCheck
+                          className="mt-0.5 size-4 shrink-0 text-primary"
+                          aria-hidden="true"
+                        />
+                        Only your city is public. Your address is shared with
+                        the person you approve.
+                      </p>
+
+                      {!showAddressEditor && (
                         <Button
                           type="button"
                           variant="outline"
                           disabled={busy || addressesLoading}
-                          onClick={() => void retryAddresses()}
+                          onClick={() => {
+                            setAddressErrors({});
+                            setAddressSaveError('');
+                            setShowAddressEditor(true);
+                          }}
                         >
-                          Retry loading addresses
+                          Add new address
                         </Button>
-                      </div>
-                    )}
-
-                    {!addressesLoading &&
-                      !addressLoadError &&
-                      addresses.length === 0 && (
-                        <p className="text-sm text-muted-foreground">
-                          You have no saved addresses. Add a pickup address
-                          below.
-                        </p>
                       )}
+                    </div>
 
-                    <Select
-                      value={addressId}
-                      onValueChange={(value) => {
-                        setAddressId(value);
-                        clearError('address');
-                      }}
-                      disabled={
-                        busy || addressesLoading || addresses.length === 0
-                      }
-                      required
-                    >
-                      <SelectTrigger
-                        id="address"
-                        className="w-full"
-                        aria-invalid={Boolean(errors['address'])}
-                        aria-describedby="address-error address-privacy"
-                      >
-                        <SelectValue placeholder="Choose your address" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {addresses.map((address) => (
-                          <SelectItem key={address.id} value={address.id}>
-                            {address.nickname || 'Saved address'} —{' '}
-                            {address.city}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <ErrorText id="address-error" message={errors['address']} />
-
-                    <p
-                      id="address-privacy"
-                      className="flex items-start gap-2 text-sm text-muted-foreground"
-                    >
-                      <ShieldCheck
-                        className="mt-0.5 size-4 shrink-0 text-primary"
-                        aria-hidden="true"
-                      />
-                      Only your city is public. Your address is shared with the
-                      person you approve.
-                    </p>
-
-                    {!showAddressEditor && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={busy || addressesLoading}
-                        onClick={() => {
-                          setAddressErrors({});
+                    {showAddressEditor && (
+                      <AddressFields
+                        draft={addressDraft}
+                        errors={addressErrors}
+                        saveError={addressSaveError}
+                        saving={savingAddress}
+                        busy={busy}
+                        onChange={(key, value) => {
+                          setAddressDraft((previous) => ({
+                            ...previous,
+                            [key]: value,
+                          }));
+                          setAddressErrors((previous) => {
+                            const next = { ...previous };
+                            delete next[key];
+                            return next;
+                          });
                           setAddressSaveError('');
-                          setShowAddressEditor(true);
                         }}
-                      >
-                        Add new address
-                      </Button>
+                        onSave={() => void saveAddress()}
+                        onCancel={() => setShowAddressEditor(false)}
+                      />
                     )}
-                  </div>
 
-                  {showAddressEditor && (
-                    <AddressFields
-                      draft={addressDraft}
-                      errors={addressErrors}
-                      saveError={addressSaveError}
-                      saving={savingAddress}
-                      busy={busy}
-                      onChange={(key, value) => {
-                        setAddressDraft((previous) => ({
-                          ...previous,
-                          [key]: value,
-                        }));
-                        setAddressErrors((previous) => {
-                          const next = { ...previous };
-                          delete next[key];
-                          return next;
-                        });
-                        setAddressSaveError('');
-                      }}
-                      onSave={() => void saveAddress()}
-                      onCancel={() => setShowAddressEditor(false)}
-                    />
-                  )}
+                    <div className="space-y-2">
+                      <Label htmlFor="availability" className={labelClass}>
+                        When can people pick up? (optional)
+                      </Label>
+                      <Input
+                        id="availability"
+                        className={fieldClass}
+                        name="availability"
+                        value={availability}
+                        onChange={(event) => {
+                          setAvailability(event.target.value);
+                          clearError('availability');
+                        }}
+                        maxLength={limits.availability}
+                        placeholder="e.g. Weekdays after 5pm"
+                        aria-invalid={Boolean(errors['availability'])}
+                        aria-describedby="availability-error"
+                      />
+                      <ErrorText
+                        id="availability-error"
+                        message={errors['availability']}
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="availability">
-                      When can people pick up? (optional)
-                    </Label>
-                    <Input
-                      id="availability"
-                      name="availability"
-                      value={availability}
-                      onChange={(event) => {
-                        setAvailability(event.target.value);
-                        clearError('availability');
-                      }}
-                      maxLength={limits.availability}
-                      placeholder="e.g. Weekdays after 5pm"
-                      aria-invalid={Boolean(errors['availability'])}
-                      aria-describedby="availability-error"
-                    />
-                    <ErrorText
-                      id="availability-error"
-                      message={errors['availability']}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="instructions">
-                      Pickup notes (optional)
-                    </Label>
-                    <Textarea
-                      id="instructions"
-                      name="instructions"
-                      value={instructions}
-                      onChange={(event) => {
-                        setInstructions(event.target.value);
-                        clearError('instructions');
-                      }}
-                      maxLength={limits.instructions}
-                      rows={3}
-                      placeholder="e.g. Porch pickup, ring the bell twice"
-                      aria-invalid={Boolean(errors['instructions'])}
-                      aria-describedby="instructions-error"
-                    />
-                    <ErrorText
-                      id="instructions-error"
-                      message={errors['instructions']}
-                    />
-                    <CharCount value={instructions} max={limits.instructions} />
-                  </div>
-                </FormSection>
-              )}
-            </fieldset>
-
-            <div className="sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 mt-6 md:bottom-4">
-              <div className="flex gap-3 rounded-2xl bg-background/95 p-3 shadow-lg ring-1 ring-border backdrop-blur">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-12 px-5 text-base"
-                  disabled={busy}
-                  onClick={() => {
-                    if (step === 0) {
-                      navigate('/');
-                      return;
-                    }
-
-                    setMessage('');
-                    setStep(step - 1);
-                  }}
-                >
-                  {step === 0 ? 'Cancel' : 'Back'}
-                </Button>
-                {isLastStep ? (
-                  <Button
-                    type="submit"
-                    className="h-12 flex-1 text-base"
-                    disabled={busy || addressesLoading || categoriesLoading}
-                    aria-busy={isSubmitting}
-                  >
-                    {isSubmitting ? 'Posting…' : 'Post item'}
-                  </Button>
-                ) : (
-                  <Button type="submit" className="h-12 flex-1 text-base">
-                    Next
-                  </Button>
+                    <div className="space-y-2">
+                      <Label htmlFor="instructions" className={labelClass}>
+                        Pickup notes (optional)
+                      </Label>
+                      <Textarea
+                        id="instructions"
+                        className={textareaClass}
+                        name="instructions"
+                        value={instructions}
+                        onChange={(event) => {
+                          setInstructions(event.target.value);
+                          clearError('instructions');
+                        }}
+                        maxLength={limits.instructions}
+                        rows={3}
+                        placeholder="e.g. Porch pickup, ring the bell twice"
+                        aria-invalid={Boolean(errors['instructions'])}
+                        aria-describedby="instructions-error"
+                      />
+                      <ErrorText
+                        id="instructions-error"
+                        message={errors['instructions']}
+                      />
+                      <CharCount
+                        value={instructions}
+                        max={limits.instructions}
+                      />
+                    </div>
+                  </FormSection>
                 )}
+              </fieldset>
+
+              <div className="sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 mt-6 md:bottom-4">
+                <div className="flex gap-3 rounded-2xl bg-background/95 p-3 shadow-lg ring-1 ring-border backdrop-blur">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-12 px-5 text-base"
+                    disabled={busy}
+                    onClick={() => {
+                      if (step === 0) {
+                        navigate('/');
+                        return;
+                      }
+
+                      setMessage('');
+                      setStep(step - 1);
+                    }}
+                  >
+                    {step === 0 ? 'Cancel' : 'Back'}
+                  </Button>
+                  {isLastStep ? (
+                    <Button
+                      type="submit"
+                      className="h-12 flex-1 text-base"
+                      disabled={busy || addressesLoading || categoriesLoading}
+                      aria-busy={isSubmitting}
+                    >
+                      {isSubmitting ? 'Posting…' : 'Post item'}
+                    </Button>
+                  ) : (
+                    <Button type="submit" className="h-12 flex-1 text-base">
+                      Next
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <aside className="hidden lg:col-start-2 lg:row-start-2 lg:block">
+            <div className="sticky top-24 space-y-3">
+              <div>
+                <h2 className="text-lg font-semibold">How it will look</h2>
+                <p className="text-sm text-muted-foreground">
+                  This is the card people see on the home page.
+                </p>
+              </div>
+              <div className="relative pt-3">
+                <span
+                  aria-hidden="true"
+                  className="absolute top-0 left-1/2 z-10 h-6 w-20 -translate-x-1/2 -rotate-3 rounded-sm bg-accent-sun/60 shadow-sm"
+                />
+                <div
+                  inert
+                  aria-hidden="true"
+                  className="rounded-3xl shadow-[8px_8px_0_0_color-mix(in_oklab,var(--color-accent-blue)_35%,transparent)] select-none"
+                >
+                  <ItemCard item={previewItem} />
+                </div>
               </div>
             </div>
-          </form>
+          </aside>
         </div>
-
-        <aside className="hidden lg:block">
-          <div className="sticky top-24 space-y-3">
-            <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-              Live preview
-            </h2>
-            <div inert aria-hidden="true" className="select-none">
-              <ItemCard item={previewItem} />
-            </div>
-          </div>
-        </aside>
-      </div>
-    </main>
+      </main>
+    </PageBackdrop>
   );
 }

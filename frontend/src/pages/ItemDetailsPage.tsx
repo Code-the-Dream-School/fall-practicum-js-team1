@@ -40,11 +40,11 @@ import {
 import { cn } from '@/lib/utils';
 import { conditionBadges, conditions, tints } from '@/lib/itemForm';
 import {
-  FactPill,
+  FactList,
+  FactRow,
   HeroBand,
   LocationAndDate,
   OwnerRow,
-  PhotoBlobs,
   PickupAreaCard,
   photoShapeClass,
 } from '@/components/item-details/ItemDetailParts';
@@ -401,16 +401,14 @@ export default function ItemDetailsPage() {
           </ol>
         </nav>
 
-        <div className="mt-6 grid gap-10 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] xl:items-center xl:gap-16">
+        <div className="mt-6 grid grid-cols-1 gap-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] xl:items-start xl:gap-14">
           <section
             aria-label="Item photos"
             className="@container relative mx-auto w-full max-w-2xl xl:max-w-none"
           >
-            <PhotoBlobs />
-
             <div
               className={cn(
-                'relative flex aspect-[4/3] items-center justify-center xl:aspect-square',
+                'relative flex aspect-[4/3] items-center justify-center',
                 photoShapeClass,
               )}
             >
@@ -435,7 +433,7 @@ export default function ItemDetailsPage() {
             </div>
 
             {photos.length > 1 && (
-              <div className="relative mt-3 flex justify-center gap-2.5 px-4 @md:-mt-8">
+              <div className="mx-auto mt-3 flex w-fit max-w-full gap-2.5 overflow-x-auto p-1">
                 {photos.map((photo, index) => {
                   const isSelected = photo.id === selectedPhoto?.id;
 
@@ -447,10 +445,10 @@ export default function ItemDetailsPage() {
                       aria-label={`View photo ${index + 1}`}
                       aria-pressed={isSelected}
                       className={cn(
-                        'size-12 overflow-hidden rounded-2xl border-4 shadow-md transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none @md:size-16',
+                        'size-14 shrink-0 overflow-hidden rounded-xl ring-1 ring-border transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none @md:size-16',
                         isSelected
-                          ? 'scale-110 border-primary'
-                          : 'border-card opacity-90 hover:scale-105',
+                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                          : 'opacity-70 hover:opacity-100',
                       )}
                     >
                       <img
@@ -465,7 +463,7 @@ export default function ItemDetailsPage() {
             )}
           </section>
 
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div className="space-y-3">
               <StatusPill status={item.status} />
               <h1 className="text-4xl leading-[1.05] font-bold tracking-tight md:text-5xl">
@@ -479,19 +477,19 @@ export default function ItemDetailsPage() {
               />
             </div>
 
-            <dl className="grid gap-2.5 sm:grid-cols-3">
-              <FactPill icon={Tag} label="Category" tint={tints.coral.solid}>
+            <FactList>
+              <FactRow icon={Tag} label="Category" tint={tints.coral.solid}>
                 <Link
                   to={categoryUrl}
                   className="underline-offset-4 hover:underline"
                 >
                   {item.category.name}
                 </Link>
-              </FactPill>
-              <FactPill icon={Baby} label="Child age" tint={tints.blue.solid}>
+              </FactRow>
+              <FactRow icon={Baby} label="Child age" tint={tints.blue.solid}>
                 {formatAgeRange(item.childAgeMinMonths, item.childAgeMaxMonths)}
-              </FactPill>
-              <FactPill
+              </FactRow>
+              <FactRow
                 icon={Sparkles}
                 label="Condition"
                 badgeClassName={conditionBadges[item.condition]}
@@ -500,12 +498,12 @@ export default function ItemDetailsPage() {
                   conditions.find((entry) => entry.value === item.condition)
                     ?.label
                 }
-              </FactPill>
-            </dl>
+              </FactRow>
+            </FactList>
 
-            <OwnerRow name={item.owner.name} />
+            <div className="space-y-4 rounded-2xl bg-card p-4 shadow-sm ring-1 ring-border">
+              <OwnerRow name={item.owner.name} />
 
-            <div className="space-y-3">
               <div className={cn(requestable && 'max-md:hidden')}>{action}</div>
 
               {!isOwner && (
@@ -522,7 +520,7 @@ export default function ItemDetailsPage() {
         </div>
       </HeroBand>
 
-      <div className="mx-auto mt-6 grid max-w-6xl gap-y-3 px-4 sm:px-6 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] md:gap-x-16">
+      <div className="mx-auto mt-10 grid max-w-6xl gap-y-3 px-4 sm:px-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-x-14">
         <h2 className="text-2xl font-semibold md:col-start-1 md:row-start-1">
           <span className="box-decoration-clone bg-[linear-gradient(transparent_62%,color-mix(in_oklab,var(--primary)_35%,transparent)_62%)]">
             About this item

@@ -10,44 +10,39 @@ const placeholders = Array.from(
 export default function ItemDetailsSkeleton() {
   return (
     <main className="pb-10" aria-hidden="true">
-      <section className="bg-[color-mix(in_oklab,var(--primary)_9%,var(--background))] pb-16 [clip-path:ellipse(135%_100%_at_50%_0%)] md:pb-24">
+      <section className="border-b border-border/60 bg-[color-mix(in_oklab,var(--primary)_7%,var(--background))] pb-10 md:pb-14">
         <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6 sm:pt-8">
           <Skeleton className="h-5 w-64" />
 
-          <div className="mt-6 grid gap-10 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] xl:items-center xl:gap-16">
+          <div className="mt-6 grid gap-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] xl:items-start xl:gap-14">
             <div>
-              <Skeleton className="aspect-[4/3] w-full rounded-[2rem_2rem_2rem_0.75rem] xl:aspect-square md:rounded-[3.5rem_3.5rem_3.5rem_1rem]" />
-              <div className="relative mt-3 flex justify-center gap-2.5">
+              <Skeleton className="aspect-[4/3] w-full rounded-3xl" />
+              <div className="mt-3 flex gap-2.5 p-1">
                 {placeholders.map((index) => (
-                  <Skeleton key={index} className="size-12 rounded-2xl" />
+                  <Skeleton key={index} className="size-14 rounded-xl" />
                 ))}
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-5">
               <div className="space-y-3">
                 <Skeleton className="h-12 w-4/5" />
                 <Skeleton className="h-5 w-3/5" />
               </div>
-              <div className="flex flex-wrap gap-2.5">
-                {placeholders.map((index) => (
-                  <Skeleton key={index} className="h-14 w-40 rounded-full" />
-                ))}
-              </div>
-              <Skeleton className="h-11 w-40 rounded-full" />
-              <Skeleton className="h-14 w-full rounded-full" />
+              <Skeleton className="h-44 w-full rounded-2xl" />
+              <Skeleton className="h-40 w-full rounded-2xl" />
             </div>
           </div>
         </div>
       </section>
 
-      <div className="mx-auto mt-6 grid max-w-6xl gap-8 px-4 sm:px-6 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] md:gap-16">
+      <div className="mx-auto mt-10 grid max-w-6xl gap-8 px-4 sm:px-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-14">
         <div className="space-y-3">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-5 w-full" />
           <Skeleton className="h-5 w-2/3" />
         </div>
-        <Skeleton className="h-20 w-full rounded-[2rem]" />
+        <Skeleton className="h-20 w-full rounded-2xl" />
       </div>
     </main>
   );

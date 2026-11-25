@@ -6,35 +6,87 @@ import { tints } from '@/lib/itemForm';
 import { cn } from '@/lib/utils';
 
 export const photoShapeClass =
-  'overflow-hidden rounded-[2rem_2rem_2rem_0.75rem] bg-muted shadow-xl ring-1 ring-black/5 md:rounded-[3.5rem_3.5rem_3.5rem_1rem]';
+  'overflow-hidden rounded-3xl bg-muted shadow-sm ring-1 ring-border';
+
+export function PageBackdrop({
+  variant = 'circles',
+  className,
+  children,
+}: {
+  variant?: 'circles' | 'blocks';
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        'relative overflow-hidden bg-[color-mix(in_oklab,var(--primary)_7%,var(--background))] bg-[radial-gradient(color-mix(in_oklab,var(--primary)_32%,transparent)_1.25px,transparent_1.25px)] [background-size:22px_22px]',
+        className,
+      )}
+    >
+      {variant === 'circles' ? (
+        <>
+          <div
+            aria-hidden="true"
+            className="absolute -top-24 -right-36 size-72 rounded-full bg-accent-sun/15"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute -bottom-24 -left-32 size-64 rounded-full bg-accent-blue/15 md:-bottom-32 md:-left-40 md:size-96"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute top-1/2 -right-24 size-44 rounded-full border-[20px] border-accent-coral/15"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute -bottom-10 left-1/3 size-28 rounded-full bg-accent-sage/20"
+          />
+        </>
+      ) : (
+        <>
+          <div
+            aria-hidden="true"
+            className="absolute -top-16 -right-24 size-64 rotate-12 rounded-[2.5rem] bg-accent-sun/15"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute top-1/3 -left-28 size-52 -rotate-12 rounded-[2.5rem] bg-accent-coral/15"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute -right-20 -bottom-20 size-72 rotate-6 rounded-[3rem] bg-accent-blue/15"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute bottom-24 left-1/4 size-24 rotate-45 rounded-3xl border-[14px] border-accent-sage/20"
+          />
+        </>
+      )}
+      <div className="relative">{children}</div>
+    </div>
+  );
+}
 
 export function HeroBand({ children }: { children: ReactNode }) {
   return (
-    <section className="bg-[color-mix(in_oklab,var(--primary)_9%,var(--background))] pb-16 [clip-path:ellipse(135%_100%_at_50%_0%)] md:pb-24">
+    <PageBackdrop className="border-b border-border/60 pb-12 md:pb-16">
       <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6 sm:pt-8">
         {children}
       </div>
-    </section>
+    </PageBackdrop>
   );
 }
 
-// The cqw units size the circles from the photo section, which is a container.
-export function PhotoBlobs() {
+export function FactList({ children }: { children: ReactNode }) {
   return (
-    <>
-      <div
-        aria-hidden="true"
-        className="absolute top-[10cqw] -left-[14cqw] aspect-square w-[33cqw] rounded-full bg-accent-sun/30"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute -right-[3cqw] -bottom-[7cqw] aspect-square w-[28cqw] rounded-full bg-accent-blue/25"
-      />
-    </>
+    <dl className="divide-y divide-dashed divide-border overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-border">
+      {children}
+    </dl>
   );
 }
 
-export function FactPill({
+export function FactRow({
   icon: Icon,
   label,
   tint,
@@ -48,23 +100,19 @@ export function FactPill({
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-2.5 rounded-3xl bg-card py-1.5 pr-4 pl-1.5 shadow-sm ring-1 ring-border">
+    <div className="flex min-h-14 items-center gap-3 px-4 py-2.5">
       <span
         aria-hidden="true"
         className={cn(
-          'flex size-10 shrink-0 items-center justify-center rounded-full',
+          'flex size-9 shrink-0 items-center justify-center rounded-xl',
           tint,
           badgeClassName ?? 'text-white',
         )}
       >
-        <Icon className="size-5" />
+        <Icon className="size-[1.15rem]" />
       </span>
-      <div className="min-w-0 leading-tight">
-        <span className="block text-xs font-medium text-muted-foreground">
-          {label}
-        </span>
-        <div className="font-semibold">{children}</div>
-      </div>
+      <dt className="w-24 shrink-0 text-sm text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 flex-1 font-semibold">{children}</dd>
     </div>
   );
 }
@@ -76,12 +124,14 @@ export function OwnerRow({ name }: { name: string }) {
     <div className="flex items-center gap-3">
       <span
         aria-hidden="true"
-        className="flex size-11 shrink-0 items-center justify-center rounded-full bg-card text-sm font-semibold shadow-sm ring-1 ring-border"
+        className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent-coral/20 text-sm font-semibold ring-2 ring-accent-coral/50"
       >
         {getInitials(name)}
       </span>
       <p className="leading-tight">
-        <span className="block text-xs text-muted-foreground">Shared by</span>
+        <span className="block text-xs text-muted-foreground">
+          Handed down by
+        </span>
         <span className="font-semibold">{firstName}</span>
       </p>
     </div>
@@ -128,12 +178,12 @@ export function PickupAreaCard({
   children?: ReactNode;
 }) {
   return (
-    <section className="self-start rounded-[2rem] border-2 border-solid border-accent-sage/40 bg-card p-5 max-md:mt-5 md:col-start-2 md:row-start-2">
+    <section className="self-start rounded-2xl bg-card p-5 shadow-sm ring-1 ring-border max-md:mt-5 md:col-start-2 md:row-start-2">
       <div className="flex items-center gap-3">
         <span
           aria-hidden="true"
           className={cn(
-            'flex size-11 shrink-0 items-center justify-center rounded-full text-white',
+            'flex size-11 shrink-0 items-center justify-center rounded-xl text-white',
             tints.sage.solid,
           )}
         >
