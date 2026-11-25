@@ -79,6 +79,7 @@ export const withdrawItem = async (
       },
       data: {
         status: 'cancelled',
+        decidedAt: now,
       },
     });
     return { id: itemId.data, status: 'withdrawn' as const };
