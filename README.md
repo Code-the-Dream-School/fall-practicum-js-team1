@@ -183,7 +183,6 @@ npm install
 2.Run the database migrations:
 ```bash
 npm run db:migrate
-npm run db:generate
 ```
 -This command applies all pending Prisma migrations to the database, creating the required tables, indexes, and database constraints.
 
