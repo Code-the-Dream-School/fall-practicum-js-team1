@@ -3,9 +3,17 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 
+export type PhotoUploadState =
+  | { status: 'uploading'; progress?: number | undefined }
+  | { status: 'uploaded' }
+  | { status: 'failed'; message: string };
+
 type Props = {
   photos: File[];
   onChange: (photos: File[]) => void;
+  uploadStates?: ReadonlyMap<File, PhotoUploadState>;
+  onRetry?: (file: File) => void;
+  disabled?: boolean;
 };
 
 const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -47,7 +55,13 @@ function PhotoPreview({ file }: { file: File }) {
   );
 }
 
-export default function ItemPhotoPicker({ photos, onChange }: Props) {
+export default function ItemPhotoPicker({
+  photos,
+  onChange,
+  uploadStates,
+  onRetry,
+  disabled = false,
+}: Props) {
   const [error, setError] = useState('');
 
   return (
@@ -58,6 +72,7 @@ export default function ItemPhotoPicker({ photos, onChange }: Props) {
         id="photos"
         name="photos"
         type="file"
+        disabled={disabled}
         accept="image/jpeg,image/png,image/webp"
         multiple
         aria-required="true"
@@ -122,9 +137,17 @@ export default function ItemPhotoPicker({ photos, onChange }: Props) {
 
             <p className="break-all text-xs">{file.name}</p>
 
+            <PhotoUploadStatus
+              file={file}
+              state={uploadStates?.get(file)}
+              disabled={disabled}
+              onRetry={onRetry}
+            />
+
             <Button
               type="button"
               variant="outline"
+              disabled={disabled}
               aria-label={`Remove ${file.name}`}
               onClick={() => {
                 onChange(
@@ -142,6 +165,65 @@ export default function ItemPhotoPicker({ photos, onChange }: Props) {
       <p className="text-xs text-muted-foreground">
         {photos.length} photo(s) selected
       </p>
+    </div>
+  );
+}
+
+function PhotoUploadStatus({
+  file,
+  state,
+  disabled,
+  onRetry,
+}: {
+  file: File;
+  state: PhotoUploadState | undefined;
+  disabled: boolean;
+  onRetry: ((file: File) => void) | undefined;
+}) {
+  if (!state) return null;
+
+  if (state.status === 'uploading') {
+    return (
+      <div className="space-y-1">
+        <progress
+          max={100}
+          value={state.progress}
+          aria-label={`Upload progress for ${file.name}`}
+          className="h-2 w-full"
+        />
+        <p role="status" className="text-xs">
+          {state.progress === undefined
+            ? 'Uploading...'
+            : `Uploading ${state.progress}%`}
+        </p>
+      </div>
+    );
+  }
+
+  if (state.status === 'uploaded') {
+    return (
+      <p role="status" className="text-xs">
+        Uploaded (100%)
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <p role="alert" className="break-words text-xs text-red-600">
+        {file.name}: {state.message}
+      </p>
+      {onRetry && (
+        <Button
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          aria-label={`Retry upload for ${file.name}`}
+          onClick={() => onRetry(file)}
+        >
+          Retry
+        </Button>
+      )}
     </div>
   );
 }

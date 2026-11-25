@@ -1,8 +1,6 @@
+// Answers the api calls with the fake data from mockData.ts while we are in mock mode.
 import type { AxiosInstance, AxiosRequestConfig } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
-
-import { useAuthStore } from '@/store/authStore';
-import { USE_MOCKS } from './config';
 import {
   CLOUDINARY_UPLOAD_URL,
   MOCK_PASSWORD,
@@ -34,6 +32,7 @@ import {
   signIn,
   signOut,
   withdrawItem,
+  createClaim,
 } from './mockData';
 import type { User } from './mockData';
 
@@ -52,22 +51,20 @@ const failure = (message: string) => {
   return { success: false, message };
 };
 
+// runs the handler for the signed in user, and answers 401 if nobody is signed in
 const forSignedInUser = (
   handler: (user: User, config: AxiosRequestConfig) => [number, unknown],
 ) => {
   return (config: AxiosRequestConfig): [number, unknown] => {
-    const user = USE_MOCKS.auth
-      ? getSignedInUser()
-      : useAuthStore.getState().user;
-
+    const user = getSignedInUser();
     if (!user) {
       return [UNAUTHORIZED, failure('Not signed in')];
     }
-
     return handler(user, config);
   };
 };
 
+// runs a claim action, and answers 409 with the message when the rules do not allow it
 const answerAction = (run: () => unknown): [number, unknown] => {
   try {
     return [OK, success(run())];
@@ -77,6 +74,7 @@ const answerAction = (run: () => unknown): [number, unknown] => {
   }
 };
 
+// runs a message action, and answers with the status of the error (400, 403, 404 or 409)
 const answerMessage = (
   run: () => unknown,
   okStatus = OK,
@@ -87,46 +85,18 @@ const answerMessage = (
     if (error instanceof MockApiError) {
       return [error.status, failure(error.message)];
     }
-
     throw error;
   }
 };
 
 export const setupMock = (axiosInstance: AxiosInstance) => {
+  // the delay is so we can see the loading states
   const mock = new AxiosMockAdapter(axiosInstance, {
     delayResponse: MOCK_DELAY_MS,
   });
 
-  // Register real routes before the mock handlers and the final GET fallback.
-  if (!USE_MOCKS.auth) {
-    mock.onAny(/^\/users\/(register|logon|logoff|me)$/).passThrough();
-  }
+  // sign in and out
 
-  if (!USE_MOCKS.items) {
-    mock.onAny(/^\/items(?:\/[^/]+)?$/).passThrough();
-    mock.onAny(/^\/items\/[^/]+\/(withdraw|restore)$/).passThrough();
-    mock.onGet(/^\/categories$/).passThrough();
-    mock.onAny(/^\/addresses$/).passThrough();
-    mock.onPost(/^\/uploads\/signature$/).passThrough();
-    mock
-      .onPost(/^https:\/\/api\.cloudinary\.com\/v1_1\/[^/]+\/image\/upload$/)
-      .passThrough();
-  }
-
-  if (!USE_MOCKS.profile) {
-    mock.onGet(/^\/profile\/(items|claims|stats)$/).passThrough();
-  }
-
-  if (!USE_MOCKS.claims) {
-    mock.onAny(/^\/items\/[^/]+\/(claims|picked-up)$/).passThrough();
-    mock.onAny(/^\/claims\/[^/]+(?:\/(cancel|no-show))?$/).passThrough();
-  }
-
-  if (!USE_MOCKS.messages) {
-    mock.onAny(/^\/claims\/[^/]+\/messages(?:\/read)?$/).passThrough();
-  }
-
-  // Authentication
   mock.onPost('/users/register').reply((config) => {
     const body = JSON.parse(config.data);
 
@@ -162,7 +132,8 @@ export const setupMock = (axiosInstance: AxiosInstance) => {
     }),
   );
 
-  // Home page and item details
+  // home page and item details
+
   mock.onGet('/categories').reply(() => {
     return [OK, success(getCategories())];
   });
@@ -171,7 +142,8 @@ export const setupMock = (axiosInstance: AxiosInstance) => {
     return [OK, success(getItems(config.params))];
   });
 
-  // Post an item
+  // post an item
+
   mock.onGet('/addresses').reply(
     forSignedInUser((user) => {
       return [OK, success(getAddresses(user))];
@@ -191,6 +163,7 @@ export const setupMock = (axiosInstance: AxiosInstance) => {
     }),
   );
 
+  // the photo upload goes to cloudinary, not to our api
   mock.onPost(CLOUDINARY_UPLOAD_URL).reply(() => {
     return [OK, getFakeUploadResult()];
   });
@@ -202,7 +175,8 @@ export const setupMock = (axiosInstance: AxiosInstance) => {
     }),
   );
 
-  // Profile
+  // profile
+
   mock.onGet('/profile/items').reply(
     forSignedInUser((user) => {
       return [OK, success(getMyItems(user))];
@@ -221,7 +195,29 @@ export const setupMock = (axiosInstance: AxiosInstance) => {
     }),
   );
 
-  // Claims and item actions
+  // claims
+
+  mock.onPost(/\/items\/[^/]+\/claims$/).reply(
+    forSignedInUser((user, config) => {
+      const itemId = (config.url || '').split('/')[2] ?? '';
+
+      const body = JSON.parse(config.data || '{}') as {
+        message?: string;
+      };
+
+      try {
+        const claim = createClaim(user, itemId, body.message ?? '');
+
+        return [CREATED, success(claim)];
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Request failed';
+
+        return [CONFLICT, failure(message)];
+      }
+    }),
+  );
+
   mock.onGet(/\/items\/[^/]+\/claims$/).reply(
     forSignedInUser((_user, config) => {
       const itemId = (config.url || '').split('/')[2] ?? '';
@@ -272,7 +268,8 @@ export const setupMock = (axiosInstance: AxiosInstance) => {
     }),
   );
 
-  // Messages
+  // messages
+
   mock.onGet(/\/claims\/[^/]+\/messages$/).reply(
     forSignedInUser((user, config) => {
       const claimId = (config.url || '').split('/')[2] ?? '';
@@ -298,7 +295,8 @@ export const setupMock = (axiosInstance: AxiosInstance) => {
     }),
   );
 
-  // Keep this last so the more specific GET routes match first.
+  // one item
+
   mock.onGet().reply((config) => {
     const url = config.url || '';
 
@@ -310,7 +308,6 @@ export const setupMock = (axiosInstance: AxiosInstance) => {
     if (!item) {
       return [NOT_FOUND, failure('Item not found')];
     }
-
     return [OK, success(item)];
   });
 };

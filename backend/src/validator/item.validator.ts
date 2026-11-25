@@ -41,3 +41,25 @@ export const createItemSchema = z
       path: ['childAgeMaxMonths'],
     },
   );
+
+export const getItemSchema = z
+  .object({
+    q: z.string().trim().optional(),
+    category: z.string().trim().optional(),
+    condition: z.enum(['', 'new', 'like_new', 'good', 'used']).optional(),
+    ageMin: z.coerce.number().optional(),
+    ageMax: z.coerce.number().optional(),
+    city: z.string().trim().optional(),
+    page: z.coerce.number().int().gt(0).default(1),
+    limit: z.coerce.number().int().gt(0).lte(50).default(12),
+  })
+  .refine(
+    (data) =>
+      data.ageMin === undefined ||
+      data.ageMax === undefined ||
+      data.ageMin <= data.ageMax,
+    {
+      message: 'Minimum child age cannot exceed maximum child age',
+      path: ['ageMax'],
+    },
+  );

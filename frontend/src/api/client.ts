@@ -38,7 +38,7 @@ axios.defaults.headers.post['Content-Type'] = 'application/json';
 axios.defaults.withCredentials = true;
 
 // The switch: true = the mock answers the calls.
-if (Object.values(USE_MOCKS).some(Boolean)) {
+if (USE_MOCKS) {
   console.warn('API client is in mock mode!');
   setupMock(axios);
 }
@@ -207,8 +207,11 @@ export const getUploadSignature = async (): Promise<UploadSignature> => {
 
 export const uploadPhoto = async (
   file: File,
+  onProgress?: (percent: number | undefined) => void,
+  signal?: AbortSignal,
 ): Promise<{ url: string; publicId: string }> => {
   const signature = await getUploadSignature();
+  if (signal?.aborted) throw new ApiRequestError('Photo upload cancelled.');
 
   const form = new FormData();
   form.append('file', file);
@@ -236,7 +239,7 @@ export const uploadPhoto = async (
   };
   uploader.defaults.headers.post = {};
 
-  if (USE_MOCKS.items) {
+  if (USE_MOCKS) {
     setupMock(uploader);
   }
 
@@ -245,8 +248,19 @@ export const uploadPhoto = async (
       secure_url?: unknown;
       public_id?: unknown;
     }>(
-      `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`,
+      `https://api.cloudinary.com/v1_1/${encodeURIComponent(signature.cloudName)}/image/upload`,
       form,
+      {
+        ...(signal ? { signal } : {}),
+        onUploadProgress: ({ loaded, total }) => {
+          // Keep 100% for a confirmed successful Cloudinary response.
+          onProgress?.(
+            total
+              ? Math.min(99, Math.round((loaded / total) * 100))
+              : undefined,
+          );
+        },
+      },
     );
 
     const { secure_url: url, public_id: publicId } = response.data;
@@ -262,6 +276,7 @@ export const uploadPhoto = async (
       );
     }
 
+    onProgress?.(100);
     return { url, publicId };
   } catch (error) {
     if (error instanceof ApiRequestError) throw error;

@@ -8,7 +8,7 @@ const CHANGED_EVENT = 'messages-changed';
 
 export const messagesKey = (claimId: string) => ['messages', claimId] as const;
 
-const isMockMode = USE_MOCKS.messages;
+const isMockMode = USE_MOCKS;
 
 export const useMessageSocket = (claimId: string, enabled: boolean) => {
   const queryClient = useQueryClient();

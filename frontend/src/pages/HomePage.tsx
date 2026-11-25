@@ -9,7 +9,6 @@ import { HowItWorks } from '@/components/home/HowItWorks';
 import { ItemResults } from '@/components/home/ItemResults';
 
 const PAGE_SIZE = 12;
-const POPULAR_COUNT = 3;
 const ONE_YEAR = 12;
 const THREE_YEARS = 36;
 const FIVE_YEARS = 60;
@@ -151,12 +150,10 @@ export default function HomePage() {
     <>
       <HomeHero
         searchText={searchText}
-        popularCategories={categoryOptions.slice(0, POPULAR_COUNT)}
         onSearch={(text) => setParam('q', text)}
-        onPopularClick={(value) => setParam('category', value)}
       />
 
-      <section className="mx-auto max-w-6xl space-y-6 px-6 py-10 lg:py-14">
+      <section className="mx-auto max-w-6xl space-y-5 px-6 py-8 lg:py-10">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-2xl font-semibold tracking-tight lg:text-3xl">
             Just posted

@@ -1,7 +1,2 @@
-export const USE_MOCKS = {
-  auth: false,
-  items: true,
-  profile: true,
-  claims: true,
-  messages: true,
-} as const;
+export const USE_MOCKS: boolean =
+  import.meta.env['VITE_USE_MOCKED_API_CALLS'] === 'true';

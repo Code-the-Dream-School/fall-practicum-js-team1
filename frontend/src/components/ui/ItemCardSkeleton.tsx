@@ -1,19 +1,21 @@
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Same structure and row heights as ItemCard, so nothing jumps when data loads
 export const ItemCardSkeleton = () => {
   return (
-    <Card className="gap-0 py-0" aria-hidden="true">
+    <div
+      aria-hidden="true"
+      className="rounded-2xl bg-card p-2 ring-1 ring-border"
+    >
       <AspectRatio ratio={1}>
-        <Skeleton className="size-full rounded-none" />
+        <Skeleton className="size-full rounded-xl" />
       </AspectRatio>
-      <CardContent className="space-y-1 py-3">
+      <div className="mt-3 space-y-1.5 px-1.5 pb-1">
         <Skeleton className="h-5 w-3/4" />
-        <Skeleton className="h-5 w-20 rounded-full" />
-        <Skeleton className="h-5 w-1/2" />
-      </CardContent>
-    </Card>
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-4 w-1/3" />
+      </div>
+    </div>
   );
 };
