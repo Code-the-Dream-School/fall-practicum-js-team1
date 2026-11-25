@@ -512,7 +512,8 @@ export default function ItemDetailsPage() {
                     className="mt-0.5 size-4 shrink-0 text-primary"
                     aria-hidden="true"
                   />
-                  Your address stays private until the owner approves.
+                  The pickup address is shared once the owner approves your
+                  request.
                 </p>
               )}
             </div>

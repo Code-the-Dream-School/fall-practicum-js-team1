@@ -35,6 +35,7 @@ export type ItemUpdate = {
   condition: string;
   childAgeMinMonths: number | null;
   childAgeMaxMonths: number | null;
+  addressId?: string;
   photos: (
     { id: string } | { url: string; publicId: string; altText?: string }
   )[];

@@ -9,7 +9,6 @@ import {
   ImageOff,
   Pencil,
   Plus,
-  ShieldCheck,
   Sparkles,
   Star,
   Tag,
@@ -17,10 +16,13 @@ import {
 } from 'lucide-react';
 import {
   ApiRequestError,
+  createAddress,
+  getAddresses,
   getItem,
   updateItem,
   uploadPhoto,
 } from '@/api/client';
+import { AddressFields } from '@/components/item-form/AddressFields';
 import ItemDetailsSkeleton from '@/components/ItemDetailsSkeleton';
 import {
   FactList,
@@ -35,9 +37,11 @@ import {
   AgeSelect,
   CharCount,
   ErrorText,
+  labelClass,
 } from '@/components/item-form/ItemFormParts';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -47,10 +51,12 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useCategories } from '@/hooks/useCategories';
+import { addressFields, emptyAddress } from '@/lib/addressForm';
+import type { AddressDraft } from '@/lib/addressForm';
 import { conditionBadges, conditions, limits, tints } from '@/lib/itemForm';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
-import type { ItemShow, ItemUpdate } from '@/types';
+import type { Address, ItemShow, ItemUpdate } from '@/types';
 
 type Errors = Record<string, string>;
 
@@ -112,6 +118,26 @@ function EditItemForm({ item }: { item: ItemShow }) {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const { data: addresses = [] } = useQuery({
+    queryKey: ['addresses'],
+    queryFn: getAddresses,
+  });
+  const [addressId, setAddressId] = useState('');
+  const [showAddressEditor, setShowAddressEditor] = useState(false);
+  const [addressDraft, setAddressDraft] = useState<AddressDraft>(emptyAddress);
+  const [addressErrors, setAddressErrors] = useState<Errors>({});
+  const [addressSaveError, setAddressSaveError] = useState('');
+  const [savingAddress, setSavingAddress] = useState(false);
+  const chosenAddress = addresses.find((address) => address.id === addressId);
+  // an item only exposes its city, state and postal code, so match on those
+  const currentAddress = addresses.find(
+    (address) =>
+      address.city === item.city &&
+      address.state === item.state &&
+      address.postalCode === item.postalCode,
+  );
+  const addressChanged = addressId !== '' && addressId !== currentAddress?.id;
+
   const formRef = useRef<HTMLFormElement>(null);
   const submitLock = useRef(false);
   const uploadedPhotos = useRef(
@@ -149,7 +175,8 @@ function EditItemForm({ item }: { item: ItemShow }) {
     category !== item.category.key ||
     condition !== item.condition ||
     ageFrom !== ageToText(item.childAgeMinMonths) ||
-    ageTo !== ageToText(item.childAgeMaxMonths);
+    ageTo !== ageToText(item.childAgeMaxMonths) ||
+    addressChanged;
 
   const clearError = (key: string) => {
     setErrors((previous) => {
@@ -248,12 +275,59 @@ function EditItemForm({ item }: { item: ItemShow }) {
     return next;
   };
 
+  const saveAddress = async () => {
+    const next: Errors = Object.fromEntries(
+      addressFields
+        .filter((field) => field.required && !addressDraft[field.key].trim())
+        .map((field) => [
+          field.key,
+          `Enter your ${field.label.toLowerCase()}.`,
+        ]),
+    );
+
+    setAddressErrors(next);
+    setAddressSaveError('');
+
+    if (Object.keys(next).length > 0) return;
+
+    setSavingAddress(true);
+
+    try {
+      const saved = await createAddress({
+        nickname: addressDraft.nickname.trim(),
+        line1: addressDraft.line1.trim(),
+        line2: addressDraft.line2.trim(),
+        city: addressDraft.city.trim(),
+        state: addressDraft.state.trim(),
+        postalCode: addressDraft.postalCode.trim(),
+        country: 'US',
+      });
+
+      queryClient.setQueryData<Address[]>(['addresses'], (previous = []) => [
+        ...previous,
+        saved,
+      ]);
+      setAddressId(saved.id);
+      setAddressDraft(emptyAddress);
+      setShowAddressEditor(false);
+    } catch (error) {
+      setAddressSaveError(errorMessage(error));
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (submitLock.current) return;
 
     setMessage('');
+
+    if (showAddressEditor) {
+      setMessage('Save or cancel the new address before saving your changes.');
+      return;
+    }
 
     const next = collectErrors();
 
@@ -294,11 +368,14 @@ function EditItemForm({ item }: { item: ItemShow }) {
         condition,
         childAgeMinMonths: ageFrom !== 'any' ? Number(ageFrom) : null,
         childAgeMaxMonths: ageTo !== 'any' ? Number(ageTo) : null,
+        ...(addressChanged ? { addressId } : {}),
         photos: uploads,
       };
 
       await updateItem(item.id, body);
       await queryClient.invalidateQueries({ queryKey: ['item', item.id] });
+      void queryClient.invalidateQueries({ queryKey: ['items'] });
+      void queryClient.invalidateQueries({ queryKey: ['profile'] });
 
       toast.success('Your item was updated');
       navigate(`/items/${encodeURIComponent(item.id)}`);
@@ -680,14 +757,73 @@ function EditItemForm({ item }: { item: ItemShow }) {
               <CharCount value={description} max={limits.description} />
             </div>
 
-            <PickupAreaCard city={item.city} state={item.state}>
-              <p className="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
-                <ShieldCheck
-                  className="mt-0.5 size-4 shrink-0 text-primary"
-                  aria-hidden="true"
-                />
-                Pickup address and notes can&apos;t be edited here yet.
-              </p>
+            <PickupAreaCard
+              city={chosenAddress?.city ?? item.city}
+              state={chosenAddress?.state ?? item.state}
+            >
+              <div className="mt-4 space-y-3">
+                <Label htmlFor="address" className={labelClass}>
+                  Change pickup address
+                </Label>
+                <Select
+                  value={addressId || currentAddress?.id || ''}
+                  onValueChange={setAddressId}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger id="address" className="w-full">
+                    <SelectValue placeholder="Choose an address" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {addresses.map((address) => (
+                      <SelectItem key={address.id} value={address.id}>
+                        {address.nickname || 'Saved address'} — {address.city}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {showAddressEditor ? (
+                  <AddressFields
+                    draft={addressDraft}
+                    errors={addressErrors}
+                    saveError={addressSaveError}
+                    saving={savingAddress}
+                    busy={isSubmitting || savingAddress}
+                    onChange={(key, value) => {
+                      setAddressDraft((previous) => ({
+                        ...previous,
+                        [key]: value,
+                      }));
+                      setAddressErrors((previous) => {
+                        const next = { ...previous };
+                        delete next[key];
+                        return next;
+                      });
+                      setAddressSaveError('');
+                    }}
+                    onSave={() => void saveAddress()}
+                    onCancel={() => setShowAddressEditor(false)}
+                  />
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isSubmitting}
+                    onClick={() => {
+                      setAddressErrors({});
+                      setAddressSaveError('');
+                      setShowAddressEditor(true);
+                    }}
+                  >
+                    <Plus />
+                    Add new address
+                  </Button>
+                )}
+
+                <p className="text-sm text-muted-foreground">
+                  Pickup notes and times can&apos;t be edited here yet.
+                </p>
+              </div>
             </PickupAreaCard>
           </div>
         </fieldset>

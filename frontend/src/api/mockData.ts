@@ -326,6 +326,16 @@ export const updateItem = (user: User, itemId: string, body: ItemUpdate) => {
   item.childAgeMaxMonths = body.childAgeMaxMonths;
   item.photos = photos;
 
+  if (body.addressId) {
+    const address = addresses.find(
+      (a) => a.id === body.addressId && a.userId === user.id,
+    );
+    if (!address) {
+      throw new MockApiError('Address not found', 404);
+    }
+    item.addressId = address.id;
+  }
+
   return makeFullItem(item);
 };
 
