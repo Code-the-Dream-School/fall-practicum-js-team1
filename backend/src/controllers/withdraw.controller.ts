@@ -11,14 +11,10 @@ export const withdrawItem = async (
 ): Promise<void> => {
   const userId = req.user?.id;
   if (!userId) {
-    throw new ApiError('No user is authenticated', 401);
-  }
-  const requestId = req.params.id;
-  if (!requestId) {
-    throw new ApiError('Unknown item', 404); //whether an ID was provided
+    throw new ApiError('No user is authenticated', StatusCodes.UNAUTHORIZED);
   }
 
-  const itemId = itemIdSchema.safeParse(requestId);
+  const itemId = itemIdSchema.safeParse(req.params.id);
   if (!itemId.success) {
     throw new ApiError('Invalid item ID', StatusCodes.BAD_REQUEST);
   }
@@ -30,27 +26,40 @@ export const withdrawItem = async (
   });
 
   if (!item) {
-    throw new ApiError('Unknown item', 404); //whether ID actually exists in the database
+    throw new ApiError('Unknown item', StatusCodes.NOT_FOUND); //whether ID actually exists in the database
   }
 
   if (item.ownerId !== userId) {
-    throw new ApiError('You are not the owner of this item', 403);
+    throw new ApiError(
+      'You are not the owner of this item',
+      StatusCodes.FORBIDDEN,
+    );
   }
 
   if (item.status !== 'available' && item.status !== 'reserved') {
-    throw new ApiError('Item status is not available or reserved', 409);
+    throw new ApiError(
+      'Item status is not available or reserved',
+      StatusCodes.CONFLICT,
+    );
   }
 
-  const updatedItem = await prisma.$transaction(async (tx) => {
-    const item = await tx.item.update({
+  const result = await prisma.$transaction(async (tx) => {
+    const item = await tx.item.updateMany({
       where: {
         id: itemId.data,
+        status: { in: ['available', 'reserved'] },
       },
       data: {
         status: 'withdrawn',
         reservedAt: null,
       },
     });
+
+    if (item.count !== 1) {
+      throw new ApiError('Item status has changed', StatusCodes.CONFLICT);
+    }
+
+    const now = new Date();
 
     await tx.claim.updateMany({
       where: {
@@ -59,6 +68,7 @@ export const withdrawItem = async (
       },
       data: {
         status: 'declined',
+        decidedAt: now,
       },
     });
 
@@ -71,11 +81,12 @@ export const withdrawItem = async (
         status: 'cancelled',
       },
     });
-    return item;
+    return { id: itemId.data, status: 'withdrawn' as const };
   });
+
   res.status(StatusCodes.OK).json({
     success: true,
-    data: updatedItem,
+    data: result,
   });
 };
 
@@ -85,13 +96,10 @@ export const restoreItem = async (
 ): Promise<void> => {
   const userId = req.user?.id;
   if (!userId) {
-    throw new ApiError('No user is authenticated', 401);
+    throw new ApiError('No user is authenticated', StatusCodes.UNAUTHORIZED);
   }
-  const requestId = req.params.id;
-  if (!requestId) {
-    throw new ApiError('Unknown item', 404);
-  }
-  const itemId = itemIdSchema.safeParse(requestId);
+
+  const itemId = itemIdSchema.safeParse(req.params.id);
   if (!itemId.success) {
     throw new ApiError('Invalid item ID', StatusCodes.BAD_REQUEST);
   }
@@ -103,27 +111,35 @@ export const restoreItem = async (
   });
 
   if (!item) {
-    throw new ApiError('Unknown item', 404);
+    throw new ApiError('Unknown item', StatusCodes.NOT_FOUND);
   }
   if (item.ownerId !== userId) {
-    throw new ApiError('You are not the owner of this item', 403);
+    throw new ApiError(
+      'You are not the owner of this item',
+      StatusCodes.FORBIDDEN,
+    );
   }
 
   if (item.status !== 'withdrawn') {
     throw new ApiError('Item is not withdrawn', 409);
   }
 
-  const updatedItem = await prisma.item.update({
+  const updatedItem = await prisma.item.updateMany({
     where: {
       id: itemId.data,
+      status: 'withdrawn',
     },
     data: {
       status: 'available',
     },
   });
 
+  if (updatedItem.count !== 1) {
+    throw new ApiError('Item status has changed', 409);
+  }
+
   res.status(StatusCodes.OK).json({
     success: true,
-    data: updatedItem,
+    data: { id: itemId.data, status: 'available' },
   });
 };
