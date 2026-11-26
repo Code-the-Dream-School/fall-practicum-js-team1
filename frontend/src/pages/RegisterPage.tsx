@@ -1,9 +1,9 @@
 import { useState } from 'react';
+import type { FocusEvent } from 'react';
 import { Link } from 'react-router';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerUser } from '@/services/authApi';
-import { registerField } from '@/lib/authForm';
 import { useAuthStore } from '@/store/authStore';
 import {
   registerSchema,
@@ -21,18 +21,22 @@ export default function RegisterPage() {
   const setUser = useAuthStore((state) => state.setUser);
   const setCsrfToken = useAuthStore((state) => state.setCsrfToken);
 
-  const form = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    reValidateMode: 'onBlur',
-  });
-
   const {
+    register,
     handleSubmit,
     getValues,
     trigger,
     control,
     formState: { errors, isSubmitting, isSubmitted },
-  } = form;
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const validateIfFilled = (event: FocusEvent<HTMLInputElement>) => {
+    if (event.target.value) {
+      void trigger(event.target.name as keyof RegisterFormValues);
+    }
+  };
 
   const password = useWatch({ control, name: 'password' }) ?? '';
 
@@ -46,11 +50,11 @@ export default function RegisterPage() {
       setCsrfToken(result.csrfToken);
       setUser(result.user);
     } catch (error) {
-      setApiError(
-        error instanceof Error
-          ? error.message
-          : 'Something went wrong. Please try again.',
-      );
+      if (error instanceof Error) {
+        setApiError(error.message);
+      } else {
+        setApiError('Something went wrong. Please try again.');
+      }
     }
   };
 
@@ -82,7 +86,7 @@ export default function RegisterPage() {
           label="Full name"
           autoComplete="name"
           error={errors.name?.message}
-          registration={registerField(form, 'name')}
+          {...register('name', { onBlur: validateIfFilled })}
         />
 
         <AuthField
@@ -91,7 +95,7 @@ export default function RegisterPage() {
           type="email"
           autoComplete="email"
           error={errors.email?.message}
-          registration={registerField(form, 'email')}
+          {...register('email', { onBlur: validateIfFilled })}
         />
 
         {/* The checklist shows what is missing, so the password has no error text. */}
@@ -100,12 +104,13 @@ export default function RegisterPage() {
           label="Password"
           type="password"
           autoComplete="new-password"
-          error={undefined}
-          describedBy="password-requirements"
-          registration={registerField(form, 'password', () => {
-            if (getValues('confirmPassword')) {
-              void trigger('confirmPassword');
-            }
+          aria-describedby="password-requirements"
+          {...register('password', {
+            onChange: () => {
+              if (getValues('confirmPassword')) {
+                void trigger('confirmPassword');
+              }
+            },
           })}
         >
           <PasswordChecklist
@@ -121,7 +126,7 @@ export default function RegisterPage() {
           type="password"
           autoComplete="new-password"
           error={errors.confirmPassword?.message}
-          registration={registerField(form, 'confirmPassword')}
+          {...register('confirmPassword', { onBlur: validateIfFilled })}
         />
 
         <Button

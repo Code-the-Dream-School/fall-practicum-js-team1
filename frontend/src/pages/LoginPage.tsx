@@ -1,10 +1,10 @@
 import { useState } from 'react';
+import type { FocusEvent } from 'react';
 import { Link } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginFormValues } from '@/schemas/loginSchema';
 import { loginUser } from '@/services/authApi';
-import { registerField } from '@/lib/authForm';
 import { useAuthStore } from '@/store/authStore';
 import AuthField from '@/components/auth/AuthField';
 import AuthShell from '@/components/auth/AuthShell';
@@ -17,15 +17,20 @@ export default function LoginPage() {
   const setUser = useAuthStore((state) => state.setUser);
   const setCsrfToken = useAuthStore((state) => state.setCsrfToken);
 
-  const form = useForm<LoginFormValues>({
+  const {
+    register,
+    handleSubmit,
+    trigger,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    reValidateMode: 'onBlur',
   });
 
-  const {
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = form;
+  const validateIfFilled = (event: FocusEvent<HTMLInputElement>) => {
+    if (event.target.value) {
+      void trigger(event.target.name as keyof LoginFormValues);
+    }
+  };
 
   const onSubmit = async (data: LoginFormValues) => {
     setApiError(null);
@@ -37,11 +42,11 @@ export default function LoginPage() {
       setCsrfToken(result.csrfToken);
       setUser(result.user);
     } catch (error) {
-      setApiError(
-        error instanceof Error
-          ? error.message
-          : 'Something went wrong. Please try again.',
-      );
+      if (error instanceof Error) {
+        setApiError(error.message);
+      } else {
+        setApiError('Something went wrong. Please try again.');
+      }
     }
   };
 
@@ -74,7 +79,7 @@ export default function LoginPage() {
           type="email"
           autoComplete="email"
           error={errors.email?.message}
-          registration={registerField(form, 'email')}
+          {...register('email', { onBlur: validateIfFilled })}
         />
 
         <AuthField
@@ -83,7 +88,7 @@ export default function LoginPage() {
           type="password"
           autoComplete="current-password"
           error={errors.password?.message}
-          registration={registerField(form, 'password')}
+          {...register('password')}
         />
 
         <Button
