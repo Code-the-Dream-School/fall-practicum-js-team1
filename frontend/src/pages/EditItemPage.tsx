@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -51,7 +51,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useCategories } from '@/hooks/useCategories';
-import { addressFields, emptyAddress } from '@/lib/addressForm';
+import { emptyAddress } from '@/lib/addressForm';
 import type { AddressDraft } from '@/lib/addressForm';
 import { conditionBadges, conditions, limits, tints } from '@/lib/itemForm';
 import { cn } from '@/lib/utils';
@@ -71,8 +71,6 @@ type PhotoEntry = {
 const NOT_FOUND = 404;
 const MAX_RETRIES = 2;
 const MAX_FILE_MB = 5;
-const BYTES_PER_KB = 1024;
-const BYTES_PER_MB = BYTES_PER_KB * BYTES_PER_KB;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const pillSelectClass =
@@ -139,22 +137,9 @@ function EditItemForm({ item }: { item: ItemShow }) {
   const addressChanged = addressId !== '' && addressId !== currentAddress?.id;
 
   const formRef = useRef<HTMLFormElement>(null);
-  const submitLock = useRef(false);
+  // Photos that already uploaded, so a retry does not upload them again.
   const uploadedPhotos = useRef(
-    new WeakMap<File, { url: string; publicId: string }>(),
-  );
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const latestPhotos = useRef(photos);
-
-  latestPhotos.current = photos;
-
-  useEffect(
-    () => () => {
-      latestPhotos.current.forEach((photo) => {
-        if (photo.file) URL.revokeObjectURL(photo.url);
-      });
-    },
-    [],
+    new Map<File, { url: string; publicId: string }>(),
   );
 
   const mainPhoto =
@@ -179,23 +164,17 @@ function EditItemForm({ item }: { item: ItemShow }) {
     addressChanged;
 
   const clearError = (key: string) => {
-    setErrors((previous) => {
-      if (!(key in previous)) return previous;
-
-      const next = { ...previous };
-      delete next[key];
-      return next;
-    });
+    setErrors({ ...errors, [key]: '' });
   };
 
   const addFiles = (selected: File[]) => {
     if (selected.length === 0) return;
 
     if (photos.length + selected.length > limits.photos) {
-      setErrors((previous) => ({
-        ...previous,
+      setErrors({
+        ...errors,
         photos: `You can have up to ${limits.photos} photos`,
-      }));
+      });
       return;
     }
 
@@ -203,16 +182,22 @@ function EditItemForm({ item }: { item: ItemShow }) {
       (file) => !ALLOWED_TYPES.includes(file.type),
     );
     const oversized = selected.find(
-      (file) => file.size > MAX_FILE_MB * BYTES_PER_MB,
+      (file) => file.size > MAX_FILE_MB * 1024 * 1024,
     );
 
-    if (wrongType || oversized) {
-      setErrors((previous) => ({
-        ...previous,
-        photos: wrongType
-          ? `${wrongType.name} is not a jpg, png or webp image`
-          : `${oversized?.name} is larger than ${MAX_FILE_MB} MB`,
-      }));
+    if (wrongType) {
+      setErrors({
+        ...errors,
+        photos: `${wrongType.name} is not a jpg, png or webp image`,
+      });
+      return;
+    }
+
+    if (oversized) {
+      setErrors({
+        ...errors,
+        photos: `${oversized.name} is larger than ${MAX_FILE_MB} MB`,
+      });
       return;
     }
 
@@ -276,19 +261,25 @@ function EditItemForm({ item }: { item: ItemShow }) {
   };
 
   const saveAddress = async () => {
-    const next: Errors = Object.fromEntries(
-      addressFields
-        .filter((field) => field.required && !addressDraft[field.key].trim())
-        .map((field) => [
-          field.key,
-          `Enter your ${field.label.toLowerCase()}.`,
-        ]),
-    );
+    const newErrors: Errors = {};
 
-    setAddressErrors(next);
+    if (!addressDraft.line1.trim()) {
+      newErrors['line1'] = 'Enter your street address.';
+    }
+    if (!addressDraft.city.trim()) {
+      newErrors['city'] = 'Enter your city.';
+    }
+    if (!addressDraft.state.trim()) {
+      newErrors['state'] = 'Enter your state.';
+    }
+    if (!addressDraft.postalCode.trim()) {
+      newErrors['postalCode'] = 'Enter your postal code.';
+    }
+
+    setAddressErrors(newErrors);
     setAddressSaveError('');
 
-    if (Object.keys(next).length > 0) return;
+    if (Object.keys(newErrors).length > 0) return;
 
     setSavingAddress(true);
 
@@ -303,10 +294,7 @@ function EditItemForm({ item }: { item: ItemShow }) {
         country: 'US',
       });
 
-      queryClient.setQueryData<Address[]>(['addresses'], (previous = []) => [
-        ...previous,
-        saved,
-      ]);
+      queryClient.setQueryData<Address[]>(['addresses'], [...addresses, saved]);
       setAddressId(saved.id);
       setAddressDraft(emptyAddress);
       setShowAddressEditor(false);
@@ -320,7 +308,7 @@ function EditItemForm({ item }: { item: ItemShow }) {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (submitLock.current) return;
+    if (isSubmitting) return;
 
     setMessage('');
 
@@ -340,7 +328,6 @@ function EditItemForm({ item }: { item: ItemShow }) {
       return;
     }
 
-    submitLock.current = true;
     setIsSubmitting(true);
 
     try {
@@ -348,11 +335,12 @@ function EditItemForm({ item }: { item: ItemShow }) {
         photos.map(async (photo, index) => {
           if (!photo.file) return { id: photo.id! };
 
-          const uploaded =
-            uploadedPhotos.current.get(photo.file) ??
-            (await uploadPhoto(photo.file));
+          let uploaded = uploadedPhotos.current.get(photo.file);
 
-          uploadedPhotos.current.set(photo.file, uploaded);
+          if (!uploaded) {
+            uploaded = await uploadPhoto(photo.file);
+            uploadedPhotos.current.set(photo.file, uploaded);
+          }
 
           return {
             ...uploaded,
@@ -368,9 +356,12 @@ function EditItemForm({ item }: { item: ItemShow }) {
         condition,
         childAgeMinMonths: ageFrom !== 'any' ? Number(ageFrom) : null,
         childAgeMaxMonths: ageTo !== 'any' ? Number(ageTo) : null,
-        ...(addressChanged ? { addressId } : {}),
         photos: uploads,
       };
+
+      if (addressChanged) {
+        body.addressId = addressId;
+      }
 
       await updateItem(item.id, body);
       await queryClient.invalidateQueries({ queryKey: ['item', item.id] });
@@ -382,21 +373,9 @@ function EditItemForm({ item }: { item: ItemShow }) {
     } catch (error) {
       setMessage(`${errorMessage(error)} Your changes have been kept.`);
     } finally {
-      submitLock.current = false;
       setIsSubmitting(false);
     }
   };
-
-  const saveButton = (className: string) => (
-    <Button
-      type="submit"
-      className={className}
-      disabled={isSubmitting || categoriesLoading || !hasChanges}
-      aria-busy={isSubmitting}
-    >
-      {isSubmitting ? 'Saving…' : 'Save changes'}
-    </Button>
-  );
 
   return (
     <main className="pb-10">
@@ -532,7 +511,6 @@ function EditItemForm({ item }: { item: ItemShow }) {
                   {photos.length < limits.photos && (
                     <div className="relative">
                       <input
-                        ref={fileInputRef}
                         id="photos"
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
@@ -541,11 +519,8 @@ function EditItemForm({ item }: { item: ItemShow }) {
                         aria-label="Add photos"
                         onChange={(event) => {
                           const selected = Array.from(event.target.files ?? []);
-
-                          if (fileInputRef.current) {
-                            fileInputRef.current.value = '';
-                          }
-
+                          // Clear the input so the same file can be chosen again.
+                          event.target.value = '';
                           addFiles(selected);
                         }}
                       />
@@ -711,7 +686,14 @@ function EditItemForm({ item }: { item: ItemShow }) {
                   >
                     {hasChanges ? 'You have unsaved changes' : 'No changes yet'}
                   </p>
-                  {saveButton('h-12 w-full rounded-full text-base')}
+                  <Button
+                    type="submit"
+                    className="h-12 w-full rounded-full text-base"
+                    disabled={isSubmitting || categoriesLoading || !hasChanges}
+                    aria-busy={isSubmitting}
+                  >
+                    {isSubmitting ? 'Saving…' : 'Save changes'}
+                  </Button>
                   <Button
                     asChild
                     variant="ghost"
@@ -794,11 +776,7 @@ function EditItemForm({ item }: { item: ItemShow }) {
                         ...previous,
                         [key]: value,
                       }));
-                      setAddressErrors((previous) => {
-                        const next = { ...previous };
-                        delete next[key];
-                        return next;
-                      });
+                      setAddressErrors({ ...addressErrors, [key]: '' });
                       setAddressSaveError('');
                     }}
                     onSave={() => void saveAddress()}
@@ -837,7 +815,14 @@ function EditItemForm({ item }: { item: ItemShow }) {
             >
               <Link to={`/items/${item.id}`}>Cancel</Link>
             </Button>
-            {saveButton('h-12 flex-1 rounded-full text-base')}
+            <Button
+              type="submit"
+              className="h-12 flex-1 rounded-full text-base"
+              disabled={isSubmitting || categoriesLoading || !hasChanges}
+              aria-busy={isSubmitting}
+            >
+              {isSubmitting ? 'Saving…' : 'Save changes'}
+            </Button>
           </div>
         </div>
       </form>

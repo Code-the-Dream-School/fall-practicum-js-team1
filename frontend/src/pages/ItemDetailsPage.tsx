@@ -14,20 +14,16 @@ import {
   Sparkles,
   Tag,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
-
 import {
   ApiRequestError,
   createClaim,
   getItem,
   getMyClaims,
 } from '@/api/client';
-import type { Claim, CreatedClaim } from '@/types';
+import type { Claim, CreatedClaim, ItemShow } from '@/types';
 import ItemDetailsSkeleton from '@/components/ItemDetailsSkeleton';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
-import type { ItemCondition } from '@/components/ui/ConditionChip';
-import type { ItemStatus } from '@/components/ui/StatusChip';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -51,63 +47,27 @@ import {
 import { formatAgeRange } from '@/lib/formatAgeRange';
 import { useAuthStore } from '@/store/authStore';
 
-type ItemPhoto = {
-  id: string;
-  url: string;
-  altText: string | null;
-  position: number;
-};
-
-type ItemDetails = {
-  id: string;
-  title: string;
-  description: string;
-  category: {
-    key: string;
-    name: string;
-  };
-  owner: {
-    id: string;
-    name: string;
-  };
-  condition: ItemCondition;
-  childAgeMinMonths: number | null;
-  childAgeMaxMonths: number | null;
-  city: string;
-  state: string;
-  status: ItemStatus;
-  photos: ItemPhoto[];
-  createdAt: string;
-};
-
 const MAX_MESSAGE_LENGTH = 500;
 
-const statusPills: Partial<
-  Record<ItemStatus, { label: string; icon: LucideIcon; badge: string }>
-> = {
-  reserved: {
-    label: 'Reserved',
-    icon: Clock,
-    badge: 'bg-status-reserved text-status-reserved-foreground',
-  },
-  picked_up: {
-    label: 'Picked up',
-    icon: PackageCheck,
-    badge: 'bg-status-picked-up text-status-picked-up-foreground',
-  },
-  withdrawn: {
-    label: 'Withdrawn',
-    icon: Ban,
-    badge: 'bg-status-inactive text-status-inactive-foreground',
-  },
-};
+function StatusPill({ status }: { status: string }) {
+  let label = '';
+  let badge = '';
+  let icon = <Clock className="size-4" />;
 
-function StatusPill({ status }: { status: ItemStatus }) {
-  const entry = statusPills[status];
-
-  if (!entry) return null;
-
-  const Icon = entry.icon;
+  if (status === 'reserved') {
+    label = 'Reserved';
+    badge = 'bg-status-reserved text-status-reserved-foreground';
+  } else if (status === 'picked_up') {
+    label = 'Picked up';
+    badge = 'bg-status-picked-up text-status-picked-up-foreground';
+    icon = <PackageCheck className="size-4" />;
+  } else if (status === 'withdrawn') {
+    label = 'Withdrawn';
+    badge = 'bg-status-inactive text-status-inactive-foreground';
+    icon = <Ban className="size-4" />;
+  } else {
+    return null;
+  }
 
   return (
     <p className="inline-flex items-center gap-2 rounded-full bg-card py-1 pr-4 pl-1 text-sm font-semibold shadow-sm ring-1 ring-border">
@@ -115,12 +75,12 @@ function StatusPill({ status }: { status: ItemStatus }) {
         aria-hidden="true"
         className={cn(
           'flex size-7 items-center justify-center rounded-full',
-          entry.badge,
+          badge,
         )}
       >
-        <Icon className="size-4" />
+        {icon}
       </span>
-      {entry.label}
+      {label}
     </p>
   );
 }
@@ -145,9 +105,9 @@ export default function ItemDetailsPage() {
     isError,
     error,
     refetch,
-  } = useQuery<ItemDetails>({
+  } = useQuery<ItemShow>({
     queryKey: ['item', id],
-    queryFn: async () => (await getItem(id!)) as ItemDetails,
+    queryFn: () => getItem(id!),
     enabled: Boolean(id),
     retry: (failureCount, queryError) => {
       if (queryError instanceof ApiRequestError && queryError.status === 404) {
@@ -299,73 +259,93 @@ export default function ItemDetailsPage() {
   const selectedPhoto =
     photos.find((photo) => photo.id === selectedPhotoId) ?? photos[0];
 
-  const isOwner = currentUserId != null && currentUserId === item.owner.id;
+  const isOwner = currentUserId !== null && currentUserId === item.owner.id;
 
   const categoryUrl = `/?category=${encodeURIComponent(item.category.key)}`;
 
-  const requestable =
-    !isOwner && ['available', 'reserved'].includes(item.status);
-
   const canRequest = item.status === 'available' || item.status === 'reserved';
-
-  const showExistingClaim = Boolean(currentClaim) && !isOwner;
+  const requestable = !isOwner && canRequest;
 
   const requestButtonText =
     item.status === 'reserved' ? 'Join the waiting list' : 'Request this item';
 
   const pillClass = 'h-14 w-full rounded-full text-base';
 
-  const action = isOwner ? (
-    <Button asChild className={pillClass}>
-      <Link to={`/items/${item.id}/edit`}>
-        <Pencil className="size-4" aria-hidden="true" />
-        Edit item
-      </Link>
-    </Button>
-  ) : !canRequest ? (
-    <p className="rounded-full bg-muted px-4 py-3.5 text-center font-medium text-muted-foreground">
-      This item is no longer available
-    </p>
-  ) : showExistingClaim ? (
-    <div className="rounded-3xl bg-muted px-4 py-3 text-center">
-      <p className="font-medium">You requested this item</p>
-      <p className="mt-1 text-sm text-muted-foreground capitalize">
-        Status: {currentClaim?.status.replaceAll('_', ' ')}
-      </p>
-    </div>
-  ) : currentUserId && isClaimsPending ? (
-    <Button type="button" className={pillClass} disabled>
-      Checking your requests...
-    </Button>
-  ) : currentUserId && isClaimsError ? (
-    <div className="space-y-2">
-      <p role="alert" className="text-center text-sm text-destructive">
-        Unable to check your existing requests.
-      </p>
+  const getAction = () => {
+    if (isOwner) {
+      return (
+        <Button asChild className={pillClass}>
+          <Link to={`/items/${item.id}/edit`}>
+            <Pencil className="size-4" aria-hidden="true" />
+            Edit item
+          </Link>
+        </Button>
+      );
+    }
+
+    if (!requestable) {
+      return (
+        <p className="rounded-full bg-muted px-4 py-3.5 text-center font-medium text-muted-foreground">
+          This item is no longer available
+        </p>
+      );
+    }
+
+    if (currentClaim) {
+      return (
+        <div className="rounded-3xl bg-muted px-4 py-3 text-center">
+          <p className="font-medium">You requested this item</p>
+          <p className="mt-1 text-sm text-muted-foreground capitalize">
+            Status: {currentClaim.status.replaceAll('_', ' ')}
+          </p>
+        </div>
+      );
+    }
+
+    if (currentUserId && isClaimsPending) {
+      return (
+        <Button type="button" className={pillClass} disabled>
+          Checking your requests...
+        </Button>
+      );
+    }
+
+    if (currentUserId && isClaimsError) {
+      return (
+        <div className="space-y-2">
+          <p role="alert" className="text-center text-sm text-destructive">
+            Unable to check your existing requests.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 w-full rounded-full"
+            onClick={() => {
+              void refetchClaims();
+            }}
+          >
+            Try again
+          </Button>
+        </div>
+      );
+    }
+
+    return (
       <Button
         type="button"
-        variant="outline"
-        className="h-12 w-full rounded-full"
-        onClick={() => {
-          void refetchClaims();
-        }}
+        className={pillClass}
+        onClick={handleRequestClick}
+        disabled={isCheckingSession || claimMutation.isPending}
       >
-        Try again
+        {item.status === 'available' && (
+          <HandHeart className="size-5" aria-hidden="true" />
+        )}
+        {requestButtonText}
       </Button>
-    </div>
-  ) : (
-    <Button
-      type="button"
-      className={pillClass}
-      onClick={handleRequestClick}
-      disabled={isCheckingSession || claimMutation.isPending}
-    >
-      {item.status === 'available' && (
-        <HandHeart className="size-5" aria-hidden="true" />
-      )}
-      {requestButtonText}
-    </Button>
-  );
+    );
+  };
+
+  const action = getAction();
 
   const selectedIndex = photos.findIndex(
     (photo) => photo.id === selectedPhoto?.id,

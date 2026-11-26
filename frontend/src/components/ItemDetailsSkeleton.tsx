@@ -1,12 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
-const placeholderCount = 3;
-
-const placeholders = Array.from(
-  { length: placeholderCount },
-  (_, index) => index,
-);
-
 export default function ItemDetailsSkeleton() {
   return (
     <main className="pb-10" aria-hidden="true">
@@ -18,9 +11,9 @@ export default function ItemDetailsSkeleton() {
             <div>
               <Skeleton className="aspect-[4/3] w-full rounded-3xl" />
               <div className="mt-3 flex gap-2.5 p-1">
-                {placeholders.map((index) => (
-                  <Skeleton key={index} className="size-14 rounded-xl" />
-                ))}
+                <Skeleton className="size-14 rounded-xl" />
+                <Skeleton className="size-14 rounded-xl" />
+                <Skeleton className="size-14 rounded-xl" />
               </div>
             </div>
 

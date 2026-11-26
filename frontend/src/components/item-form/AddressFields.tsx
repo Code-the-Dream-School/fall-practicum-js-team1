@@ -10,9 +10,53 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { addressAutoComplete, addressFields } from '@/lib/addressForm';
 import type { AddressDraft } from '@/lib/addressForm';
 import { usStates } from '@/lib/usStates';
+
+type Props = {
+  draft: AddressDraft;
+  errors: Record<string, string>;
+  saveError: string;
+  saving: boolean;
+  busy: boolean;
+  onChange: (key: keyof AddressDraft, value: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+};
+
+const addressFields: {
+  key: keyof AddressDraft;
+  label: string;
+  required: boolean;
+  autoComplete: string;
+}[] = [
+  { key: 'nickname', label: 'Nickname', required: false, autoComplete: 'off' },
+  {
+    key: 'line1',
+    label: 'Street address',
+    required: true,
+    autoComplete: 'address-line1',
+  },
+  {
+    key: 'line2',
+    label: 'Apartment or unit',
+    required: false,
+    autoComplete: 'address-line2',
+  },
+  {
+    key: 'city',
+    label: 'City',
+    required: true,
+    autoComplete: 'address-level2',
+  },
+  { key: 'state', label: 'State', required: true, autoComplete: 'off' },
+  {
+    key: 'postalCode',
+    label: 'Postal code',
+    required: true,
+    autoComplete: 'postal-code',
+  },
+];
 
 export function AddressFields({
   draft,
@@ -23,16 +67,7 @@ export function AddressFields({
   onChange,
   onSave,
   onCancel,
-}: {
-  draft: AddressDraft;
-  errors: Record<string, string>;
-  saveError: string;
-  saving: boolean;
-  busy: boolean;
-  onChange: (key: keyof AddressDraft, value: string) => void;
-  onSave: () => void;
-  onCancel: () => void;
-}) {
+}: Props) {
   return (
     <fieldset className="min-w-0 space-y-4 rounded-xl border p-4">
       <legend className="px-1 text-sm font-medium">New pickup address</legend>
@@ -69,7 +104,7 @@ export function AddressFields({
               id={`new-${field.key}`}
               className={fieldClass}
               value={draft[field.key]}
-              autoComplete={addressAutoComplete[field.key] ?? 'off'}
+              autoComplete={field.autoComplete}
               required={field.required}
               onChange={(event) => onChange(field.key, event.target.value)}
               aria-invalid={Boolean(errors[field.key])}

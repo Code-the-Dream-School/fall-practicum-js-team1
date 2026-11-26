@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { ages, conditions, tints } from '@/lib/itemForm';
+import { ages, conditions } from '@/lib/itemForm';
 
 const COUNTER_SHOWN_FROM = 0.8;
 
@@ -61,7 +61,7 @@ export function FormSection({
   title: string;
   hint?: string;
   icon: LucideIcon;
-  tint: (typeof tints)[keyof typeof tints];
+  tint: { solid: string; soft: string };
   children: ReactNode;
 }) {
   return (
@@ -182,28 +182,6 @@ export function AgeSelect({
   );
 }
 
-function AgeField({
-  label,
-  error,
-  ...props
-}: Omit<Parameters<typeof AgeSelect>[0], 'label' | 'className'> & {
-  label: string;
-}) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={props.id} className="text-sm">
-        {label}
-      </Label>
-      <AgeSelect
-        {...props}
-        error={error}
-        className={cn(fieldClass, 'w-full')}
-      />
-      {error && <ErrorText id="age-error" message={error} />}
-    </div>
-  );
-}
-
 export function AgeRangeFields({
   ageFrom,
   ageTo,
@@ -228,21 +206,32 @@ export function AgeRangeFields({
         Helps families find gear that fits their little one.
       </FieldHint>
       <div className="grid grid-cols-2 gap-4">
-        <AgeField
-          id="ageFrom"
-          label="From"
-          value={ageFrom}
-          onChange={onFromChange}
-          disabled={disabled}
-        />
-        <AgeField
-          id="ageTo"
-          label="To"
-          value={ageTo}
-          onChange={onToChange}
-          disabled={disabled}
-          error={error}
-        />
+        <div className="space-y-2">
+          <Label htmlFor="ageFrom" className="text-sm">
+            From
+          </Label>
+          <AgeSelect
+            id="ageFrom"
+            value={ageFrom}
+            onChange={onFromChange}
+            disabled={disabled}
+            className={cn(fieldClass, 'w-full')}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="ageTo" className="text-sm">
+            To
+          </Label>
+          <AgeSelect
+            id="ageTo"
+            value={ageTo}
+            onChange={onToChange}
+            disabled={disabled}
+            error={error}
+            className={cn(fieldClass, 'w-full')}
+          />
+          {error && <ErrorText id="age-error" message={error} />}
+        </div>
       </div>
     </fieldset>
   );

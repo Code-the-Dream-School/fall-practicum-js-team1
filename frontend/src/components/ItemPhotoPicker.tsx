@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { DragEvent } from 'react';
 import { ImagePlus, Star, X } from 'lucide-react';
 import { Button } from './ui/button';
@@ -20,8 +20,7 @@ type Props = {
 const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
 const maxSizeMb = 5;
-const bytesPerMb = 1024 * 1024;
-const maxSize = maxSizeMb * bytesPerMb;
+const maxSize = maxSizeMb * 1024 * 1024;
 
 const maxPhotos = 6;
 
@@ -69,7 +68,6 @@ export default function ItemPhotoPicker({
 }: Props) {
   const [error, setError] = useState('');
   const [dragging, setDragging] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const full = photos.length >= maxPhotos;
 
@@ -121,7 +119,6 @@ export default function ItemPhotoPicker({
   return (
     <div className="space-y-3">
       <input
-        ref={inputRef}
         id="photos"
         name="photos"
         type="file"
@@ -134,11 +131,8 @@ export default function ItemPhotoPicker({
         className="peer sr-only"
         onChange={(event) => {
           const selected = Array.from(event.target.files ?? []);
-
-          if (inputRef.current) {
-            inputRef.current.value = '';
-          }
-
+          // Clear the input so choosing the same file again still fires onChange.
+          event.target.value = '';
           addFiles(selected);
         }}
       />

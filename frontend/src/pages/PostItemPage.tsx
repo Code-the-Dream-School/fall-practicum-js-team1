@@ -29,7 +29,7 @@ import {
   textareaClass,
 } from '@/components/item-form/ItemFormParts';
 import { AddressFields } from '@/components/item-form/AddressFields';
-import { addressFields, emptyAddress } from '@/lib/addressForm';
+import { emptyAddress } from '@/lib/addressForm';
 import type { AddressDraft } from '@/lib/addressForm';
 import { ItemCard } from '@/components/ui/ItemCard';
 import { Button } from '../components/ui/button';
@@ -131,12 +131,6 @@ function StepIndicator({
 
 const stepLabels = ['Photos', 'Details', 'Pickup'];
 
-const stepFields = [
-  ['photos'],
-  ['title', 'category', 'condition', 'description', 'ageTo'],
-  ['address', 'instructions', 'availability'],
-];
-
 export default function PostItemPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -160,11 +154,11 @@ export default function PostItemPage() {
   const [addressId, setAddressId] = useState('');
   const [addressesLoading, setAddressesLoading] = useState(true);
   const [addressLoadError, setAddressLoadError] = useState('');
+  // Changing this number runs the address-loading effect again (Retry button).
+  const [addressLoadAttempt, setAddressLoadAttempt] = useState(0);
 
   const [showAddressEditor, setShowAddressEditor] = useState(false);
-  const [addressDraft, setAddressDraft] = useState<AddressDraft>({
-    ...emptyAddress,
-  });
+  const [addressDraft, setAddressDraft] = useState<AddressDraft>(emptyAddress);
   const [addressErrors, setAddressErrors] = useState<Errors>({});
   const [addressSaveError, setAddressSaveError] = useState('');
   const [savingAddress, setSavingAddress] = useState(false);
@@ -175,40 +169,128 @@ export default function PostItemPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
   const [uploadStates, setUploadStates] = useState<Map<File, PhotoUploadState>>(
-    () => new Map(),
+    new Map(),
   );
+  const [coverUrl, setCoverUrl] = useState('');
 
   const formRef = useRef<HTMLFormElement>(null);
   const messageRef = useRef<HTMLParagraphElement>(null);
-  const submitLock = useRef(false);
+  // Field to focus after the step changes (the field is not on screen yet).
   const pendingFocus = useRef('');
-  const addressSaveLock = useRef(false);
-  const retryLock = useRef(false);
   const uploadController = useRef<AbortController | null>(null);
+  // Photos that already uploaded, so a retry does not upload them again.
   const uploadedPhotos = useRef(
-    new WeakMap<File, { url: string; publicId: string }>(),
+    new Map<File, { url: string; publicId: string }>(),
   );
 
   const busy = isSubmitting || savingAddress || isRetrying;
 
+  const ageError =
+    ageFrom !== 'any' && ageTo !== 'any' && Number(ageTo) < Number(ageFrom)
+      ? 'The end age must be the same as or older than the start age'
+      : '';
+
+  const selectedAddress = addresses.find((address) => address.id === addressId);
+
+  const previewItem = {
+    id: 'preview',
+    title: title.trim() || 'Your item title',
+    condition:
+      conditions.find((item) => item.value === condition)?.value ?? 'good',
+    status: 'available' as const,
+    childAgeMinMonths: ageFrom !== 'any' ? Number(ageFrom) : null,
+    childAgeMaxMonths: ageTo !== 'any' ? Number(ageTo) : null,
+    city: selectedAddress?.city ?? 'Your city',
+    coverPhoto: coverUrl
+      ? { url: coverUrl, altText: 'Cover photo preview' }
+      : null,
+  };
+
+  const focusField = (id: string) => {
+    formRef.current?.querySelector<HTMLElement>(`#${id}`)?.focus();
+  };
+
+  const clearError = (key: string) => {
+    setErrors({ ...errors, [key]: '' });
+  };
+
+  // Cancel any upload that is still running when the page closes.
   useEffect(() => {
     return () => uploadController.current?.abort();
   }, []);
 
-  function updateUpload(file: File, state: PhotoUploadState) {
-    setUploadStates((previous) => {
-      const next = new Map(previous);
-      next.set(file, state);
-      return next;
-    });
-  }
+  // Make a preview image URL for the first photo.
+  const coverFile = photos[0];
 
-  async function uploadFile(file: File, signal: AbortSignal) {
-    const cached = uploadedPhotos.current.get(file);
+  useEffect(() => {
+    if (!coverFile) {
+      setCoverUrl('');
+      return;
+    }
 
-    if (cached) {
+    const url = URL.createObjectURL(coverFile);
+    setCoverUrl(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [coverFile]);
+
+  useEffect(() => {
+    const loadAddresses = async () => {
+      try {
+        const result = await getAddresses();
+        const defaultAddress = result.find((address) => address.isDefault);
+
+        setAddresses(result);
+        // Keep the current choice if it still exists, otherwise use the default.
+        setAddressId((current) => {
+          if (result.some((address) => address.id === current)) {
+            return current;
+          }
+          return defaultAddress?.id ?? '';
+        });
+      } catch (error) {
+        setAddressLoadError(errorMessage(error));
+      } finally {
+        setAddressesLoading(false);
+      }
+    };
+
+    void loadAddresses();
+  }, [addressLoadAttempt]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+
+    if (pendingFocus.current) {
+      const key = pendingFocus.current;
+      pendingFocus.current = '';
+      requestAnimationFrame(() => focusField(key));
+    }
+  }, [step]);
+
+  useEffect(() => {
+    if (message) {
+      messageRef.current?.focus();
+    }
+  }, [message]);
+
+  const retryAddresses = () => {
+    setAddressesLoading(true);
+    setAddressLoadError('');
+    setAddressLoadAttempt(addressLoadAttempt + 1);
+  };
+
+  const updateUpload = (file: File, state: PhotoUploadState) => {
+    setUploadStates((previous) => new Map(previous).set(file, state));
+  };
+
+  // Uploads one photo. Returns undefined when it fails or is cancelled.
+  const uploadFile = async (file: File, signal: AbortSignal) => {
+    const alreadyUploaded = uploadedPhotos.current.get(file);
+
+    if (alreadyUploaded) {
       updateUpload(file, { status: 'uploaded' });
-      return cached;
+      return alreadyUploaded;
     }
 
     updateUpload(file, { status: 'uploading' });
@@ -236,180 +318,60 @@ export default function PostItemPage() {
 
       return undefined;
     }
-  }
+  };
 
-  async function retryPhoto(file: File) {
-    if (
-      submitLock.current ||
-      addressSaveLock.current ||
-      retryLock.current ||
-      !photos.includes(file)
-    ) {
-      return;
-    }
+  const retryPhoto = async (file: File) => {
+    if (busy || !photos.includes(file)) return;
 
-    retryLock.current = true;
     setIsRetrying(true);
     setMessage('');
 
     const controller = new AbortController();
     uploadController.current = controller;
 
-    try {
-      const photo = await uploadFile(file, controller.signal);
+    const photo = await uploadFile(file, controller.signal);
 
-      if (!controller.signal.aborted) {
+    if (!controller.signal.aborted) {
+      if (photo) {
+        setMessage('');
+      } else {
         setMessage(
-          photo
-            ? ''
-            : 'The photo could not be uploaded. Use Retry or remove it. Your form has been kept.',
+          'The photo could not be uploaded. Use Retry or remove it. Your form has been kept.',
         );
       }
-    } finally {
-      retryLock.current = false;
-      setIsRetrying(false);
-    }
-  }
-
-  const coverFile = photos[0];
-  const [coverUrl, setCoverUrl] = useState('');
-
-  useEffect(() => {
-    if (!coverFile) {
-      setCoverUrl('');
-      return;
     }
 
-    const url = URL.createObjectURL(coverFile);
-    setCoverUrl(url);
-
-    return () => URL.revokeObjectURL(url);
-  }, [coverFile]);
-
-  const selectedAddress = addresses.find((address) => address.id === addressId);
-
-  const previewItem = {
-    id: 'preview',
-    title: title.trim() || 'Your item title',
-    condition:
-      conditions.find((item) => item.value === condition)?.value ?? 'good',
-    status: 'available' as const,
-    childAgeMinMonths: ageFrom !== 'any' ? Number(ageFrom) : null,
-    childAgeMaxMonths: ageTo !== 'any' ? Number(ageTo) : null,
-    city: selectedAddress?.city ?? 'Your city',
-    coverPhoto: coverUrl
-      ? { url: coverUrl, altText: 'Cover photo preview' }
-      : null,
+    setIsRetrying(false);
   };
 
-  const ageError =
-    ageFrom !== 'any' && ageTo !== 'any' && Number(ageTo) < Number(ageFrom)
-      ? 'The end age must be the same as or older than the start age'
-      : '';
+  const saveAddress = async () => {
+    if (busy) return;
 
-  useEffect(() => {
-    let active = true;
+    const newErrors: Errors = {};
 
-    async function load() {
-      try {
-        const result = await getAddresses();
-
-        if (active) {
-          setAddresses(result);
-          setAddressId(result.find((address) => address.isDefault)?.id ?? '');
-        }
-      } catch (error) {
-        if (active) {
-          setAddressLoadError(errorMessage(error));
-        }
-      } finally {
-        if (active) {
-          setAddressesLoading(false);
-        }
-      }
+    if (!addressDraft.line1.trim()) {
+      newErrors['line1'] = 'Enter your street address.';
+    }
+    if (!addressDraft.city.trim()) {
+      newErrors['city'] = 'Enter your city.';
+    }
+    if (!addressDraft.state.trim()) {
+      newErrors['state'] = 'Enter your state.';
+    }
+    if (!addressDraft.postalCode.trim()) {
+      newErrors['postalCode'] = 'Enter your postal code.';
     }
 
-    void load();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    window.scrollTo({ top: 0 });
-
-    const key = pendingFocus.current;
-
-    if (key) {
-      pendingFocus.current = '';
-      requestAnimationFrame(() => focusField(key));
-    }
-  }, [step]);
-
-  useEffect(() => {
-    if (message) {
-      messageRef.current?.focus();
-    }
-  }, [message]);
-
-  async function retryAddresses() {
-    setAddressesLoading(true);
-    setAddressLoadError('');
-
-    try {
-      const result = await getAddresses();
-      setAddresses(result);
-      setAddressId((current) =>
-        result.some((address) => address.id === current)
-          ? current
-          : (result.find((address) => address.isDefault)?.id ?? ''),
-      );
-    } catch (error) {
-      setAddressLoadError(errorMessage(error));
-    } finally {
-      setAddressesLoading(false);
-    }
-  }
-
-  function clearError(key: string) {
-    setErrors((previous) => {
-      if (!(key in previous)) return previous;
-
-      const next = { ...previous };
-      delete next[key];
-      return next;
-    });
-  }
-
-  function focusField(id: string) {
-    formRef.current?.querySelector<HTMLElement>(`#${id}`)?.focus();
-  }
-
-  async function saveAddress() {
-    if (addressSaveLock.current || submitLock.current || retryLock.current) {
-      return;
-    }
-
-    const next: Errors = {};
-
-    for (const field of addressFields) {
-      if (field.required && !addressDraft[field.key].trim()) {
-        next[field.key] = `Enter your ${field.label.toLowerCase()}.`;
-      }
-    }
-
-    setAddressErrors(next);
+    setAddressErrors(newErrors);
     setAddressSaveError('');
 
-    const firstError = Object.keys(next)[0];
+    const firstError = Object.keys(newErrors)[0];
 
     if (firstError) {
       focusField(`new-${firstError}`);
       return;
     }
 
-    addressSaveLock.current = true;
     setSavingAddress(true);
 
     try {
@@ -425,103 +387,92 @@ export default function PostItemPage() {
 
       const saved = await createAddress(body);
 
-      setAddresses((previous) => [
-        ...previous.filter((address) => address.id !== saved.id),
-        saved,
-      ]);
+      setAddresses([...addresses, saved]);
       setAddressId(saved.id);
-      setAddressDraft({ ...emptyAddress });
+      setAddressDraft(emptyAddress);
       setShowAddressEditor(false);
       setAddressLoadError('');
-      setErrors((previous) => {
-        const nextErrors = { ...previous };
-        delete nextErrors['address'];
-        return nextErrors;
-      });
+      clearError('address');
     } catch (error) {
       setAddressSaveError(errorMessage(error));
     } finally {
-      addressSaveLock.current = false;
       setSavingAddress(false);
     }
-  }
+  };
 
-  function collectErrors(): Errors {
-    const next: Errors = {};
+  // Each step has its own validation, so "Next" only checks the current step.
+  const validatePhotos = () => {
+    const newErrors: Errors = {};
+    const wrongType = photos.find(
+      (file) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type),
+    );
+    const oversized = photos.find((file) => file.size > 5 * 1024 * 1024);
 
     if (photos.length === 0) {
-      next['photos'] = 'Add at least 1 photo.';
+      newErrors['photos'] = 'Add at least 1 photo.';
     } else if (photos.length > limits.photos) {
-      next['photos'] = `You can add up to ${limits.photos} photos`;
-    } else {
-      const wrongType = photos.find(
-        (file) =>
-          !['image/jpeg', 'image/png', 'image/webp'].includes(file.type),
-      );
-      const oversized = photos.find((file) => file.size > 5 * 1024 * 1024);
-
-      if (wrongType) {
-        next['photos'] = `${wrongType.name} is not a jpg, png or webp image`;
-      } else if (oversized) {
-        next['photos'] = `${oversized.name} is larger than 5 MB`;
-      }
+      newErrors['photos'] = `You can add up to ${limits.photos} photos`;
+    } else if (wrongType) {
+      newErrors['photos'] = `${wrongType.name} is not a jpg, png or webp image`;
+    } else if (oversized) {
+      newErrors['photos'] = `${oversized.name} is larger than 5 MB`;
     }
 
+    return newErrors;
+  };
+
+  const validateDetails = () => {
+    const newErrors: Errors = {};
+
     if (!title.trim()) {
-      next['title'] = 'Enter an item title.';
+      newErrors['title'] = 'Enter an item title.';
     } else if (title.length > limits.title) {
-      next['title'] = `Title must be ${limits.title} characters or fewer.`;
+      newErrors['title'] = `Title must be ${limits.title} characters or fewer.`;
     }
 
     if (!categories.some((item) => item.key === category)) {
-      next['category'] = 'Select a category.';
+      newErrors['category'] = 'Select a category.';
     }
 
     if (!conditions.some((item) => item.value === condition)) {
-      next['condition'] = 'Select a condition.';
+      newErrors['condition'] = 'Select a condition.';
     }
 
     if (!description.trim()) {
-      next['description'] = 'Enter a description.';
+      newErrors['description'] = 'Enter a description.';
     } else if (description.length > limits.description) {
-      next['description'] =
+      newErrors['description'] =
         `Description must be ${limits.description} characters or fewer.`;
     }
 
     if (ageError) {
-      next['ageTo'] = ageError;
+      newErrors['ageTo'] = ageError;
     }
 
+    return newErrors;
+  };
+
+  const validatePickup = () => {
+    const newErrors: Errors = {};
+
     if (!addresses.some((address) => address.id === addressId)) {
-      next['address'] = 'Select a pickup address.';
+      newErrors['address'] = 'Select a pickup address.';
     }
 
     if (instructions.length > limits.instructions) {
-      next['instructions'] =
+      newErrors['instructions'] =
         `Pickup instructions must be ${limits.instructions} characters or fewer.`;
     }
 
     if (availability.length > limits.availability) {
-      next['availability'] =
+      newErrors['availability'] =
         `Availability must be ${limits.availability} characters or fewer.`;
     }
 
-    return next;
-  }
+    return newErrors;
+  };
 
-  function goToField(key: string) {
-    const target = stepFields.findIndex((fields) => fields.includes(key));
-
-    if (target === -1 || target === step) {
-      focusField(key);
-      return;
-    }
-
-    pendingFocus.current = key;
-    setStep(target);
-  }
-
-  function handleNext() {
+  const handleNext = () => {
     if (showAddressEditor) {
       setMessage('Save or cancel the new address before continuing.');
       return;
@@ -529,14 +480,18 @@ export default function PostItemPage() {
 
     setMessage('');
 
-    const all = collectErrors();
-    const mine = Object.fromEntries(
-      Object.entries(all).filter(([key]) => stepFields[step]?.includes(key)),
-    );
+    let stepErrors: Errors = {};
 
-    setErrors(mine);
+    if (step === 0) {
+      stepErrors = validatePhotos();
+    }
+    if (step === 1) {
+      stepErrors = validateDetails();
+    }
 
-    const firstError = Object.keys(mine)[0];
+    setErrors(stepErrors);
+
+    const firstError = Object.keys(stepErrors)[0];
 
     if (firstError) {
       focusField(firstError);
@@ -544,24 +499,18 @@ export default function PostItemPage() {
     }
 
     setStep(step + 1);
-  }
+  };
 
-  function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    // Next/Post share one form
     if (step < stepLabels.length - 1) {
-      event.preventDefault();
       handleNext();
       return;
     }
 
-    void handleSubmit(event);
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (submitLock.current || addressSaveLock.current || retryLock.current) {
-      return;
-    }
+    if (busy) return;
 
     setMessage('');
 
@@ -570,42 +519,55 @@ export default function PostItemPage() {
       return;
     }
 
-    const next = collectErrors();
+    const photoErrors = validatePhotos();
+    const detailErrors = validateDetails();
+    const pickupErrors = validatePickup();
+    const allErrors = { ...photoErrors, ...detailErrors, ...pickupErrors };
 
-    setErrors(next);
+    setErrors(allErrors);
 
-    const firstError = Object.keys(next)[0];
+    const firstError = Object.keys(allErrors)[0];
 
     if (firstError) {
-      goToField(firstError);
+      // Go back to the step that has the first error, then focus the field.
+      let errorStep = 2;
+      if (Object.keys(photoErrors).length > 0) {
+        errorStep = 0;
+      } else if (Object.keys(detailErrors).length > 0) {
+        errorStep = 1;
+      }
+
+      if (errorStep === step) {
+        focusField(firstError);
+      } else {
+        pendingFocus.current = firstError;
+        setStep(errorStep);
+      }
       return;
     }
 
-    submitLock.current = true;
     setIsSubmitting(true);
 
     try {
       const uploaded: NewItem['photos'] = [];
-
       const controller = new AbortController();
       uploadController.current = controller;
       let uploadFailed = false;
 
-      // Each file keeps its own state; successful uploads are reused on retry.
+      // Photos upload one at a time; ones that worked are reused on retry.
       for (const [index, file] of photos.entries()) {
         if (controller.signal.aborted) return;
 
         const photo = await uploadFile(file, controller.signal);
 
-        if (!photo) {
+        if (photo) {
+          uploaded.push({
+            ...photo,
+            altText: `${title.trim()} photo ${index + 1}`,
+          });
+        } else {
           uploadFailed = true;
-          continue;
         }
-
-        uploaded.push({
-          ...photo,
-          altText: `${title.trim()} photo ${index + 1}`,
-        });
       }
 
       if (controller.signal.aborted) return;
@@ -624,12 +586,21 @@ export default function PostItemPage() {
         category,
         condition,
         addressId,
-        ...(instructions.trim() ? { instructions: instructions.trim() } : {}),
-        ...(availability.trim() ? { availability: availability.trim() } : {}),
         photos: uploaded,
-        ...(ageFrom !== 'any' ? { childAgeMinMonths: Number(ageFrom) } : {}),
-        ...(ageTo !== 'any' ? { childAgeMaxMonths: Number(ageTo) } : {}),
       };
+
+      if (instructions.trim()) {
+        body.instructions = instructions.trim();
+      }
+      if (availability.trim()) {
+        body.availability = availability.trim();
+      }
+      if (ageFrom !== 'any') {
+        body.childAgeMinMonths = Number(ageFrom);
+      }
+      if (ageTo !== 'any') {
+        body.childAgeMaxMonths = Number(ageTo);
+      }
 
       const saved = await createItem(body);
 
@@ -644,10 +615,9 @@ export default function PostItemPage() {
     } catch (error) {
       setMessage(`${errorMessage(error)} Your form has been kept.`);
     } finally {
-      submitLock.current = false;
       setIsSubmitting(false);
     }
-  }
+  };
 
   const isLastStep = step === stepLabels.length - 1;
 
@@ -703,7 +673,7 @@ export default function PostItemPage() {
 
             <form
               ref={formRef}
-              onSubmit={handleFormSubmit}
+              onSubmit={(event) => void handleSubmit(event)}
               noValidate
               aria-busy={busy}
             >
@@ -729,14 +699,6 @@ export default function PostItemPage() {
                         onRetry={(file) => void retryPhoto(file)}
                         onChange={(selected) => {
                           setPhotos(selected);
-                          setUploadStates(
-                            (previous) =>
-                              new Map(
-                                [...previous].filter(([file]) =>
-                                  selected.includes(file),
-                                ),
-                              ),
-                          );
                           clearError('photos');
                         }}
                       />
@@ -908,7 +870,7 @@ export default function PostItemPage() {
                             type="button"
                             variant="outline"
                             disabled={busy || addressesLoading}
-                            onClick={() => void retryAddresses()}
+                            onClick={retryAddresses}
                           >
                             Retry loading addresses
                           </Button>
@@ -998,11 +960,7 @@ export default function PostItemPage() {
                             ...previous,
                             [key]: value,
                           }));
-                          setAddressErrors((previous) => {
-                            const next = { ...previous };
-                            delete next[key];
-                            return next;
-                          });
+                          setAddressErrors({ ...addressErrors, [key]: '' });
                           setAddressSaveError('');
                         }}
                         onSave={() => void saveAddress()}
