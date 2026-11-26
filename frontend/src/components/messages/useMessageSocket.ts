@@ -1,3 +1,4 @@
+import { USE_MOCKS } from '@/api/config';
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { io } from 'socket.io-client';
@@ -7,7 +8,7 @@ const CHANGED_EVENT = 'messages-changed';
 
 export const messagesKey = (claimId: string) => ['messages', claimId] as const;
 
-const isMockMode = import.meta.env['VITE_USE_MOCKED_API_CALLS'] === 'true';
+const isMockMode = USE_MOCKS;
 
 export const useMessageSocket = (claimId: string, enabled: boolean) => {
   const queryClient = useQueryClient();
