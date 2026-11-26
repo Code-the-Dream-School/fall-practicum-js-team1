@@ -37,7 +37,7 @@ export const registerSchema = z
       .min(2, 'Name must be 2 to 50 characters')
       .max(50, 'Name must be 2 to 50 characters'),
 
-    email: z.email('Enter a valid email'),
+    email: z.string().trim().toLowerCase().pipe(z.email('Enter a valid email')),
 
     password: passwordRules.reduce(
       (schema, rule) => schema.refine(rule.test, rule.message),
