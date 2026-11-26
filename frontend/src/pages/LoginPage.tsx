@@ -1,42 +1,44 @@
 import { useState } from 'react';
+import type { FocusEvent } from 'react';
+import { Link } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-
 import { loginSchema, type LoginFormValues } from '@/schemas/loginSchema';
 import { loginUser } from '@/services/authApi';
 import { useAuthStore } from '@/store/authStore';
-
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import AuthField from '@/components/auth/AuthField';
+import AuthShell from '@/components/auth/AuthShell';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 
 export default function LoginPage() {
   const [apiError, setApiError] = useState<string | null>(null);
 
-  // Zustand authentication store
   const setUser = useAuthStore((state) => state.setUser);
   const setCsrfToken = useAuthStore((state) => state.setCsrfToken);
 
-  // React Hook Form with Zod validation
   const {
     register,
     handleSubmit,
+    trigger,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    mode: 'onBlur',
   });
 
-  // Handle login submission
+  const validateIfFilled = (event: FocusEvent<HTMLInputElement>) => {
+    if (event.target.value) {
+      void trigger(event.target.name as keyof LoginFormValues);
+    }
+  };
+
   const onSubmit = async (data: LoginFormValues) => {
     setApiError(null);
 
     try {
       const result = await loginUser(data);
 
-      // Save authentication information in Zustand.
-      // GuestRoute handles the redirect.
+      // GuestRoute redirects once the user is saved.
       setCsrfToken(result.csrfToken);
       setUser(result.user);
     } catch (error) {
@@ -49,74 +51,54 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="mx-auto max-w-md px-6 py-10">
-      <h1 className="mb-6 text-2xl font-semibold">Log in</h1>
-
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        {/* API Error Message */}
+    <AuthShell
+      title="Welcome back"
+      subtitle="Log in to request gear or pass yours on."
+      footer={
+        <>
+          New here?{' '}
+          <Link
+            to="/register"
+            className="font-semibold text-primary underline-offset-4 hover:underline"
+          >
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         {apiError && (
-          <Alert variant="destructive" role="alert" className="mb-4">
+          <Alert variant="destructive" role="alert" className="rounded-xl">
             <AlertDescription>{apiError}</AlertDescription>
           </Alert>
         )}
 
-        {/* Email Field */}
-        <div className="mb-4">
-          <Label htmlFor="email" className="mb-2">
-            Email
-          </Label>
+        <AuthField
+          id="email"
+          label="Email"
+          type="email"
+          autoComplete="email"
+          error={errors.email?.message}
+          {...register('email', { onBlur: validateIfFilled })}
+        />
 
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            {...register('email')}
-            aria-invalid={!!errors.email}
-            aria-describedby={errors.email ? 'email-error' : undefined}
-          />
+        <AuthField
+          id="password"
+          label="Password"
+          type="password"
+          autoComplete="current-password"
+          error={errors.password?.message}
+          {...register('password')}
+        />
 
-          {errors.email && (
-            <p
-              id="email-error"
-              role="alert"
-              className="mt-1 text-sm text-destructive"
-            >
-              {errors.email.message}
-            </p>
-          )}
-        </div>
-
-        {/* Password Field */}
-        <div className="mb-4">
-          <Label htmlFor="password" className="mb-2">
-            Password
-          </Label>
-
-          <Input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            {...register('password')}
-            aria-invalid={!!errors.password}
-            aria-describedby={errors.password ? 'password-error' : undefined}
-          />
-
-          {errors.password && (
-            <p
-              id="password-error"
-              role="alert"
-              className="mt-1 text-sm text-destructive"
-            >
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-
-        {/* Submit Button */}
-        <Button type="submit" disabled={isSubmitting} className="w-full">
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="mt-2 h-12 w-full rounded-full text-base"
+        >
           {isSubmitting ? 'Logging in...' : 'Log in'}
         </Button>
       </form>
-    </main>
+    </AuthShell>
   );
 }
