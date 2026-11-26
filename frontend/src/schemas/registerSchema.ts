@@ -1,5 +1,15 @@
 import { z } from 'zod';
 
+export const passwordRules = [
+  {
+    label: 'At least 8 characters',
+    test: (value: string) => value.length >= 8,
+  },
+  { label: '1 lowercase letter', test: (value: string) => /[a-z]/.test(value) },
+  { label: '1 capital letter', test: (value: string) => /[A-Z]/.test(value) },
+  { label: '1 number', test: (value: string) => /[0-9]/.test(value) },
+];
+
 export const registerSchema = z
   .object({
     name: z
@@ -8,14 +18,14 @@ export const registerSchema = z
       .min(2, 'Name must be 2 to 50 characters')
       .max(50, 'Name must be 2 to 50 characters'),
 
-    email: z.email('Enter a valid email'),
+    email: z.string().trim().toLowerCase().pipe(z.email('Enter a valid email')),
 
     password: z
       .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[a-z]/, 'Password needs at least 1 lowercase letter')
-      .regex(/[A-Z]/, 'Password needs at least 1 capital letter')
-      .regex(/[0-9]/, 'Password needs at least 1 number'),
+      .refine(
+        (value) => passwordRules.every((rule) => rule.test(value)),
+        'Password does not meet the requirements',
+      ),
 
     confirmPassword: z.string(),
   })
