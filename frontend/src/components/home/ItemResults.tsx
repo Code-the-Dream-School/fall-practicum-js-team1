@@ -58,6 +58,13 @@ export const ItemResults = ({
 
   return (
     <>
+      {isError && !isFetchNextPageError && (
+        <ErrorMessage
+          message="Could not refresh items. Showing previous results."
+          onRetry={onRetry}
+        />
+      )}
+
       <div className={gridClasses}>
         {items.map((item) => (
           <ItemCard key={item.id} item={item} />

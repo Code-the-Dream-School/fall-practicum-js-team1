@@ -1,6 +1,10 @@
 import type { ComponentProps } from 'react';
 import { useSearchParams } from 'react-router';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useQuery,
+} from '@tanstack/react-query';
 import { getCategories, getItems } from '@/api/client';
 import { ActiveFilters } from '@/components/home/ActiveFilters';
 import { FilterBar } from '@/components/home/FilterBar';
@@ -91,6 +95,7 @@ export default function HomePage() {
   } = useInfiniteQuery({
     queryKey: ['items', filters],
     initialPageParam: 1,
+    placeholderData: keepPreviousData,
     queryFn: ({ pageParam }) =>
       getItems({
         ...filters,
@@ -101,7 +106,15 @@ export default function HomePage() {
       lastPage.pagination.hasNext ? lastPage.pagination.page + 1 : undefined,
   });
 
-  const items = data?.pages.flatMap((page) => page.items) ?? [];
+  const seenIds = new Set<string>();
+
+  const items = (data?.pages.flatMap((page) => page.items) ?? []).filter(
+    (item) => {
+      if (seenIds.has(item.id)) return false;
+      seenIds.add(item.id);
+      return true;
+    },
+  );
 
   const pagination = data?.pages[0]?.pagination ?? {
     page: 1,
@@ -120,8 +133,6 @@ export default function HomePage() {
     } else {
       next.delete(key);
     }
-
-    next.delete('page');
 
     setSearchParams(next);
   };

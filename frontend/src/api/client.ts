@@ -154,7 +154,7 @@ export const getItems = async (
   filters: ItemFilters = {},
 ): Promise<ItemList> => {
   try {
-    const params = Object.fromEntries(
+    const params: ItemFilters = Object.fromEntries(
       Object.entries(filters).filter(
         ([, value]) => value !== '' && value !== undefined && value !== null,
       ),
