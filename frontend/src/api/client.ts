@@ -16,6 +16,7 @@ import type {
   ItemFilters,
   ItemList,
   ItemShow,
+  ItemUpdate,
   NewAddress,
   NewItem,
   PatchedClaim,
@@ -192,6 +193,18 @@ export const createItem = async (body: NewItem): Promise<ItemShow> => {
   }
 };
 
+export const updateItem = async (
+  id: string,
+  body: ItemUpdate,
+): Promise<ItemShow> => {
+  try {
+    const resp = await axios.patch('/items/' + id, body);
+    return resp.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+};
+
 // end Items
 
 // Upload routes
@@ -243,8 +256,8 @@ export const uploadPhoto = async (
     setupMock(uploader);
   }
 
-  try {
-    const response = await uploader.post<{
+  const response = await uploader
+    .post<{
       secure_url?: unknown;
       public_id?: unknown;
     }>(
@@ -261,27 +274,24 @@ export const uploadPhoto = async (
           );
         },
       },
-    );
+    )
+    .catch((error: unknown) => {
+      throw toError(error);
+    });
 
-    const { secure_url: url, public_id: publicId } = response.data;
+  const { secure_url: url, public_id: publicId } = response.data;
 
-    if (
-      typeof url !== 'string' ||
-      !url.startsWith('https://') ||
-      typeof publicId !== 'string' ||
-      !publicId.trim()
-    ) {
-      throw new ApiRequestError(
-        'The photo upload returned an invalid response.',
-      );
-    }
-
-    onProgress?.(100);
-    return { url, publicId };
-  } catch (error) {
-    if (error instanceof ApiRequestError) throw error;
-    throw toError(error);
+  if (
+    typeof url !== 'string' ||
+    !url.startsWith('https://') ||
+    typeof publicId !== 'string' ||
+    !publicId.trim()
+  ) {
+    throw new ApiRequestError('The photo upload returned an invalid response.');
   }
+
+  onProgress?.(100);
+  return { url, publicId };
 };
 
 // end Upload routes

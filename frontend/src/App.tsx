@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router';
 import Layout from './components/layout/Layout';
 import HomePage from './pages/HomePage';
 import ItemDetailsPage from './pages/ItemDetailsPage';
+import EditItemPage from './pages/EditItemPage';
 import PostItemPage from './pages/PostItemPage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
@@ -19,6 +20,7 @@ function App() {
         <Route path="*" element={<NotFoundPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/items/new" element={<PostItemPage />} />
+          <Route path="/items/:id/edit" element={<EditItemPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
         <Route element={<GuestRoute />}>

@@ -1,5 +1,5 @@
 import mockData from './mockData.json' with { type: 'json' };
-import type { Message as MessageResponse } from '../types';
+import type { ItemUpdate, Message as MessageResponse } from '../types';
 
 export const MOCK_PASSWORD = 'Password123';
 const CSRF_TOKEN = 'mock-csrf-token';
@@ -289,6 +289,53 @@ export const addItem = (user: User, body: NewItem) => {
     photos,
   };
   items.push(item);
+  return makeFullItem(item);
+};
+
+export const updateItem = (user: User, itemId: string, body: ItemUpdate) => {
+  const item = items.find((i) => i.id === itemId);
+  if (!item) {
+    throw new MockApiError('Item not found', 404);
+  }
+  if (item.ownerId !== user.id) {
+    throw new MockApiError('Only the owner can edit this item', 403);
+  }
+
+  const photos: Photo[] = body.photos.map((photo, index) => {
+    if ('id' in photo) {
+      const existing = item.photos.find((p) => p.id === photo.id);
+      if (!existing) {
+        throw new MockApiError('Photo not found on this item', 400);
+      }
+      return { ...existing, position: index };
+    }
+
+    return {
+      id: crypto.randomUUID(),
+      url: photo.url,
+      altText: photo.altText || '',
+      position: index,
+    };
+  });
+
+  item.title = body.title;
+  item.description = body.description;
+  item.category = body.category;
+  item.condition = body.condition;
+  item.childAgeMinMonths = body.childAgeMinMonths;
+  item.childAgeMaxMonths = body.childAgeMaxMonths;
+  item.photos = photos;
+
+  if (body.addressId) {
+    const address = addresses.find(
+      (a) => a.id === body.addressId && a.userId === user.id,
+    );
+    if (!address) {
+      throw new MockApiError('Address not found', 404);
+    }
+    item.addressId = address.id;
+  }
+
   return makeFullItem(item);
 };
 

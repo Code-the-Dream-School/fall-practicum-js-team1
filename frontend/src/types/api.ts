@@ -27,6 +27,20 @@ export type NewItem = {
   photos: { url: string; publicId: string; altText?: string }[];
 };
 
+// photos are in display order (first = cover): { id } for existing, { url, publicId } for new
+export type ItemUpdate = {
+  title: string;
+  description: string;
+  category: string;
+  condition: string;
+  childAgeMinMonths: number | null;
+  childAgeMaxMonths: number | null;
+  addressId?: string;
+  photos: (
+    { id: string } | { url: string; publicId: string; altText?: string }
+  )[];
+};
+
 // what the address form sends to POST /addresses
 export type NewAddress = {
   nickname?: string;
