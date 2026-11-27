@@ -14,7 +14,7 @@ type ItemCardProps = {
     childAgeMinMonths: number | null;
     childAgeMaxMonths: number | null;
     city: string;
-    coverPhoto: { url: string; altText: string } | null;
+    coverPhoto: { url: string; altText: string | null } | null;
   };
 };
 
@@ -29,7 +29,7 @@ export const ItemCard = ({ item }: ItemCardProps) => {
           {item.coverPhoto ? (
             <img
               src={item.coverPhoto.url}
-              alt={item.coverPhoto.altText}
+              alt={item.coverPhoto.altText ?? item.title}
               className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (

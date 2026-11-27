@@ -9,7 +9,7 @@ const thumbClasses = 'size-16 shrink-0 overflow-hidden rounded-xl sm:size-20';
 type ProfileRowProps = {
   // no link means the item can not be opened
   to?: string;
-  photo: { url: string; altText: string } | null;
+  photo: { url: string; altText: string | null } | null;
   title: string;
   chips: ReactNode;
   meta: ReactNode;
@@ -19,7 +19,6 @@ type ProfileRowProps = {
   muted?: boolean;
 };
 
-// one row for both lists, so My donations and My claims look the same
 export const ProfileRow = ({
   to,
   photo,
@@ -61,7 +60,6 @@ export const ProfileRow = ({
             {to ? (
               <Link
                 to={to}
-                // the box stretches over the whole card, so a tap anywhere opens the item
                 className="block truncate font-semibold hover:underline after:absolute after:inset-0 after:rounded-2xl"
               >
                 {title}
