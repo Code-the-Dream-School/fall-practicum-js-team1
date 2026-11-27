@@ -83,6 +83,7 @@ export const ClaimRow = ({ claim, onCancel }: ClaimRowProps) => {
         }
         // the street address is only here while the claim is approved
         details={
+          claim.status === 'approved' &&
           pickup && (
             <div className="space-y-2">
               <h4 className="font-semibold">Pickup details</h4>

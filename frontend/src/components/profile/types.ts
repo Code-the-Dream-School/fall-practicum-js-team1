@@ -12,8 +12,8 @@ export type Pickup = {
   city: string;
   state: string;
   postalCode: string;
-  instructions: string;
-  availability: string;
+  instructions: string | null;
+  availability: string | null;
 };
 
 // a claim the user made
@@ -25,7 +25,7 @@ export type ProfileClaim = {
     id: string;
     title: string;
     owner: { id: string; name: string };
-    coverPhoto: { url: string; altText: string } | null;
+    coverPhoto: { url: string; altText: string | null } | null;
   };
   pickup: Pickup | null;
 };
@@ -35,7 +35,7 @@ export type ItemRequest = {
   id: string;
   itemId: string;
   status: ClaimStatus;
-  message: string;
+  message: string | null;
   claimer: { id: string; name: string };
   createdAt: string;
 };
