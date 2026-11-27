@@ -8,15 +8,63 @@ import { cn } from '@/lib/utils';
 export const photoShapeClass =
   'overflow-hidden rounded-3xl bg-muted shadow-sm ring-1 ring-border';
 
+type PageBackdropVariant =
+  'circles' | 'blocks' | 'arches' | 'hexagons' | 'leaves' | 'diamonds';
+
+type PageBackdropProps = {
+  variant?: PageBackdropVariant;
+  className?: string;
+  children: ReactNode;
+};
+
+const backdropShapes: Record<PageBackdropVariant, string[]> = {
+  circles: [
+    'absolute -top-24 -right-36 size-72 rounded-full bg-accent-sun/15',
+    'absolute -bottom-24 -left-32 size-64 rounded-full bg-accent-blue/15 md:-bottom-32 md:-left-40 md:size-96',
+    'absolute top-1/2 -right-24 size-44 rounded-full border-[20px] border-accent-coral/15',
+    'absolute -bottom-10 left-1/3 size-28 rounded-full bg-accent-sage/20',
+  ],
+  blocks: [
+    'absolute -top-16 -right-24 size-64 rotate-12 rounded-[2.5rem] bg-accent-sun/15',
+    'absolute top-1/3 -left-28 size-52 -rotate-12 rounded-[2.5rem] bg-accent-coral/15',
+    'absolute -right-20 -bottom-20 size-72 rotate-6 rounded-[3rem] bg-accent-blue/15',
+    'absolute bottom-24 left-1/4 size-24 rotate-45 rounded-3xl border-[14px] border-accent-sage/20',
+  ],
+  arches: [
+    'absolute top-28 right-10 hidden h-40 w-80 rounded-t-full border-[24px] border-b-0 border-accent-coral/25 md:block',
+    'absolute top-34 right-16 hidden h-34 w-68 rounded-t-full border-[24px] border-b-0 border-accent-sun/30 md:block',
+    'absolute top-40 right-22 hidden h-28 w-56 rounded-t-full border-[24px] border-b-0 border-accent-blue/30 md:block',
+    'absolute top-[26rem] -left-4 hidden h-48 w-24 rounded-t-full bg-accent-sage/25 md:block',
+    'absolute top-[30rem] left-24 hidden h-32 w-20 rounded-t-full bg-accent-blue/20 lg:block',
+    'absolute top-[44rem] -right-6 hidden h-56 w-28 rounded-t-full bg-accent-coral/20 md:block',
+    'absolute top-[48rem] right-24 hidden h-36 w-20 rounded-t-full bg-accent-sun/20 lg:block',
+  ],
+  hexagons: [
+    'absolute top-12 -left-16 size-64 bg-accent-sage/15 [clip-path:polygon(25%_5%,75%_5%,100%_50%,75%_95%,25%_95%,0%_50%)]',
+    'absolute -top-8 right-12 size-40 bg-accent-sun/20 [clip-path:polygon(25%_5%,75%_5%,100%_50%,75%_95%,25%_95%,0%_50%)]',
+    'absolute -right-24 bottom-16 size-80 bg-accent-blue/15 [clip-path:polygon(25%_5%,75%_5%,100%_50%,75%_95%,25%_95%,0%_50%)]',
+    'absolute bottom-8 left-1/4 hidden size-32 bg-accent-coral/15 md:block [clip-path:polygon(25%_5%,75%_5%,100%_50%,75%_95%,25%_95%,0%_50%)]',
+  ],
+  leaves: [
+    'absolute -top-10 -right-10 size-60 rotate-12 rounded-tl-xl rounded-tr-full rounded-br-xl rounded-bl-full bg-accent-sage/20',
+    'absolute top-1/3 -left-14 size-48 -rotate-12 rounded-tl-xl rounded-tr-full rounded-br-xl rounded-bl-full bg-accent-coral/15',
+    'absolute right-12 bottom-14 size-64 rotate-[20deg] rounded-tl-xl rounded-tr-full rounded-br-xl rounded-bl-full bg-accent-blue/15',
+    'absolute bottom-10 left-1/4 hidden size-24 -rotate-6 rounded-tl-xl rounded-tr-full rounded-br-xl rounded-bl-full bg-accent-sun/25 md:block',
+  ],
+  diamonds: [
+    'absolute -top-12 -right-12 size-52 rotate-45 rounded-xl bg-accent-sun/20',
+    'absolute top-1/3 -left-16 size-44 rotate-45 rounded-xl bg-accent-blue/15',
+    'absolute -right-8 bottom-20 size-60 rotate-45 rounded-xl bg-accent-coral/15',
+    'absolute bottom-8 left-1/4 hidden size-24 rotate-45 rounded-lg bg-accent-sage/25 md:block',
+  ],
+};
+
+// Each variant is a set of decorative shapes drawn behind the page content
 export function PageBackdrop({
   variant = 'circles',
   className,
   children,
-}: {
-  variant?: 'circles' | 'blocks';
-  className?: string;
-  children: ReactNode;
-}) {
+}: PageBackdropProps) {
   return (
     <div
       className={cn(
@@ -24,45 +72,9 @@ export function PageBackdrop({
         className,
       )}
     >
-      {variant === 'circles' ? (
-        <>
-          <div
-            aria-hidden="true"
-            className="absolute -top-24 -right-36 size-72 rounded-full bg-accent-sun/15"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute -bottom-24 -left-32 size-64 rounded-full bg-accent-blue/15 md:-bottom-32 md:-left-40 md:size-96"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute top-1/2 -right-24 size-44 rounded-full border-[20px] border-accent-coral/15"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute -bottom-10 left-1/3 size-28 rounded-full bg-accent-sage/20"
-          />
-        </>
-      ) : (
-        <>
-          <div
-            aria-hidden="true"
-            className="absolute -top-16 -right-24 size-64 rotate-12 rounded-[2.5rem] bg-accent-sun/15"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute top-1/3 -left-28 size-52 -rotate-12 rounded-[2.5rem] bg-accent-coral/15"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute -right-20 -bottom-20 size-72 rotate-6 rounded-[3rem] bg-accent-blue/15"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute bottom-24 left-1/4 size-24 rotate-45 rounded-3xl border-[14px] border-accent-sage/20"
-          />
-        </>
-      )}
+      {backdropShapes[variant].map((shape) => (
+        <div key={shape} aria-hidden="true" className={shape} />
+      ))}
       <div className="relative">{children}</div>
     </div>
   );

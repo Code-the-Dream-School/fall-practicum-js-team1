@@ -30,7 +30,7 @@ import {
   textareaClass,
 } from '@/components/item-form/ItemFormParts';
 import { AddressFields } from '@/components/item-form/AddressFields';
-import { emptyAddress } from '@/lib/addressForm';
+import { emptyAddress, validateAddress } from '@/lib/addressForm';
 import type { AddressDraft } from '@/lib/addressForm';
 import { ItemCard } from '@/components/ui/ItemCard';
 import { Button } from '../components/ui/button';
@@ -348,20 +348,7 @@ export default function PostItemPage() {
   const saveAddress = async () => {
     if (busy) return;
 
-    const newErrors: Errors = {};
-
-    if (!addressDraft.line1.trim()) {
-      newErrors['line1'] = 'Enter your street address.';
-    }
-    if (!addressDraft.city.trim()) {
-      newErrors['city'] = 'Enter your city.';
-    }
-    if (!addressDraft.state.trim()) {
-      newErrors['state'] = 'Enter your state.';
-    }
-    if (!addressDraft.postalCode.trim()) {
-      newErrors['postalCode'] = 'Enter your postal code.';
-    }
+    const newErrors = validateAddress(addressDraft);
 
     setAddressErrors(newErrors);
     setAddressSaveError('');

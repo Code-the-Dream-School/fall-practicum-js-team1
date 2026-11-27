@@ -23,6 +23,7 @@ import {
 } from '@/api/client';
 import type { Claim, CreatedClaim, ItemShow } from '@/types';
 import ItemDetailsSkeleton from '@/components/ItemDetailsSkeleton';
+import ItemNotFound from '@/components/ItemNotFound';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Button } from '@/components/ui/button';
 import {
@@ -207,14 +208,7 @@ export default function ItemDetailsPage() {
   };
 
   if (!id) {
-    return (
-      <main className="mx-auto max-w-6xl px-6 py-12 text-center">
-        <h1 className="text-3xl font-bold">Item not found</h1>
-        <Link to="/" className="mt-6 inline-block text-primary underline">
-          Go to Home page
-        </Link>
-      </main>
-    );
+    return <ItemNotFound />;
   }
 
   if (isPending) {
@@ -223,19 +217,7 @@ export default function ItemDetailsPage() {
 
   if (isError) {
     if (error instanceof ApiRequestError && error.status === 404) {
-      return (
-        <main className="mx-auto max-w-6xl px-6 py-12 text-center">
-          <h1 className="text-3xl font-bold">Item not found</h1>
-
-          <p className="mt-3 text-muted-foreground">
-            The item you are looking for could not be found.
-          </p>
-
-          <Link to="/" className="mt-6 inline-block text-primary underline">
-            Go to Home page
-          </Link>
-        </main>
-      );
+      return <ItemNotFound />;
     }
 
     return (
