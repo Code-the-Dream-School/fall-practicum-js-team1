@@ -22,6 +22,9 @@ type Props = {
   onChange: (key: keyof AddressDraft, value: string) => void;
   onSave: () => void;
   onCancel: () => void;
+  legend?: string;
+  saveLabel?: string;
+  cancelLabel?: string;
 };
 
 const addressFields: {
@@ -65,12 +68,15 @@ export function AddressFields({
   saving,
   busy,
   onChange,
+  legend = 'New pickup address',
+  saveLabel = 'Save address',
+  cancelLabel = 'Cancel address',
   onSave,
   onCancel,
 }: Props) {
   return (
     <fieldset className="min-w-0 space-y-4 rounded-xl border p-4">
-      <legend className="px-1 text-sm font-medium">New pickup address</legend>
+      <legend className="px-1 text-sm font-medium">{legend}</legend>
 
       {addressFields.map((field) => (
         <div key={field.key} className="space-y-2">
@@ -122,7 +128,7 @@ export function AddressFields({
 
       <div className="flex flex-wrap gap-3">
         <Button type="button" onClick={onSave} disabled={busy}>
-          {saving ? 'Saving…' : 'Save address'}
+          {saving ? 'Saving…' : saveLabel}
         </Button>
         <Button
           type="button"
@@ -130,7 +136,7 @@ export function AddressFields({
           disabled={busy}
           onClick={onCancel}
         >
-          Cancel address
+          {cancelLabel}
         </Button>
       </div>
     </fieldset>

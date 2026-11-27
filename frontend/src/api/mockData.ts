@@ -1,5 +1,9 @@
 import mockData from './mockData.json' with { type: 'json' };
-import type { ItemUpdate, Message as MessageResponse } from '../types';
+import type {
+  ItemUpdate,
+  Message as MessageResponse,
+  UpdateAddress,
+} from '../types';
 
 export const MOCK_PASSWORD = 'Password123';
 const CSRF_TOKEN = 'mock-csrf-token';
@@ -376,6 +380,61 @@ export const addAddress = (user: User, body: NewAddress) => {
   };
   addresses.push(address);
   return makeAddress(address);
+};
+
+const findAddressForUser = (user: User, addressId: string): Address => {
+  const address = addresses.find(
+    (a) => a.id === addressId && a.userId === user.id,
+  );
+  if (!address) {
+    throw new MockApiError('Address not found', 404);
+  }
+  return address;
+};
+
+export const updateAddress = (
+  user: User,
+  addressId: string,
+  body: UpdateAddress,
+) => {
+  const address = findAddressForUser(user, addressId);
+
+  address.nickname = body.nickname ?? address.nickname;
+  address.line1 = body.line1 ?? address.line1;
+  if (body.line2 !== undefined) {
+    address.line2 = body.line2 || null;
+  }
+  address.city = body.city ?? address.city;
+  address.state = body.state ?? address.state;
+  address.postalCode = body.postalCode ?? address.postalCode;
+
+  if (body.isDefault) {
+    const myAddresses = addresses.filter((a) => a.userId === user.id);
+    myAddresses.forEach((a) => {
+      a.isDefault = a.id === address.id;
+    });
+  }
+
+  return makeAddress(address);
+};
+
+export const deleteAddress = (user: User, addressId: string) => {
+  const address = findAddressForUser(user, addressId);
+
+  if (items.some((item) => item.addressId === address.id)) {
+    throw new MockApiError(
+      'This address is used by one of your items. Remove the item first.',
+      409,
+    );
+  }
+
+  addresses.splice(addresses.indexOf(address), 1);
+
+  // If the default was deleted, make the next address the default
+  const myAddresses = addresses.filter((a) => a.userId === user.id);
+  if (address.isDefault && myAddresses[0]) {
+    myAddresses[0].isDefault = true;
+  }
 };
 
 export const CLOUDINARY_UPLOAD_URL =

@@ -53,6 +53,9 @@ export type NewAddress = {
   isDefault?: boolean;
 };
 
+// what the address form sends to PATCH /addresses/:id, only the fields that changed
+export type UpdateAddress = Partial<NewAddress>;
+
 // the data of register, logon and GET /users/me
 export type AuthData = { user: User; csrfToken: string };
 

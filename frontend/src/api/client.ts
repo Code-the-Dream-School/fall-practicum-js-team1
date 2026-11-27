@@ -16,6 +16,7 @@ import type {
   ItemShow,
   ItemUpdate,
   NewAddress,
+  UpdateAddress,
   NewItem,
   PatchedClaim,
   ProfileStats,
@@ -142,6 +143,29 @@ export const createAddress = async (body: NewAddress): Promise<Address> => {
   try {
     const resp = await axios.post('/addresses', body);
     return resp.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+};
+
+export const updateAddress = async (
+  id: string,
+  body: UpdateAddress,
+): Promise<Address> => {
+  try {
+    const resp = await axios.patch(
+      `/addresses/${encodeURIComponent(id)}`,
+      body,
+    );
+    return resp.data.data;
+  } catch (error) {
+    throw toError(error);
+  }
+};
+
+export const deleteAddress = async (id: string): Promise<void> => {
+  try {
+    await axios.delete(`/addresses/${encodeURIComponent(id)}`);
   } catch (error) {
     throw toError(error);
   }

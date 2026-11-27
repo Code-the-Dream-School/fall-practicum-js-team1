@@ -34,6 +34,8 @@ import {
   updateItem,
   withdrawItem,
   createClaim,
+  deleteAddress,
+  updateAddress,
 } from './mockData';
 import type { User } from './mockData';
 
@@ -155,6 +157,26 @@ export const setupMock = (axiosInstance: AxiosInstance) => {
     forSignedInUser((user, config) => {
       const body = JSON.parse(config.data);
       return [CREATED, success(addAddress(user, body))];
+    }),
+  );
+
+  mock.onPatch(/\/addresses\/[^/]+$/).reply(
+    forSignedInUser((user, config) => {
+      const addressId = config.url?.split('/').pop() ?? '';
+      const body = JSON.parse(config.data);
+      return answerMessage(() =>
+        updateAddress(user, decodeURIComponent(addressId), body),
+      );
+    }),
+  );
+
+  mock.onDelete(/\/addresses\/[^/]+$/).reply(
+    forSignedInUser((user, config) => {
+      const addressId = config.url?.split('/').pop() ?? '';
+      return answerMessage(() => {
+        deleteAddress(user, decodeURIComponent(addressId));
+        return { message: 'Address deleted' };
+      });
     }),
   );
 

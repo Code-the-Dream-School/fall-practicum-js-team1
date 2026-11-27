@@ -24,6 +24,7 @@ import {
 } from '@/api/client';
 import { AddressFields } from '@/components/item-form/AddressFields';
 import ItemDetailsSkeleton from '@/components/ItemDetailsSkeleton';
+import ItemNotFound from '@/components/ItemNotFound';
 import {
   FactList,
   FactRow,
@@ -51,7 +52,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useCategories } from '@/hooks/useCategories';
-import { emptyAddress } from '@/lib/addressForm';
+import { emptyAddress, validateAddress } from '@/lib/addressForm';
 import type { AddressDraft } from '@/lib/addressForm';
 import { conditionBadges, conditions, limits, tints } from '@/lib/itemForm';
 import { cn } from '@/lib/utils';
@@ -261,20 +262,7 @@ function EditItemForm({ item }: { item: ItemShow }) {
   };
 
   const saveAddress = async () => {
-    const newErrors: Errors = {};
-
-    if (!addressDraft.line1.trim()) {
-      newErrors['line1'] = 'Enter your street address.';
-    }
-    if (!addressDraft.city.trim()) {
-      newErrors['city'] = 'Enter your city.';
-    }
-    if (!addressDraft.state.trim()) {
-      newErrors['state'] = 'Enter your state.';
-    }
-    if (!addressDraft.postalCode.trim()) {
-      newErrors['postalCode'] = 'Enter your postal code.';
-    }
+    const newErrors = validateAddress(addressDraft);
 
     setAddressErrors(newErrors);
     setAddressSaveError('');
@@ -866,14 +854,7 @@ export default function EditItemPage() {
 
   if (isError) {
     if (error instanceof ApiRequestError && error.status === NOT_FOUND) {
-      return (
-        <main className="mx-auto max-w-6xl px-6 py-12 text-center">
-          <h1 className="text-3xl font-bold">Item not found</h1>
-          <Link to="/" className="mt-6 inline-block text-primary underline">
-            Go to Home page
-          </Link>
-        </main>
-      );
+      return <ItemNotFound />;
     }
 
     return (

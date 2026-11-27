@@ -1,5 +1,6 @@
 import { useRef } from 'react';
-import { Check, LogOut, Moon } from 'lucide-react';
+import { Link } from 'react-router';
+import { Check, LogOut, MapPin, Moon } from 'lucide-react';
 import { DropdownMenu } from 'radix-ui';
 import { getInitials } from '@/lib/getInitials';
 import { useThemeStore } from '@/store/themeStore';
@@ -50,6 +51,16 @@ const UserMenu = ({ name, email, isLoggingOut, onLogout }: UserMenuProps) => {
           </div>
 
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
+
+          <DropdownMenu.Item
+            asChild
+            className="flex cursor-default items-center gap-2 rounded-lg px-3 py-2 outline-none data-highlighted:bg-muted"
+          >
+            <Link to="/addresses">
+              <MapPin className="size-4" />
+              My addresses
+            </Link>
+          </DropdownMenu.Item>
 
           <DropdownMenu.CheckboxItem
             checked={isDark}

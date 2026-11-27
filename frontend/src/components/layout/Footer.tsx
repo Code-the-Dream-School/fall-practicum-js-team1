@@ -1,3 +1,5 @@
+import { Link } from 'react-router';
+
 export default function Footer() {
   return (
     <footer className="border-t">
@@ -7,7 +9,9 @@ export default function Footer() {
         </span>
 
         <div className="flex gap-6">
-          <span>About</span>
+          <Link to="/about" className="hover:underline">
+            About
+          </Link>
           <span>Safety tips</span>
           <span>Privacy</span>
           <span>Terms</span>
